@@ -1,13 +1,8 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { useRouter } from "@/components/navigation";
-
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
 import dayjs from "dayjs";
 
 interface Task {
@@ -79,24 +74,7 @@ export const columns: ColumnDef<Task>[] = [
     header: "Actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const router = useRouter();
-      const processId = row.original.process_id;
-      const handleDetailInvoice = async () => {
-        router.push(`/invoice/approval/${processId}`);
-      };
-
-      return (
-        <Button
-          variant="outline"
-          color="primary"
-          size="sm"
-          className="ltr:ml-2 rtl:mr-2  h-8 "
-          onClick={handleDetailInvoice}
-        >
-          <Eye className="ltr:mr-2 rtl:ml-2 w-4 h-4" />
-          Detail
-        </Button>
-      );
+      return <DataTableRowActions row={row} />;
     },
   },
 ];

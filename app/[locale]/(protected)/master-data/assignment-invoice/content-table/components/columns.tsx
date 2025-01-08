@@ -1,19 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import dayjs from "dayjs";
-import { useRouter } from "@/components/navigation";
-
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { ColumnDef } from "@tanstack/react-table";
-import { Dialog } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ClipboardPen, Loader } from "lucide-react";
-import { FormAssign } from "./form-assign";
-import { useQuery } from "@tanstack/react-query";
-import { getTypeInvoiceById } from "@/action/master-type-invoice-action";
-import { getMasterUser } from "@/action/master-user-action";
 
 interface Task {
   type_id: string;
@@ -85,17 +74,7 @@ export const columns: ColumnDef<Task>[] = [
     header: "Actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const router = useRouter();
-      const typeId = row.original.type_id;
-      const handleDetailAssign = async () => {
-        router.push(`/master-data/assignment-invoice/${typeId}`);
-      };
-
-      return (
-        <Button color="info" size="icon" onClick={handleDetailAssign}>
-          <ClipboardPen className="w-4 h-4" />
-        </Button>
-      );
+      return <DataTableRowActions row={row} />;
     },
   },
 ];

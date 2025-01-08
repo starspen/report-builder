@@ -76,6 +76,13 @@ export function getMenuList(pathname: string, t: any): Group[] {
               icon: "heroicons:credit-card",
               children: [],
             },
+            {
+              href: "/dashboard/admin",
+              label: "Admin",
+              active: pathname === "/dashboard/admin",
+              icon: "heroicons:user-group",
+              children: [],
+            },
           ],
         },
       ],
