@@ -181,8 +181,7 @@ export const FormAssign = ({
 
   // function onSubmit(data: z.infer<typeof schema>) {
   function onSubmit(data: any) {
-    console.log(data);
-    // mutation.mutate(data);
+    mutation.mutate(data);
   }
 
   useEffect(() => {

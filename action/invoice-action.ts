@@ -215,6 +215,105 @@ export const generateInvoiceProforma = async (
   }
 };
 
+export const getInvoiceList = async () => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/invoice-approval-list`, {
+      method: "GET",
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const submitInvoiceEmail = async (
+  docNo: string,
+  processId: string,
+  relatedClass: string
+) => {
+  const session = await auth();
+  const auditUser = session?.user?.email;
+
+  const data = {
+    doc_no: docNo,
+    process_id: processId,
+    audit_user: auditUser,
+    related_class: relatedClass,
+  };
+
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/invoice-submit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error update data:", error);
+    return error;
+  }
+};
+
+export const deleteInvoice = async (docNo: string, processId: string) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/invoice-delete/${docNo}/${processId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error update data:", error);
+    return error;
+  }
+};
+
 export const getInvoiceApprovalByUser = async () => {
   try {
     const session = await auth();
@@ -309,7 +408,7 @@ export const submitInvoiceApproval = async (data: any) => {
     }
 
     const response = await fetch(
-      `${url}/api/invoice-approve?doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}`,
+      `${url}/api/invoice-approve?doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_remarks=${data.approvalRemark}&approval_status=${data.approvalStatus}`,
       {
         method: "GET",
       }
@@ -482,9 +581,9 @@ export const stampInvoice = async (docNo: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_STAMP_SANDBOX_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_STAMP_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice-stamp/${docNo}`, {
@@ -507,9 +606,9 @@ export const noStampInvoice = async (docNo: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_STAMP_SANDBOX_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_STAMP_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice-no-stamp/${docNo}`, {
@@ -588,7 +687,7 @@ export const restampInvoice = async (docNo: string) => {
     }
 
     const response = await fetch(
-      `${process.env.NEXT_API_STAMP_SANDBOX_URL}/api/invoice-restamp/${docNo}`,
+      `${process.env.NEXT_API_BACKEND_SANDBOX_URL}/api/invoice-restamp/${docNo}`,
       {
         method: "GET",
       }
@@ -619,9 +718,9 @@ export const getInvoiceStampHistory = async (
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_STAMP_SANDBOX_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_STAMP_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice/stamp-history`, {
@@ -657,9 +756,9 @@ export const downloadInvoiceStampHistory = async (
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_STAMP_SANDBOX_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_STAMP_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice/stamp-history-download`, {

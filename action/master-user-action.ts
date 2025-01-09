@@ -11,7 +11,7 @@ export const getMasterUser = async () => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/user/get`, {
+    const response = await fetch(`${url}/api/user/get`, {
       method: "GET",
     });
     const result = await response.json();
@@ -36,7 +36,7 @@ export const getMasterUserById = async (id: number | string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/user/get/${id}`, {
+    const response = await fetch(`${url}/api/user/get/${id}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -66,7 +66,7 @@ export const insertMasterUser = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/user/create`, {
+    const response = await fetch(`${url}/api/user/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -101,7 +101,7 @@ export const updateMasterUser = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/user/edit`, {
+    const response = await fetch(`${url}/api/user/edit`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -130,7 +130,7 @@ export const deleteMasterUser = async (id: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/user/delete/${id}`, {
+    const response = await fetch(`${url}/api/user/delete/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

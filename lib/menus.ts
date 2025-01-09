@@ -158,6 +158,13 @@ export function getMenuList(pathname: string, t: any): Group[] {
               ],
             },
             {
+              href: "/invoice/list",
+              label: "Invoice List",
+              active: pathname === "/invoice/list",
+              icon: "heroicons:document",
+              children: [],
+            },
+            {
               href: "/invoice/approval",
               label: "Invoice Approval",
               active: pathname === "/invoice/approval",

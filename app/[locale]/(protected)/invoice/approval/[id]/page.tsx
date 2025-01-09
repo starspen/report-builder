@@ -73,7 +73,8 @@ const ReactTablePage = () => {
       const dataPost = {
         docNo: dataHd?.data[0].doc_no,
         process_id: processId,
-        status: actionType,
+        approvalRemark: data.inputMessage,
+        approvalStatus: actionType,
       };
       setIsLoadingSubmit(true);
       const result = await submitInvoiceApproval(dataPost);

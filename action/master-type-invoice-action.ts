@@ -11,7 +11,7 @@ export const getTypeInvoice = async () => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/type/get`, {
+    const response = await fetch(`${url}/api/type/get`, {
       method: "GET",
     });
     const result = await response.json();
@@ -36,7 +36,7 @@ export const getTypeInvoiceById = async (id: number | string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/type/get/${id}`, {
+    const response = await fetch(`${url}/api/type/get/${id}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -61,7 +61,7 @@ export const getTypeInvoiceDetailById = async (id: number | string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/type/get-detail/${id}`, {
+    const response = await fetch(`${url}/api/type/get-detail/${id}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -93,7 +93,7 @@ export const insertTypeInvoice = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/type/create`, {
+    const response = await fetch(`${url}/api/type/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -130,7 +130,7 @@ export const updateTypeInvoice = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/type/edit`, {
+    const response = await fetch(`${url}/api/type/edit`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -159,7 +159,7 @@ export const deleteTypeInvoice = async (id: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/type/delete/${id}`, {
+    const response = await fetch(`${url}/api/type/delete/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -187,7 +187,7 @@ export const insertAssignmentInvoice = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/fji/user/assign/type-approval`, {
+    const response = await fetch(`${url}/api/user/assign/type-approval`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -222,9 +222,9 @@ export const stampReceipt = async (docNo: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_STAMP_SANDBOX_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_STAMP_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/receipt-stamp/${docNo}`, {
@@ -303,7 +303,7 @@ export const restampReceipt = async (docNo: string) => {
     }
 
     const response = await fetch(
-      `${process.env.NEXT_API_STAMP_SANDBOX_URL}/api/receipt-restamp/${docNo}`,
+      `${process.env.NEXT_API_BACKEND_SANDBOX_URL}/api/receipt-restamp/${docNo}`,
       {
         method: "GET",
       }
@@ -334,9 +334,9 @@ export const getReceiptStampHistory = async (
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_STAMP_SANDBOX_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_STAMP_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/receipt/stamp-history`, {
@@ -372,9 +372,9 @@ export const downloadReceiptStampHistory = async (
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_STAMP_SANDBOX_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_STAMP_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/receipt/stamp-history-download`, {
