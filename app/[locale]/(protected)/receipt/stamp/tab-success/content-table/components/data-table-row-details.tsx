@@ -76,7 +76,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                 <Badge
                   className={cn("rounded-full px-5 bg-primary/20 text-primary")}
                 >
-                  This document has not stamped
+                  Not stamp yet
                 </Badge>
               </TableCell>
             </TableRow>

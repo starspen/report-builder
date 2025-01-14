@@ -43,7 +43,7 @@ const ReactTablePage = () => {
     },
   });
 
-  if (isLoadingTypeInvoice && isLoadingTypeDetailInvoice && isLoadingUser) {
+  if (isLoadingTypeInvoice || isLoadingTypeDetailInvoice || isLoadingUser) {
     return <div>Loading...</div>;
   }
 

@@ -84,7 +84,7 @@ export function DataTableToolbar({
           if (isLoading) {
             toast.info("Generating invoice, please wait...");
           }
-          if (response.success) {
+          if (response.statusCode === 200) {
             toast.success("Success generate invoice");
             queryClient.invalidateQueries({ queryKey: ["invoice-schedule"] });
           } else {

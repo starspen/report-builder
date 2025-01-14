@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { X, Stamp } from "lucide-react";
+import { X, Stamp, Ban } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { stampReceipt } from "@/action/receipt-action";
+import { stampReceipt, noStampReceipt } from "@/action/receipt-action";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -33,6 +33,8 @@ export function DataTableToolbar({
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoadingNoStamp, setIsLoadingNoStamp] = useState(false);
+  const [isModalOpenNoStamp, setIsModalOpenNoStamp] = useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -47,19 +49,28 @@ export function DataTableToolbar({
     }
   };
 
+  const handleOpenModalNoStamp = async () => {
+    if (selectedRows.size > 0) {
+      setIsModalOpenNoStamp(true);
+    } else {
+      toast.error("Please select at least one row");
+    }
+  };
+
   const handleStampReceipt = async () => {
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
+        const fileName = rowData.filenames;
+        const fileType = rowData.invoice_tipe;
 
         setIsLoading(true);
         try {
-          const response = await stampReceipt(docNo);
+          const response = await stampReceipt(fileName, fileType);
           if (isLoading) {
             toast.info("Stamping, please wait...");
           }
-          if (response.success) {
+          if (response.statusCode === 200) {
             toast.success("Success stamping");
             queryClient.invalidateQueries({
               queryKey: ["receipt-stamp-success"],
@@ -75,6 +86,36 @@ export function DataTableToolbar({
       }
     }
     setIsModalOpen(false);
+  };
+
+  const handleNoStampReceipt = async () => {
+    for (const rowId of Array.from(selectedRows)) {
+      const rowData = table.getRow(String(rowId))?.original;
+      if (rowData) {
+        const docNo = rowData.doc_no;
+
+        setIsLoadingNoStamp(true);
+        try {
+          const response = await noStampReceipt(docNo);
+          if (isLoadingNoStamp) {
+            toast.info("Processing, please wait...");
+          }
+          if (response.statusCode === 200) {
+            toast.success("Successfully processed");
+            queryClient.invalidateQueries({
+              queryKey: ["receipt-stamp-success"],
+            });
+          } else {
+            toast.error(response.message);
+          }
+        } catch (error) {
+          toast.error("Error occurred while processing");
+        } finally {
+          setIsLoadingNoStamp(false);
+        }
+      }
+    }
+    setIsModalOpenNoStamp(false);
   };
 
   return (
@@ -122,6 +163,61 @@ export function DataTableToolbar({
             >
               {isLoading ? (
                 "Stamping..."
+              ) : (
+                <>
+                  Proceed
+                  <Badge
+                    color="warning"
+                    className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2"
+                  >
+                    {selectedRows.size}
+                  </Badge>
+                </>
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={isModalOpenNoStamp}
+        onOpenChange={setIsModalOpenNoStamp}
+      >
+        <Button
+          variant="outline"
+          color="primary"
+          size="sm"
+          className="ltr:ml-2 rtl:mr-2  h-8 "
+          onClick={handleOpenModalNoStamp}
+          disabled={isLoadingNoStamp}
+        >
+          <Ban className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+          No Stamp
+        </Button>
+
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to no stamp the selected data?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Please confirm if you want to proceed. This action will no stamp
+              the selected data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {!isLoadingNoStamp && (
+              <AlertDialogCancel onClick={() => setIsModalOpenNoStamp(false)}>
+                Cancel
+              </AlertDialogCancel>
+            )}
+            <Button
+              className="relative"
+              onClick={handleNoStampReceipt}
+              disabled={isLoadingNoStamp}
+            >
+              {isLoadingNoStamp ? (
+                "Processing..."
               ) : (
                 <>
                   Proceed

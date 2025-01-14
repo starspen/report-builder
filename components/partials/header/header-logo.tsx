@@ -11,12 +11,12 @@ const HeaderLogo = () => {
   const isDesktop = useMediaQuery("(min-width: 1280px)");
 
   return config.layout === "horizontal" ? (
-    <Link href="/dashboard/analytics" className="flex gap-2 items-center    ">
+    <Link href="/dashboard/admin" className="flex gap-2 items-center    ">
       <DashCodeLogo className="  text-default-900 h-25 w-25 [&>path:nth-child(3)]:text-background [&>path:nth-child(2)]:text-background" />
     </Link>
   ) : (
     !isDesktop && (
-      <Link href="/dashboard/analytics" className="flex gap-2 items-center    ">
+      <Link href="/dashboard/admin" className="flex gap-2 items-center    ">
         <DashCodeLogo className="  text-default-900 h-25 w-25 [&>path:nth-child(3)]:text-background [&>path:nth-child(2)]:text-background" />
       </Link>
     )

@@ -114,6 +114,8 @@ export default function AdvancedTable() {
                           field.onChange(date);
                         }}
                         defaultMonth={startDate || new Date()}
+                        fromYear={2000}
+                        toYear={new Date().getFullYear()}
                         initialFocus
                       />
                     )}
@@ -164,6 +166,8 @@ export default function AdvancedTable() {
                           field.onChange(date);
                         }}
                         defaultMonth={endDate || new Date()}
+                        fromYear={2000}
+                        toYear={new Date().getFullYear()}
                         initialFocus
                       />
                     )}

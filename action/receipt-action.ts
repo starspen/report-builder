@@ -1,14 +1,15 @@
 "use server";
+import { auth } from "@/lib/auth";
 
-const mode = `${process.env.NEXT_ENV_MODE}`;
+const mode = `${process.env.NEXT_PUBLIC_ENV_MODE}`;
 
 export const getReceiptSchedule = async (
   startDate: string,
   endDate: string
 ) => {
   const data = {
-    startDate: startDate,
-    endDate: endDate,
+    start_date: startDate,
+    end_date: endDate,
   };
 
   try {
@@ -19,7 +20,7 @@ export const getReceiptSchedule = async (
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/receipt-schedule`, {
+    const response = await fetch(`${url}/api/receipt/get`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,6 +42,9 @@ export const getReceiptSchedule = async (
 
 export const generateReceiptSchedule = async (docNo: string) => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.email;
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -49,7 +53,7 @@ export const generateReceiptSchedule = async (docNo: string) => {
     }
 
     const response = await fetch(
-      `${url}/api/receipt-schedule-generate/${docNo}`,
+      `${url}/api/receipt/generate?doc_no=${docNo}&audit_user=${auditUser}`,
       {
         method: "GET",
       }
@@ -101,7 +105,7 @@ export const sendReceiptEmail = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/receipt-email-send/${docNo}`, {
+    const response = await fetch(`${url}/api/mail/blast-email-or/${docNo}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -202,7 +206,7 @@ export const resendReceiptEmail = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/receipt-email-resend/${docNo}`, {
+    const response = await fetch(`${url}/api/mail/blast-email-or/${docNo}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -218,7 +222,42 @@ export const resendReceiptEmail = async (docNo: string) => {
   }
 };
 
-export const stampReceipt = async (docNo: string) => {
+export const stampReceipt = async (fileName: string, fileType: string) => {
+  try {
+    const data = {
+      company_cd: "GQCINV",
+      file_name: fileName,
+      file_type: fileType,
+    };
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/peruri/stamp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const noStampReceipt = async (docNo: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -227,7 +266,7 @@ export const stampReceipt = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/receipt-stamp/${docNo}`, {
+    const response = await fetch(`${url}/api/peruri/no-stamp-or/${docNo}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -293,8 +332,14 @@ export const getReceiptStampFailed = async () => {
   }
 };
 
-export const restampReceipt = async (docNo: string) => {
+export const restampReceipt = async (fileName: string, fileType: string) => {
   try {
+    const data = {
+      company_cd: "GQCINV",
+      file_name: fileName,
+      file_type: fileType,
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -302,12 +347,13 @@ export const restampReceipt = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(
-      `${process.env.NEXT_API_BACKEND_SANDBOX_URL}/api/receipt-restamp/${docNo}`,
-      {
-        method: "GET",
-      }
-    );
+    const response = await fetch(`${url}/api/peruri/stamp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
     const result = await response.json();
 
     if (result.statusCode === 200) {
@@ -363,12 +409,6 @@ export const downloadReceiptStampHistory = async (
   startDate: string,
   endDate: string
 ) => {
-  const data = {
-    company_cd: "GQCINV",
-    startDate: startDate,
-    endDate: endDate,
-  };
-
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -377,13 +417,12 @@ export const downloadReceiptStampHistory = async (
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/receipt/stamp-history-download`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(
+      `${url}/api/download-or?start_date=${startDate}&end_date=${endDate}`,
+      {
+        method: "GET",
+      }
+    );
     const result = await response.json();
 
     if (result.statusCode === 200) {

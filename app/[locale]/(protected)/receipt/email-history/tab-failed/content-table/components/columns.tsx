@@ -88,7 +88,7 @@ export const columns: ColumnDef<Task>[] = [
         <Badge
           className={cn("rounded-full px-5 bg-destructive/20 text-destructive")}
         >
-          Failed Send Email
+          Failed
         </Badge>
       );
     },

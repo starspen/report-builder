@@ -1,6 +1,6 @@
 export const metadata = {
   title: "IFCA Software",
-  description: "Dashcode is a popular dashboard template.",
+  description: "IFCA Blast Email & Stamp Invoice-Receipt",
 };
 
 const layout = ({ children }: { children: React.ReactNode }) => {

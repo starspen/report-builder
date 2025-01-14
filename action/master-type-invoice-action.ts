@@ -61,7 +61,7 @@ export const getTypeInvoiceDetailById = async (id: number | string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/type/get-detail/${id}`, {
+    const response = await fetch(`${url}/api/type-dtl/get/${id}`, {
       method: "GET",
     });
     const result = await response.json();

@@ -51,6 +51,11 @@ export const columns: ColumnDef<Task>[] = [
     enableHiding: false,
   },
   {
+    accessorKey: "project_no",
+    header: "Project No",
+    cell: ({ row }) => <span>{row.getValue("project_no")}</span>,
+  },
+  {
     accessorKey: "debtor_acct",
     header: "Debtor Acct",
     cell: ({ row }) => <span>{row.getValue("debtor_acct")}</span>,

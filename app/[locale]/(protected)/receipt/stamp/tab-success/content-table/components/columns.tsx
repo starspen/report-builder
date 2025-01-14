@@ -1,5 +1,8 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import dayjs from "dayjs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -8,14 +11,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Eye, MoreVertical, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface Task {
   debtor_acct: string;
   debtor_name: string;
   email_addr: string;
   doc_no: string;
+  doc_amt: string;
   action: React.ReactNode;
 }
 export const columns: ColumnDef<Task>[] = [
@@ -71,36 +74,56 @@ export const columns: ColumnDef<Task>[] = [
   {
     accessorKey: "doc_no",
     header: "Doc No",
-    cell: ({ row }) => <span>{row.getValue("doc_no")}</span>,
+    cell: ({ row }) => {
+      const value = row.getValue("doc_no");
+      const doc_amt = row.original.doc_amt;
+      if (Number(doc_amt) >= 5000000) {
+        return (
+          <Badge className={cn("rounded-full px-5 bg-success/20 text-success")}>
+            {String(value)}
+          </Badge>
+        );
+      } else {
+        return (
+          <Badge
+            className={cn(
+              "rounded-full px-5 bg-destructive/20 text-destructive"
+            )}
+          >
+            {String(value)}
+          </Badge>
+        );
+      }
+    },
   },
   {
-    id: "actions",
-    accessorKey: "action",
-    header: "Actions",
-    enableHiding: false,
+    accessorKey: "doc_date",
+    header: "Doc Date",
     cell: ({ row }) => {
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              size="icon"
-              className="bg-transparent ring-offset-transparent hover:bg-transparent hover:ring-0 hover:ring-transparent"
-            >
-              <span className="sr-only">Open menu</span>
-              <MoreVertical className="h-4 w-4 text-default-800" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="p-0" align="end">
-            <DropdownMenuItem className="p-2 border-b text-default-700 group focus:bg-default focus:text-primary-foreground rounded-none">
-              <Eye className="w-4 h-4 me-1.5" />
-              View
-            </DropdownMenuItem>
-            <DropdownMenuItem className="p-2 border-b text-destructive bg-destructive/30  focus:bg-destructive focus:text-destructive-foreground rounded-none">
-              <Trash2 className="w-4 h-4 me-1.5" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <span>{dayjs(row.getValue("doc_date")).format("DD/MM/YYYY")}</span>
+      );
+    },
+  },
+  {
+    id: "details",
+    accessorKey: "action",
+    header: "Details",
+    enableHiding: false,
+    cell: ({ row }) => {
+      return row.getCanExpand() ? (
+        <button
+          onClick={row.getToggleExpandedHandler()}
+          style={{ cursor: "pointer" }}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </button>
+      ) : (
+        ""
       );
     },
   },

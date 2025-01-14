@@ -283,7 +283,7 @@ export const FormAssign = ({
         }
       });
     }
-  }, [dataTypeDetailInvoice, users, selectedApprovals, setValue]);
+  }, [dataTypeDetailInvoice, users, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mt-3 space-y-4">

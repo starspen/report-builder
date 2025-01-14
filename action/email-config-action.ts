@@ -1,4 +1,5 @@
 "use server";
+import { auth } from "@/lib/auth";
 
 const mode = `${process.env.NEXT_PUBLIC_ENV_MODE}`;
 
@@ -6,12 +7,12 @@ export const getEmailConfig = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_PUBLIC_SITE_URL}`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/email_config`, {
+    const response = await fetch(`${url}/api/mail/config`, {
       method: "GET",
     });
     const result = await response.json();
@@ -29,6 +30,21 @@ export const getEmailConfig = async () => {
 
 export const submitEmailConfig = async (data: any) => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.name;
+
+    const dataSubmit = {
+      driver: data.mailDriver,
+      host: data.mailHost,
+      port: data.mailPort,
+      username: data.mailUsername,
+      password: data.mailPassword,
+      encryption: data.mailEncryption,
+      sender_name: data.mailFromName,
+      sender_email: data.mailFromAddress,
+      audit_user: auditUser,
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -36,12 +52,12 @@ export const submitEmailConfig = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/submit-email-config`, {
+    const response = await fetch(`${url}/api/mail/edit-config`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(dataSubmit),
     });
     const result = await response.json();
 

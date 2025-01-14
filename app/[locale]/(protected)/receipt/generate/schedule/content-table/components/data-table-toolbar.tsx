@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { X } from "lucide-react";
+import { FileCheck, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,14 @@ export function DataTableToolbar({
     const value = event.target.value;
     table.setGlobalFilter(value);
   };
+  const projectNoFilter = table.getColumn("project_no");
+  const projectNoSet = new Set(
+    table.getFilteredRowModel().rows.map((row) => row.original.project_no)
+  );
+  const projectNo = Array.from(projectNoSet).map((projectNo) => ({
+    value: projectNo,
+    label: projectNo,
+  }));
 
   const handleOpenModal = async () => {
     if (selectedRows.size > 0) {
@@ -59,7 +67,7 @@ export function DataTableToolbar({
           if (isLoading) {
             toast.info("Generating receipt, please wait...");
           }
-          if (response.success) {
+          if (response.statusCode === 200) {
             toast.success("Success generate receipt");
             queryClient.invalidateQueries({ queryKey: ["receipt-schedule"] });
           } else {
@@ -84,14 +92,24 @@ export function DataTableToolbar({
         className="h-8 min-w-[200px] max-w-sm"
       />
 
+      {projectNoFilter && (
+        <DataTableFacetedFilter
+          column={projectNoFilter}
+          title="Project"
+          options={projectNo}
+        />
+      )}
+
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <Button
           variant="outline"
           size="sm"
+          color="primary"
           className="ltr:ml-2 rtl:mr-2  h-8 "
           onClick={handleOpenModal}
           disabled={isLoading}
         >
+          <FileCheck className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
           Generate
         </Button>
 

@@ -61,15 +61,16 @@ export function DataTableToolbar({
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
+        const fileName = rowData.filenames;
+        const fileType = rowData.invoice_tipe;
 
         setIsLoading(true);
         try {
-          const response = await stampInvoice(docNo);
+          const response = await stampInvoice(fileName, fileType);
           if (isLoading) {
             toast.info("Stamping, please wait...");
           }
-          if (response.success) {
+          if (response.statusCode === 200) {
             toast.success("Success stamping");
             queryClient.invalidateQueries({
               queryKey: ["receipt-stamp-success"],
@@ -97,10 +98,10 @@ export function DataTableToolbar({
         try {
           const response = await noStampInvoice(docNo);
           if (isLoadingNoStamp) {
-            toast.info("Stamping, please wait...");
+            toast.info("Processing, please wait...");
           }
-          if (response.success) {
-            toast.success("Success stamping");
+          if (response.statusCode === 200) {
+            toast.success("Successfully processed");
             queryClient.invalidateQueries({
               queryKey: ["receipt-stamp-success"],
             });
@@ -108,13 +109,13 @@ export function DataTableToolbar({
             toast.error(response.message);
           }
         } catch (error) {
-          toast.error("Error occurred while stamping");
+          toast.error("Error occurred while processing");
         } finally {
           setIsLoadingNoStamp(false);
         }
       }
     }
-    setIsModalOpen(false);
+    setIsModalOpenNoStamp(false);
   };
 
   return (

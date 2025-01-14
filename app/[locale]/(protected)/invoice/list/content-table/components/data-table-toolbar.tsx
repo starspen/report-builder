@@ -39,6 +39,15 @@ export function DataTableToolbar({
     table.setGlobalFilter(value);
   };
 
+  const projectNoFilter = table.getColumn("project_no");
+  const projectNoSet = new Set(
+    table.getFilteredRowModel().rows.map((row) => row.original.project_no)
+  );
+  const projectNo = Array.from(projectNoSet).map((projectNo) => ({
+    value: projectNo,
+    label: projectNo,
+  }));
+
   const handleOpenModal = async () => {
     if (selectedRows.size > 0) {
       setIsModalOpen(true);
@@ -65,7 +74,7 @@ export function DataTableToolbar({
           if (isLoading) {
             toast.info("Submitting email, please wait...");
           }
-          if (response.success) {
+          if (response.statusCode === 200) {
             toast.success("Success submitting email");
             queryClient.invalidateQueries({
               queryKey: ["invoice-email"],
@@ -91,6 +100,14 @@ export function DataTableToolbar({
         onChange={handleFilterChange}
         className="h-8 min-w-[200px] max-w-sm"
       />
+
+      {projectNoFilter && (
+        <DataTableFacetedFilter
+          column={projectNoFilter}
+          title="Project"
+          options={projectNo}
+        />
+      )}
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <Button

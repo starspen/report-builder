@@ -62,7 +62,7 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => {
       return (
         <Badge className={cn("rounded-full px-5 bg-success/20 text-success")}>
-          Success Send Email
+          Sent
         </Badge>
       );
     },

@@ -22,7 +22,6 @@ interface Task {
   email_addr: string;
   doc_no: string;
   doc_date: string;
-  related_class: string;
   action: React.ReactNode;
 }
 export const columns: ColumnDef<Task>[] = [
@@ -66,14 +65,14 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => <span>{row.getValue("debtor_acct")}</span>,
   },
   {
-    accessorKey: "debtor_name",
+    accessorKey: "name",
     header: "Debtor Name",
     cell: ({ row }) => {
       return (
         <div className="font-medium text-card-foreground/80">
           <div className="flex gap-3 items-center">
             <span className="text-sm text-default-600 whitespace-nowrap">
-              {row.getValue("debtor_name")}
+              {row.getValue("name")}
             </span>
           </div>
         </div>
@@ -84,36 +83,6 @@ export const columns: ColumnDef<Task>[] = [
     accessorKey: "email_addr",
     header: "Email",
     cell: ({ row }) => <span>{row.getValue("email_addr")}</span>,
-  },
-  {
-    accessorKey: "related_class",
-    header: "Type Invoice",
-    cell: ({ row }) => {
-      const value = row.getValue("related_class") as string;
-      let descs = "";
-      if (value === "RT") {
-        descs = "Rental";
-      } else if (value === "SC") {
-        descs = "Service Charge";
-      } else if (value === "MU") {
-        descs = "Meter Utility";
-      } else if (value === "AC") {
-        descs = "Air Condition/Chilled Water";
-      } else if (value === "PK") {
-        descs = "Parking";
-      } else if (value === "CL") {
-        descs = "Cleaning";
-      } else if (value === "DP") {
-        descs = "Deposit";
-      } else if (value === "MI") {
-        descs = "Miscellaneous";
-      } else if (value === "ST") {
-        descs = "Admin";
-      } else if (value === "OT") {
-        descs = "Others";
-      }
-      return <span>{descs}</span>;
-    },
   },
   {
     accessorKey: "doc_no",

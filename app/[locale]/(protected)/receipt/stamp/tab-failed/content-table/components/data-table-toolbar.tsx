@@ -51,15 +51,16 @@ export function DataTableToolbar({
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
+        const fileName = rowData.filenames;
+        const fileType = rowData.invoice_tipe;
 
         setIsLoading(true);
         try {
-          const response = await restampReceipt(docNo);
+          const response = await restampReceipt(fileName, fileType);
           if (isLoading) {
             toast.info("Restamping, please wait...");
           }
-          if (response.success) {
+          if (response.statusCode === 200) {
             toast.success("Success restamping");
             queryClient.invalidateQueries({
               queryKey: ["receipt-stamp-failed"],

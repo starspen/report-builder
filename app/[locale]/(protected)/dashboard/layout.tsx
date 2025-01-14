@@ -3,7 +3,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "IFCA Software",
-  description: "Dashcode is a popular dashboard template.",
+  description: "IFCA Blast Email & Stamp Invoice-Receipt",
 };
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (

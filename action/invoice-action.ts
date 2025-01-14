@@ -7,12 +7,12 @@ export const getInvoiceSchedule = async (
   startDate: string,
   endDate: string
 ) => {
-  const data = {
-    startDate: startDate,
-    endDate: endDate,
-  };
-
   try {
+    const data = {
+      startDate: startDate,
+      endDate: endDate,
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -77,12 +77,12 @@ export const generateInvoiceSchedule = async (
 };
 
 export const getInvoiceManual = async (startDate: string, endDate: string) => {
-  const data = {
-    startDate: startDate,
-    endDate: endDate,
-  };
-
   try {
+    const data = {
+      startDate: startDate,
+      endDate: endDate,
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -148,12 +148,12 @@ export const getInvoiceProforma = async (
   startDate: string,
   endDate: string
 ) => {
-  const data = {
-    startDate: startDate,
-    endDate: endDate,
-  };
-
   try {
+    const data = {
+      startDate: startDate,
+      endDate: endDate,
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -245,17 +245,17 @@ export const submitInvoiceEmail = async (
   processId: string,
   relatedClass: string
 ) => {
-  const session = await auth();
-  const auditUser = session?.user?.email;
-
-  const data = {
-    doc_no: docNo,
-    process_id: processId,
-    audit_user: auditUser,
-    related_class: relatedClass,
-  };
-
   try {
+    const session = await auth();
+    const auditUser = session?.user?.email;
+
+    const data = {
+      doc_no: docNo,
+      process_id: processId,
+      audit_user: auditUser,
+      related_class: relatedClass,
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -451,6 +451,38 @@ export const getInvoiceEmail = async () => {
   }
 };
 
+export const uploadFakturPajak = async (data: any) => {
+  try {
+    console.log("dataUpload", data);
+    console.log("docNo", data.get("docNo"));
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/upload-faktur/${data.get("docNo")}`,
+      {
+        method: "POST",
+        body: data,
+      }
+    );
+    const result = await response.json();
+
+    if (result.statusCode === 201) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error upload file:", error);
+    return error;
+  }
+};
+
 export const sendInvoiceEmail = async (docNo: string) => {
   try {
     let url = "";
@@ -460,7 +492,7 @@ export const sendInvoiceEmail = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice-email-send/${docNo}`, {
+    const response = await fetch(`${url}/api/mail/blast-email-inv/${docNo}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -471,7 +503,7 @@ export const sendInvoiceEmail = async (docNo: string) => {
       return result;
     }
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error sending data:", error);
     return error;
   }
 };
@@ -480,13 +512,13 @@ export const getInvoiceEmailHistorySuccess = async (
   startDate: string,
   endDate: string
 ) => {
-  const data = {
-    startDate: startDate,
-    endDate: endDate,
-    status: "S",
-  };
-
   try {
+    const data = {
+      startDate: startDate,
+      endDate: endDate,
+      status: "S",
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -518,13 +550,13 @@ export const getInvoiceEmailHistoryFailed = async (
   startDate: string,
   endDate: string
 ) => {
-  const data = {
-    startDate: startDate,
-    endDate: endDate,
-    status: "F",
-  };
-
   try {
+    const data = {
+      startDate: startDate,
+      endDate: endDate,
+      status: "F",
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -561,7 +593,7 @@ export const resendInvoiceEmail = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice-email-resend/${docNo}`, {
+    const response = await fetch(`${url}/api/mail/blast-email-inv/${docNo}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -577,8 +609,14 @@ export const resendInvoiceEmail = async (docNo: string) => {
   }
 };
 
-export const stampInvoice = async (docNo: string) => {
+export const stampInvoice = async (fileName: string, fileType: string) => {
   try {
+    const data = {
+      company_cd: "GQCINV",
+      file_name: fileName,
+      file_type: fileType,
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -586,8 +624,12 @@ export const stampInvoice = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice-stamp/${docNo}`, {
-      method: "GET",
+    const response = await fetch(`${url}/api/peruri/stamp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
     });
     const result = await response.json();
 
@@ -611,7 +653,7 @@ export const noStampInvoice = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice-no-stamp/${docNo}`, {
+    const response = await fetch(`${url}/api/peruri/no-stamp/${docNo}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -686,12 +728,9 @@ export const restampInvoice = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(
-      `${process.env.NEXT_API_BACKEND_SANDBOX_URL}/api/invoice-restamp/${docNo}`,
-      {
-        method: "GET",
-      }
-    );
+    const response = await fetch(`${url}/api/invoice-restamp/${docNo}`, {
+      method: "GET",
+    });
     const result = await response.json();
 
     if (result.statusCode === 200) {
@@ -709,13 +748,13 @@ export const getInvoiceStampHistory = async (
   startDate: string,
   endDate: string
 ) => {
-  const data = {
-    company_cd: "GQCINV",
-    startDate: startDate,
-    endDate: endDate,
-  };
-
   try {
+    const data = {
+      company_cd: "GQCINV",
+      startDate: startDate,
+      endDate: endDate,
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -747,12 +786,6 @@ export const downloadInvoiceStampHistory = async (
   startDate: string,
   endDate: string
 ) => {
-  const data = {
-    company_cd: "GQCINV",
-    startDate: startDate,
-    endDate: endDate,
-  };
-
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -761,13 +794,12 @@ export const downloadInvoiceStampHistory = async (
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice/stamp-history-download`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(
+      `${url}/api/download?start_date=${startDate}&end_date=${endDate}`,
+      {
+        method: "GET",
+      }
+    );
     const result = await response.json();
 
     if (result.statusCode === 200) {

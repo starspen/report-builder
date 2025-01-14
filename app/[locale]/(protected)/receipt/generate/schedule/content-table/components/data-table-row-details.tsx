@@ -29,8 +29,6 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
         <Table>
           <TableHeader className="bg-default-200 dark:bg-default-300">
             <TableRow>
-              <TableHead>Bill Type</TableHead>
-              <TableHead>Meter Type</TableHead>
               <TableHead>Descs</TableHead>
               <TableHead>Currency Cd</TableHead>
               <TableHead>Doc Amt</TableHead>
@@ -38,33 +36,9 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell>
-                {data.bill_type === "R"
-                  ? "Rental"
-                  : data.bill_type === "S"
-                  ? "Service Charge"
-                  : data.bill_type === "E"
-                  ? "Meter Utility"
-                  : data.bill_type === "V"
-                  ? "Overtime"
-                  : data.bill_type === "D"
-                  ? "Deposit"
-                  : data.bill_type === "C"
-                  ? "Car Park"
-                  : "-"}
-              </TableCell>
-              <TableCell>
-                {data.meter_type === "W"
-                  ? "Water"
-                  : data.meter_type === "E"
-                  ? "Electric"
-                  : data.meter_type === "C"
-                  ? "Chilled Water"
-                  : "-"}
-              </TableCell>
               <TableCell>{data.descs || "-"}</TableCell>
               <TableCell>{data.currency_cd || "-"}</TableCell>
-              <TableCell>{rupiah(data.doc_amt)}</TableCell>
+              <TableCell>{rupiah(data.fdoc_amt)}</TableCell>
             </TableRow>
           </TableBody>
         </Table>

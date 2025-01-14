@@ -55,12 +55,13 @@ export function DataTableToolbar({
       if (isLoading) {
         toast.info("Downloading, please wait...");
       }
-      if (response.success) {
+      if (response.statusCode === 200) {
         toast.success("Success downloading");
         setIsModalOpen(false);
         queryClient.invalidateQueries({
           queryKey: ["receipt-stamp-history"],
         });
+        window.open(response.data[0].url, "_blank");
       } else {
         toast.error(response.message);
       }

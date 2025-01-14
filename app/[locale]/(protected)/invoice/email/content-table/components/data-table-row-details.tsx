@@ -40,6 +40,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
       if (
         fileStatusSign === "A" ||
         fileStatusSign === "F" ||
+        fileStatusSign === "N" ||
         fileStatusSign === null
       ) {
         url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_SANDBOX_URL}`;
@@ -50,6 +51,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
       if (
         fileStatusSign === "A" ||
         fileStatusSign === "F" ||
+        fileStatusSign === "N" ||
         fileStatusSign === null
       ) {
         url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
@@ -58,6 +60,34 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
       }
     }
     window.open(url + "GQCINV/" + formatInvoice + "/" + filename, "_blank");
+  };
+
+  const handlePreviewFileReference = (
+    filename: string,
+    invoiceTipe: string
+  ) => {
+    const mode = process.env.NEXT_PUBLIC_ENV_MODE;
+    const formatInvoice = invoiceTipe.toUpperCase();
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
+    }
+    window.open(url + "GQCINV/" + formatInvoice + "/" + filename, "_blank");
+  };
+
+  const handlePreviewFileFakturPajak = (filename: string) => {
+    const mode = process.env.NEXT_PUBLIC_ENV_MODE;
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
+    }
+    window.open(url + "GQCINV/FAKTUR/" + filename, "_blank");
   };
 
   return (
@@ -70,7 +100,8 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
               <TableHead>Currency Cd</TableHead>
               <TableHead>Doc Amt</TableHead>
               <TableHead>File Invoice</TableHead>
-              <TableHead>File Status Sign</TableHead>
+              <TableHead>File Reference</TableHead>
+              <TableHead>File Faktur Pajak</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -116,23 +147,35 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                 )}
               </TableCell>
               <TableCell>
-                {data.file_status_sign === "S" ? (
-                  <Badge
-                    className={cn(
-                      "rounded-full px-5 bg-success/20 text-success"
-                    )}
-                  >
-                    Success Stamp
-                  </Badge>
-                ) : (
-                  <Badge
-                    className={cn(
-                      "rounded-full px-5 bg-destructive/20 text-destructive"
-                    )}
-                  >
-                    This document has not stamped
-                  </Badge>
-                )}
+                <Button
+                  className="bg-transparent  ring-transparent hover:bg-transparent hover:ring-0 hover:ring-offset-0 hover:ring-transparent w-28 border-transparent"
+                  size="icon"
+                  onClick={(event) => {
+                    handlePreviewFileReference(
+                      data.filenames2,
+                      data.invoice_tipe
+                    );
+                    event.preventDefault();
+                  }}
+                  title={`${data.filenames2}`}
+                  disabled={!data.filenames2}
+                >
+                  <File className="text-red-600 w-4 h-4" />
+                </Button>
+              </TableCell>
+              <TableCell>
+                <Button
+                  className="bg-transparent  ring-transparent hover:bg-transparent hover:ring-0 hover:ring-offset-0 hover:ring-transparent w-28 border-transparent"
+                  size="icon"
+                  onClick={(event) => {
+                    handlePreviewFileFakturPajak(data.filenames3);
+                    event.preventDefault();
+                  }}
+                  title={`${data.filenames3}`}
+                  disabled={!data.filenames3}
+                >
+                  <File className="text-red-600 w-4 h-4" />
+                </Button>
               </TableCell>
             </TableRow>
           </TableBody>

@@ -1,57 +1,53 @@
-import { useAtom } from "jotai"
-import { atomWithStorage } from "jotai/utils"
-import { layoutType, sidebarType, navBarType} from "@/lib/type"
-
-
+import { useAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import { layoutType, sidebarType, navBarType } from "@/lib/type";
 
 export type Config = {
-  collapsed: boolean
-  theme: string
-  skin: 'default' | 'bordered'
-  layout: layoutType
-  sidebar: sidebarType
-  menuHidden: boolean,
-  showSearchBar: boolean,
-  showSwitcher: boolean
-  topHeader: 'default' | 'links'
-  contentWidth: 'wide' | 'boxed'
-  navbar: navBarType
-  footer: 'sticky' | 'default' | 'hidden'
-  isRtl: boolean
-  subMenu: boolean
-  hasSubMenu: boolean
-  sidebarTheme: string,
-  headerTheme: string,
-  sidebarBgImage?: string
-  radius: number
-
-}
+  collapsed: boolean;
+  theme: string;
+  skin: "default" | "bordered";
+  layout: layoutType;
+  sidebar: sidebarType;
+  menuHidden: boolean;
+  showSearchBar: boolean;
+  showSwitcher: boolean;
+  topHeader: "default" | "links";
+  contentWidth: "wide" | "boxed";
+  navbar: navBarType;
+  footer: "sticky" | "default" | "hidden";
+  isRtl: boolean;
+  subMenu: boolean;
+  hasSubMenu: boolean;
+  sidebarTheme: string;
+  headerTheme: string;
+  sidebarBgImage?: string;
+  radius: number;
+};
 export const defaultConfig: Config = {
-  collapsed: false,
+  // collapsed: false,
+  collapsed: true,
   theme: "zinc",
-  skin: 'default',
+  skin: "default",
   layout: "vertical",
-  sidebar: 'classic',
+  sidebar: "classic",
   menuHidden: false,
   showSearchBar: true,
-  topHeader: 'default',
-  contentWidth: 'wide',
-  navbar: 'sticky',
-  footer: 'default',
+  topHeader: "default",
+  contentWidth: "wide",
+  navbar: "sticky",
+  footer: "default",
   isRtl: false,
   showSwitcher: true,
   subMenu: false,
   hasSubMenu: false,
-  sidebarTheme: 'light',
-  headerTheme: 'light',
+  sidebarTheme: "light",
+  headerTheme: "light",
   sidebarBgImage: undefined,
   radius: 0.5,
-}
+};
 
-
-const configAtom = atomWithStorage<Config>("config", defaultConfig)
+const configAtom = atomWithStorage<Config>("config", defaultConfig);
 
 export function useConfig() {
-  
-  return useAtom(configAtom)
+  return useAtom(configAtom);
 }

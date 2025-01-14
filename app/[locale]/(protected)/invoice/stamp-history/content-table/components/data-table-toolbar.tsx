@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { downloadReceiptStampHistory } from "@/action/receipt-action";
+import { downloadInvoiceStampHistory } from "@/action/invoice-action";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -48,19 +48,21 @@ export function DataTableToolbar({
     }
   };
 
-  const handleDownloadReceiptStampHistory = async () => {
+  const handleDownloadInvoiceStampHistory = async () => {
     setIsLoading(true);
     try {
-      const response = await downloadReceiptStampHistory(startDate, endDate);
+      const response = await downloadInvoiceStampHistory(startDate, endDate);
+
       if (isLoading) {
         toast.info("Downloading, please wait...");
       }
-      if (response.success) {
+      if (response.statusCode === 200) {
         toast.success("Success downloading");
         setIsModalOpen(false);
         queryClient.invalidateQueries({
-          queryKey: ["receipt-stamp-history"],
+          queryKey: ["invoice-stamp-history"],
         });
+        window.open(response.data[0].url, "_blank");
       } else {
         toast.error(response.message);
       }
@@ -111,7 +113,7 @@ export function DataTableToolbar({
             )}
             <Button
               className="relative"
-              onClick={handleDownloadReceiptStampHistory}
+              onClick={handleDownloadInvoiceStampHistory}
               disabled={isLoading}
             >
               {isLoading ? "Downloading..." : "Proceed"}

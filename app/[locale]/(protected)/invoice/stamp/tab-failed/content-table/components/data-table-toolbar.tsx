@@ -59,7 +59,7 @@ export function DataTableToolbar({
           if (isLoading) {
             toast.info("Restamping, please wait...");
           }
-          if (response.success) {
+          if (response.statusCode === 200) {
             toast.success("Success restamping");
             queryClient.invalidateQueries({
               queryKey: ["invoice-stamp-failed"],

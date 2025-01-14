@@ -15,7 +15,7 @@ const Logo = () => {
   if (config.sidebar === "compact") {
     return (
       <Link
-        href="/dashboard/analytics"
+        href="/dashboard/admin"
         className="flex gap-2 items-center   justify-center    "
       >
         <DashCodeLogo className="  text-default-900 h-25 w-25 [&>path:nth-child(3)]:text-background [&>path:nth-child(2)]:text-background" />
@@ -25,7 +25,7 @@ const Logo = () => {
   if (config.sidebar === "two-column" || !isDesktop) return null;
 
   return (
-    <Link href="/dashboard/analytics" className="flex gap-2 items-center    ">
+    <Link href="/dashboard/admin" className="flex gap-2 items-center    ">
       <DashCodeLogo className="  text-default-900 h-25 w-25 [&>path:nth-child(3)]:text-background [&>path:nth-child(2)]:text-background" />
     </Link>
   );

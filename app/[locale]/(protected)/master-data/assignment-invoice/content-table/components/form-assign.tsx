@@ -166,6 +166,9 @@ export const FormAssign = ({
     onSuccess: (result) => {
       if (result.statusCode === 200) {
         toast.success(result.message);
+        queryClient.invalidateQueries({
+          queryKey: ["assignment-invoice"],
+        });
         setIsModalOpen(false);
       } else {
         toast.error(result.message);

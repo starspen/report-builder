@@ -36,46 +36,46 @@ export function getMenuList(pathname: string, t: any): Group[] {
       menus: [
         {
           id: "dashboard",
-          href: "/dashboard/analytics",
+          href: "/dashboard/admin",
           label: t("dashboard"),
           active: pathname.includes("/dashboard"),
           icon: "heroicons-outline:home",
           submenus: [
-            {
-              href: "/dashboard/analytics",
-              label: t("analytics"),
-              active: pathname === "/dashboard/analytics",
-              icon: "heroicons:arrow-trending-up",
-              children: [],
-            },
-            {
-              href: "/dashboard/dash-ecom",
-              label: t("ecommerce"),
-              active: pathname === "/dashboard/dash-ecom",
-              icon: "heroicons:shopping-cart",
-              children: [],
-            },
-            {
-              href: "/dashboard/project",
-              label: t("project"),
-              active: pathname === "/dashboard/project",
-              icon: "heroicons:document",
-              children: [],
-            },
-            {
-              href: "/dashboard/crm",
-              label: t("crm"),
-              active: pathname === "/dashboard/crm",
-              icon: "heroicons:share",
-              children: [],
-            },
-            {
-              href: "/dashboard/banking",
-              label: t("banking"),
-              active: pathname === "/dashboard/banking",
-              icon: "heroicons:credit-card",
-              children: [],
-            },
+            // {
+            //   href: "/dashboard/analytics",
+            //   label: t("analytics"),
+            //   active: pathname === "/dashboard/analytics",
+            //   icon: "heroicons:arrow-trending-up",
+            //   children: [],
+            // },
+            // {
+            //   href: "/dashboard/dash-ecom",
+            //   label: t("ecommerce"),
+            //   active: pathname === "/dashboard/dash-ecom",
+            //   icon: "heroicons:shopping-cart",
+            //   children: [],
+            // },
+            // {
+            //   href: "/dashboard/project",
+            //   label: t("project"),
+            //   active: pathname === "/dashboard/project",
+            //   icon: "heroicons:document",
+            //   children: [],
+            // },
+            // {
+            //   href: "/dashboard/crm",
+            //   label: t("crm"),
+            //   active: pathname === "/dashboard/crm",
+            //   icon: "heroicons:share",
+            //   children: [],
+            // },
+            // {
+            //   href: "/dashboard/banking",
+            //   label: t("banking"),
+            //   active: pathname === "/dashboard/banking",
+            //   icon: "heroicons:credit-card",
+            //   children: [],
+            // },
             {
               href: "/dashboard/admin",
               label: "Admin",
@@ -96,7 +96,7 @@ export function getMenuList(pathname: string, t: any): Group[] {
           href: "/master-data/user",
           label: "Master Data",
           active: pathname.includes("/master-data/user"),
-          icon: "heroicons-outline:document-text",
+          icon: "heroicons-outline:list-bullet",
           submenus: [
             {
               href: "/master-data/user",
@@ -273,42 +273,42 @@ export function getMenuList(pathname: string, t: any): Group[] {
         },
       ],
     },
-    {
-      groupLabel: "",
-      id: "table",
-      menus: [
-        {
-          id: "table",
-          href: "/table/basic-table",
-          label: t("table"),
-          active: pathname.includes("/table"),
-          icon: "heroicons:table-cells",
-          submenus: [
-            {
-              href: "/table/basic-table",
-              label: t("basicTable"),
-              active: pathname === "/table/basic-table",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/table/react-table",
-              label: t("reactTable"),
-              active: pathname === "/table/react-table",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/table/data-table",
-              label: t("advanceTable"),
-              active: pathname === "/table/data-table",
-              icon: "",
-              children: [],
-            },
-          ],
-        },
-      ],
-    },
+    // {
+    //   groupLabel: "",
+    //   id: "table",
+    //   menus: [
+    //     {
+    //       id: "table",
+    //       href: "/table/basic-table",
+    //       label: t("table"),
+    //       active: pathname.includes("/table"),
+    //       icon: "heroicons:table-cells",
+    //       submenus: [
+    //         {
+    //           href: "/table/basic-table",
+    //           label: t("basicTable"),
+    //           active: pathname === "/table/basic-table",
+    //           icon: "",
+    //           children: [],
+    //         },
+    //         {
+    //           href: "/table/react-table",
+    //           label: t("reactTable"),
+    //           active: pathname === "/table/react-table",
+    //           icon: "",
+    //           children: [],
+    //         },
+    //         {
+    //           href: "/table/data-table",
+    //           label: t("advanceTable"),
+    //           active: pathname === "/table/data-table",
+    //           icon: "",
+    //           children: [],
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // },
   ];
 }
 export function getHorizontalMenuList(pathname: string, t: any): Group[] {

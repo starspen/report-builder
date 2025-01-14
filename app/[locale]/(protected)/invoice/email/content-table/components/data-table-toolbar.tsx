@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { X, Send } from "lucide-react";
+import { X, Send, Upload } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ import {
 import { sendInvoiceEmail } from "@/action/invoice-action";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { Dialog } from "@/components/ui/dialog";
+import { FormUpload } from "./form-upload";
 
 interface DataTableToolbarProps {
   table: Table<any>;
@@ -33,6 +35,7 @@ export function DataTableToolbar({
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpenUpload, setIsModalOpenUpload] = useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -59,7 +62,7 @@ export function DataTableToolbar({
           if (isLoading) {
             toast.info("Sending email, please wait...");
           }
-          if (response.success) {
+          if (response.statusCode === 200) {
             toast.success("Success sending email");
             queryClient.invalidateQueries({
               queryKey: ["invoice-email"],
@@ -85,6 +88,21 @@ export function DataTableToolbar({
         onChange={handleFilterChange}
         className="h-8 min-w-[200px] max-w-sm"
       />
+
+      <Dialog open={isModalOpenUpload} onOpenChange={setIsModalOpenUpload}>
+        <Button
+          variant="outline"
+          color="info"
+          size="sm"
+          className="ltr:ml-2 rtl:mr-2  h-8 "
+          onClick={() => setIsModalOpenUpload(true)}
+        >
+          <Upload className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+          Upload
+        </Button>
+
+        <FormUpload setIsModalOpenUpload={setIsModalOpenUpload} />
+      </Dialog>
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <Button

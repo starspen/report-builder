@@ -58,6 +58,7 @@ const HorizontalForm = () => {
           queryKey: ["email-config"],
         });
         toast.success(result.message);
+        window.location.reload();
       } else {
         toast.error(result.message);
       }

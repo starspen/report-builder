@@ -32,6 +32,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
     invoiceTipe: string,
     fileStatusSign: string
   ) => {
+    console.log(filename, invoiceTipe, fileStatusSign);
     const mode = process.env.NEXT_PUBLIC_ENV_MODE;
     const formatInvoice = invoiceTipe.toUpperCase();
 
@@ -40,6 +41,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
       if (
         fileStatusSign === "A" ||
         fileStatusSign === "F" ||
+        fileStatusSign === "N" ||
         fileStatusSign === null
       ) {
         url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_SANDBOX_URL}`;
@@ -50,6 +52,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
       if (
         fileStatusSign === "A" ||
         fileStatusSign === "F" ||
+        fileStatusSign === "N" ||
         fileStatusSign === null
       ) {
         url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
@@ -122,7 +125,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                       "rounded-full px-5 bg-success/20 text-success"
                     )}
                   >
-                    Success Stamp
+                    Stamped
                   </Badge>
                 ) : (
                   <Badge
@@ -130,7 +133,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                       "rounded-full px-5 bg-destructive/20 text-destructive"
                     )}
                   >
-                    This document has not stamped
+                    Not stamp yet
                   </Badge>
                 )}
               </TableCell>

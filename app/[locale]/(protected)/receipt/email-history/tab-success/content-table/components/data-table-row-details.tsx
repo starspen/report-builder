@@ -40,6 +40,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
       if (
         fileStatusSign === "A" ||
         fileStatusSign === "F" ||
+        fileStatusSign === "N" ||
         fileStatusSign === null
       ) {
         url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_SANDBOX_URL}`;
@@ -50,6 +51,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
       if (
         fileStatusSign === "A" ||
         fileStatusSign === "F" ||
+        fileStatusSign === "N" ||
         fileStatusSign === null
       ) {
         url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
@@ -76,12 +78,8 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
     window.open(url + "GQCINV/" + formatInvoice + "/" + filename, "_blank");
   };
 
-  const handlePreviewFileFakturPajak = (
-    filename: string,
-    invoiceTipe: string
-  ) => {
+  const handlePreviewFileFakturPajak = (filename: string) => {
     const mode = process.env.NEXT_PUBLIC_ENV_MODE;
-    const formatInvoice = invoiceTipe.toUpperCase();
 
     let url = "";
     if (mode === "sandbox") {
@@ -89,7 +87,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
     } else {
       url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
     }
-    window.open(url + "GQCINV/" + formatInvoice + "/" + filename, "_blank");
+    window.open(url + "GQCINV/FAKTUR/" + filename, "_blank");
   };
 
   return (
@@ -172,10 +170,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                   className="bg-transparent  ring-transparent hover:bg-transparent hover:ring-0 hover:ring-offset-0 hover:ring-transparent w-28 border-transparent"
                   size="icon"
                   onClick={(event) => {
-                    handlePreviewFileFakturPajak(
-                      data.filenames3,
-                      data.invoice_tipe
-                    );
+                    handlePreviewFileFakturPajak(data.filenames3);
                     event.preventDefault();
                   }}
                   title={`${data.filenames3}`}
