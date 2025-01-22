@@ -2,7 +2,8 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
 import dayjs from "dayjs";
-
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { ColumnDef } from "@tanstack/react-table";
@@ -93,9 +94,8 @@ export const columns: ColumnDef<Task>[] = [
     accessorKey: "doc_date",
     header: "Doc Date",
     cell: ({ row }) => {
-      return (
-        <span>{dayjs(row.getValue("doc_date")).format("DD/MM/YYYY")}</span>
-      );
+      const value = row.getValue("doc_date");
+      return <span>{dayjs.utc(value as string).format("DD/MM/YYYY")}</span>;
     },
   },
   {

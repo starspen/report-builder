@@ -53,10 +53,10 @@ import { useParams } from "next/navigation";
 import { getLangDir } from "rtl-detect";
 import { CSS } from "@dnd-kit/utilities";
 
-export function MenuDragAble() {
+export function MenuDragAble({ session }: { session: any }) {
   const t = useTranslations("Menu");
   const pathname = usePathname();
-  const menuList = getMenuList(pathname, t);
+  const menuList = getMenuList(pathname, t, session);
   const [config, setConfig] = useConfig();
   const collapsed = config.collapsed;
 

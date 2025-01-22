@@ -39,3 +39,32 @@ export const changePassword = async (data: any) => {
     return error;
   }
 };
+
+export const uploadPhotoProfile = async (data: any) => {
+  try {
+    const session = await auth();
+    const emailLogin = session?.user?.email;
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/user/change-photo/${emailLogin}`, {
+      method: "POST",
+      body: data,
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error upload file:", error);
+    return error;
+  }
+};

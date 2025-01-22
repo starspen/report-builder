@@ -1,4 +1,3 @@
-"use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SiteBreadcrumb from "@/components/site-breadcrumb";
 import ContentTable from "./content-table";

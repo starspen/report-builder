@@ -32,7 +32,6 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
     invoiceTipe: string,
     fileStatusSign: string
   ) => {
-    console.log(filename, invoiceTipe, fileStatusSign);
     const mode = process.env.NEXT_PUBLIC_ENV_MODE;
     const formatInvoice = invoiceTipe.toUpperCase();
 

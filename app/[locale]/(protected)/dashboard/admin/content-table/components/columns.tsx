@@ -5,6 +5,8 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { ColumnDef } from "@tanstack/react-table";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -55,9 +57,9 @@ export const columns: ColumnDef<Task>[] = [
   //   enableHiding: false,
   // },
   {
-    accessorKey: "transaction_id",
+    accessorKey: "order_id",
     header: "Transaction ID",
-    cell: ({ row }) => <span>{row.getValue("transaction_id")}</span>,
+    cell: ({ row }) => <span>{row.getValue("order_id")}</span>,
   },
   {
     accessorKey: "order_descs",
@@ -79,7 +81,9 @@ export const columns: ColumnDef<Task>[] = [
     header: "Purchase Date",
     cell: ({ row }) => {
       const value = row.getValue("audit_date");
-      return <span>{dayjs(value as string).format("DD/MM/YYYY HH:mm")}</span>;
+      return (
+        <span>{dayjs.utc(value as string).format("DD/MM/YYYY HH:mm")}</span>
+      );
     },
   },
   {
@@ -93,30 +97,30 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => <span>{rupiah(row.getValue("order_amount"))}</span>,
   },
   {
-    accessorKey: "total",
+    accessorKey: "order_total",
     header: "Total",
-    cell: ({ row }) => <span>{rupiah(row.getValue("total"))}</span>,
+    cell: ({ row }) => <span>{rupiah(row.getValue("order_total"))}</span>,
   },
   {
-    accessorKey: "status",
+    accessorKey: "status_payment",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
+      const status = row.getValue("status_payment") as string;
       return (
         <>
-          {status === "Pending" ? (
+          {status === "PENDING" ? (
             <Badge
               className={cn("rounded-full px-5 bg-warning/20 text-warning")}
             >
               {status}
             </Badge>
-          ) : status === "Process" ? (
+          ) : status === "PAID" ? (
             <Badge
               className={cn("rounded-full px-5 bg-primary/20 text-primary")}
             >
               {status}
             </Badge>
-          ) : status === "Complete" ? (
+          ) : status === "COMPLETED" ? (
             <Badge
               className={cn("rounded-full px-5 bg-success/20 text-success")}
             >

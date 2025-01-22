@@ -32,6 +32,25 @@ const nextConfig = {
         protocol: "https",
         hostname: "i.pravatar.cc",
       },
+      {
+        protocol: "https",
+        hostname: "i0.wp.com",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+      },
+      {
+        protocol: "http",
+        hostname: "demo.property365.co.id",
+        port: "5025",
+      },
+      {
+        protocol: "https",
+        hostname: "demo.property365.co.id",
+        port: "5025",
+      },
     ],
   },
 };

@@ -56,6 +56,7 @@ export const insertMasterUser = async (data: any) => {
   const dataInsert = {
     email: data.userEmail,
     name: data.userName,
+    role: data.userRole.value,
   };
 
   try {
@@ -91,6 +92,7 @@ export const updateMasterUser = async (data: any) => {
     user_id: data.userId,
     email: data.userEmail,
     name: data.userName,
+    role: data.userRole.value,
   };
 
   try {

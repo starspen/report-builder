@@ -8,9 +8,13 @@ export const getInvoiceSchedule = async (
   endDate: string
 ) => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.email;
+
     const data = {
       startDate: startDate,
       endDate: endDate,
+      auditUser: auditUser,
     };
 
     let url = "";
@@ -78,9 +82,13 @@ export const generateInvoiceSchedule = async (
 
 export const getInvoiceManual = async (startDate: string, endDate: string) => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.email;
+
     const data = {
       startDate: startDate,
       endDate: endDate,
+      auditUser: auditUser,
     };
 
     let url = "";
@@ -149,9 +157,13 @@ export const getInvoiceProforma = async (
   endDate: string
 ) => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.email;
+
     const data = {
       startDate: startDate,
       endDate: endDate,
+      auditUser: auditUser,
     };
 
     let url = "";
@@ -217,6 +229,9 @@ export const generateInvoiceProforma = async (
 
 export const getInvoiceList = async () => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.name;
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -224,9 +239,12 @@ export const getInvoiceList = async () => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice-approval-list`, {
-      method: "GET",
-    });
+    const response = await fetch(
+      `${url}/api/invoice-approval-list/${auditUser}`,
+      {
+        method: "GET",
+      }
+    );
     const result = await response.json();
 
     if (result.statusCode === 200) {
@@ -247,7 +265,7 @@ export const submitInvoiceEmail = async (
 ) => {
   try {
     const session = await auth();
-    const auditUser = session?.user?.email;
+    const auditUser = session?.user?.name;
 
     const data = {
       doc_no: docNo,
@@ -328,6 +346,37 @@ export const getInvoiceApprovalByUser = async () => {
 
     const response = await fetch(
       `${url}/api/get-approval-user/${approvalUser}`,
+      {
+        method: "GET",
+      }
+    );
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const getInvoiceApprovalHistoryByUser = async () => {
+  try {
+    const session = await auth();
+    const approvalUser = session?.user?.email;
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/get-approval-history/${approvalUser}`,
       {
         method: "GET",
       }
@@ -453,9 +502,6 @@ export const getInvoiceEmail = async () => {
 
 export const uploadFakturPajak = async (data: any) => {
   try {
-    console.log("dataUpload", data);
-    console.log("docNo", data.get("docNo"));
-
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -719,8 +765,14 @@ export const getInvoiceStampFailed = async () => {
   }
 };
 
-export const restampInvoice = async (docNo: string) => {
+export const reStampInvoice = async (fileName: string, fileType: string) => {
   try {
+    const data = {
+      company_cd: "GQCINV",
+      file_name: fileName,
+      file_type: fileType,
+    };
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -728,8 +780,12 @@ export const restampInvoice = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice-restamp/${docNo}`, {
-      method: "GET",
+    const response = await fetch(`${url}/api/peruri/stamp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
     });
     const result = await response.json();
 

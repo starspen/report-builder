@@ -52,16 +52,25 @@ const LoginForm = () => {
     startTransition(async () => {
       try {
         const response = await loginUser(data);
+        console.log("response in login-form", response);
+
+        // if (response.statusCode === 200) {
+        //   console.log("Redirecting to dashboard...");
+        //   router.push("/dashboard/admin");
+        //   toast.success("Successfully logged in");
+        // } else {
+        //   console.log("Error message:", response.message);
+        //   toast.error(response.message);
+        // }
 
         if (!!response.error) {
-          toast("Event has been created", {
-            description: "Sunday, December 03, 2023 at 9:00 AM",
-          });
+          toast.error(response.error);
         } else {
-          router.push("/dashboard/admin");
+          router.push("/dashboard/home");
           toast.success("Successfully logged in");
         }
       } catch (err: any) {
+        console.log("Catch error:", err.message);
         toast.error(err.message);
       }
     });

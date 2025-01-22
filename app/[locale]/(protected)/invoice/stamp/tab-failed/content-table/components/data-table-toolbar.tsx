@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { restampInvoice } from "@/action/invoice-action";
+import { reStampInvoice } from "@/action/invoice-action";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -51,11 +51,12 @@ export function DataTableToolbar({
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
+        const fileName = rowData.filenames;
+        const fileType = rowData.invoice_tipe;
 
         setIsLoading(true);
         try {
-          const response = await restampInvoice(docNo);
+          const response = await reStampInvoice(fileName, fileType);
           if (isLoading) {
             toast.info("Restamping, please wait...");
           }

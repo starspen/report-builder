@@ -11,8 +11,10 @@ import { SheetMenu } from "@/components/partials/sidebar/menu/sheet-menu";
 import HorizontalMenu from "./horizontal-menu";
 import LocalSwitcher from "./locale-switcher";
 import HeaderLogo from "./header-logo";
+import { auth } from "@/lib/auth";
 
 const DashCodeHeader = async () => {
+  const session = await auth();
   return (
     <>
       <HeaderContent>
@@ -28,10 +30,10 @@ const DashCodeHeader = async () => {
           {/* <Messages /> */}
           {/* <Notifications /> */}
           <ProfileInfo />
-          <SheetMenu />
+          <SheetMenu session={session} />
         </div>
       </HeaderContent>
-      <HorizontalMenu />
+      <HorizontalMenu session={session} />
     </>
   );
 };

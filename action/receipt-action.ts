@@ -43,7 +43,7 @@ export const getReceiptSchedule = async (
 export const generateReceiptSchedule = async (docNo: string) => {
   try {
     const session = await auth();
-    const auditUser = session?.user?.email;
+    const auditUser = session?.user?.name;
 
     let url = "";
     if (mode === "sandbox") {
@@ -67,6 +67,254 @@ export const generateReceiptSchedule = async (docNo: string) => {
     }
   } catch (error) {
     console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const getReceiptList = async () => {
+  try {
+    const session = await auth();
+    const auditUser = session?.user?.name;
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/receipt-approval-list/${auditUser}`,
+      {
+        method: "GET",
+      }
+    );
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const submitReceiptEmail = async (
+  docNo: string,
+  processId: string,
+  relatedClass: string
+) => {
+  try {
+    const session = await auth();
+    const auditUser = session?.user?.name;
+
+    const data = {
+      doc_no: docNo,
+      process_id: processId,
+      audit_user: auditUser,
+      related_class: relatedClass,
+    };
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/receipt-submit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error update data:", error);
+    return error;
+  }
+};
+
+export const deleteReceipt = async (docNo: string, processId: string) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/invoice-delete/${docNo}/${processId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error update data:", error);
+    return error;
+  }
+};
+
+export const getReceiptApprovalByUser = async () => {
+  try {
+    const session = await auth();
+    const approvalUser = session?.user?.email;
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/receipt/get-approval-user/${approvalUser}`,
+      {
+        method: "GET",
+      }
+    );
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const getReceiptApprovalHistoryByUser = async () => {
+  try {
+    const session = await auth();
+    const approvalUser = session?.user?.email;
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/receipt/get-approval-history/${approvalUser}`,
+      {
+        method: "GET",
+      }
+    );
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const getReceiptApprovalHd = async (processId: string) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/get-approval/${processId}`, {
+      method: "GET",
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const getReceiptApprovalDetail = async (processId: string) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/get-approval-dtl/${processId}`, {
+      method: "GET",
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const submitReceiptApproval = async (data: any) => {
+  try {
+    const session = await auth();
+    const auditUser = session?.user?.email;
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/receipt-approve?doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_remarks=${data.approvalRemark}&approval_status=${data.approvalStatus}`,
+      {
+        method: "GET",
+      }
+    );
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error submit data:", error);
     return error;
   }
 };

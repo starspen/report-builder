@@ -16,7 +16,7 @@ import { useMobileMenuConfig } from "@/hooks/use-mobile-menu";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useConfig } from "@/hooks/use-config";
 
-export function SheetMenu() {
+export function SheetMenu({ session }: { session: any }) {
   const [mobileMenuConfig, setMobileMenuConfig] = useMobileMenuConfig();
   const [config, setConfig] = useConfig();
   const { isOpen } = mobileMenuConfig;
@@ -52,7 +52,7 @@ export function SheetMenu() {
             <DashCodeLogo className="  text-default-900 h-8 w-8 [&>path:nth-child(3)]:text-background [&>path:nth-child(2)]:text-background" />
           </Link>
         </SheetHeader>
-        <MenuClassic />
+        <MenuClassic session={session} />
       </SheetContent>
     </Sheet>
   );

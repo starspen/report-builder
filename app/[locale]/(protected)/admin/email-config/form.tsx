@@ -351,7 +351,7 @@ const HorizontalForm = () => {
         </div>
         <div className="col-span-2 lg:pl-[160px] mt-2">
           <Button type="submit" disabled={isLoadingSubmit}>
-            {isLoadingSubmit ? "Submitting..." : "Submit"}
+            {isLoadingSubmit ? "Saving..." : "Save"}
           </Button>
         </div>
       </div>

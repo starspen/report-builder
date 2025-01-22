@@ -5,6 +5,8 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { ColumnDef } from "@tanstack/react-table";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 interface Task {
   user_id: string;
@@ -65,11 +67,18 @@ export const columns: ColumnDef<Task>[] = [
     },
   },
   {
+    accessorKey: "role",
+    header: "Role",
+    cell: ({ row }) => <span>{row.getValue("role")}</span>,
+  },
+  {
     accessorKey: "created_at",
     header: "Created At",
     cell: ({ row }) => {
       const value = row.getValue("created_at");
-      return <span>{dayjs(value as string).format("DD/MM/YYYY HH:mm")}</span>;
+      return (
+        <span>{dayjs.utc(value as string).format("DD/MM/YYYY HH:mm")}</span>
+      );
     },
   },
   {

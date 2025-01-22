@@ -4,61 +4,71 @@ const users = [
     name: "dashcode",
     email: "dashcode@codeshaper.net",
     password: "password",
-    image: "/images/users/user-1.jpg",
+    image:
+      "https://i0.wp.com/www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png?resize=256%2C256&quality=100&ssl=1",
   },
   {
     name: "DESY",
     email: "desy@ifca.co.id",
     password: "password",
-    image: "/images/users/user-2.jpg",
+    image:
+      "https://i0.wp.com/www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png?resize=256%2C256&quality=100&ssl=1",
   },
   {
     name: "ADHI",
     email: "adhi@ifca.co.id",
     password: "password",
-    image: "/images/users/user-3.jpg",
+    image:
+      "https://i0.wp.com/www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png?resize=256%2C256&quality=100&ssl=1",
   },
   {
     name: "VERA",
     email: "vera@ifca.co.id",
     password: "password",
-    image: "/images/users/user-4.jpg",
+    image:
+      "https://i0.wp.com/www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png?resize=256%2C256&quality=100&ssl=1",
   },
   {
     name: "ANGELA GUNAWAN",
     email: "angela.gunawan@ifca.co.id",
     password: "password",
-    image: "/images/users/user-5.jpg",
+    image:
+      "https://i0.wp.com/www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png?resize=256%2C256&quality=100&ssl=1",
   },
   {
     name: "RANDO",
     email: "rando@ifca.co.id",
     password: "password",
-    image: "/images/users/user-6.jpg",
+    image:
+      "https://i0.wp.com/www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png?resize=256%2C256&quality=100&ssl=1",
   },
   {
     name: "ANGELA",
     email: "angela@ifca.co.id",
     password: "password",
-    image: "/images/users/user-1.jpg",
+    image:
+      "https://i0.wp.com/www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png?resize=256%2C256&quality=100&ssl=1",
   },
   {
     name: "CAROLIN",
     email: "carolin@ifca.co.id",
     password: "password",
-    image: "/images/users/user-2.jpg",
+    image:
+      "https://i0.wp.com/www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png?resize=256%2C256&quality=100&ssl=1",
   },
   {
     name: "YOSEPH ARIBAWA",
     email: "yoseph.aribawa@ifca.co.id",
     password: "password",
-    image: "/images/users/user-3.jpg",
+    image:
+      "https://i0.wp.com/www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png?resize=256%2C256&quality=100&ssl=1",
   },
   {
     name: "GLEN",
     email: "glen@ifca.co.id",
     password: "password",
-    image: "/images/users/user-4.jpg",
+    image:
+      "https://i0.wp.com/www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png?resize=256%2C256&quality=100&ssl=1",
   },
 ];
 

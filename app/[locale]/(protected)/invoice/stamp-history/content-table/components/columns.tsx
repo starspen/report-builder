@@ -3,6 +3,8 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
@@ -37,15 +39,19 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => {
       const value = row.getValue("file_status_sign") as string;
       let descs = "";
+      let color = "";
       if (value === "S") {
+        color = "bg-success/20 text-success";
         descs = "Succes Stamp";
       } else if (value === "A") {
+        color = "bg-info/20 text-info";
         descs = "Success Get Serial Number";
       } else {
+        color = "bg-destructive/20 text-destructive";
         descs = "Failed Stamp";
       }
       return (
-        <Badge className={cn("rounded-full px-5 bg-info/20 text-info")}>
+        <Badge className={cn("rounded-full px-5", color)}>
           {String(descs)}
         </Badge>
       );
@@ -57,8 +63,17 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => {
       const value = row.getValue("audit_date");
       return (
-        <span>{dayjs(value as string).format("DD/MM/YYYY HH:mm:ss")}</span>
+        <span>{dayjs.utc(value as string).format("DD/MM/YYYY HH:mm:ss")}</span>
       );
+    },
+  },
+  {
+    id: "actions",
+    accessorKey: "action",
+    header: "Preview",
+    enableHiding: false,
+    cell: ({ row }) => {
+      return <DataTableRowActions row={row} />;
     },
   },
 ];

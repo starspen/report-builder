@@ -25,7 +25,7 @@ import SidebarHoverToggle from "@/components/partials/sidebar/sidebar-hover-togg
 import { useMenuHoverConfig } from "@/hooks/use-menu-hover";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
-export function MenuClassic({}) {
+export function MenuClassic({ session }: { session: any }) {
   // translate
   const t = useTranslations("Menu");
   const pathname = usePathname();
@@ -34,7 +34,7 @@ export function MenuClassic({}) {
 
   const isDesktop = useMediaQuery("(min-width: 1280px)");
 
-  const menuList = getMenuList(pathname, t);
+  const menuList = getMenuList(pathname, t, session);
   const [config, setConfig] = useConfig();
   const collapsed = config.collapsed;
   const [hoverConfig] = useMenuHoverConfig();

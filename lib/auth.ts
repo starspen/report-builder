@@ -1,47 +1,100 @@
 import NextAuth from "next-auth";
-import GitHub from "next-auth/providers/github";
-import Google from "next-auth/providers/google";
-
 import CredentialsProvider from "next-auth/providers/credentials";
-import { getUserByEmail, type User } from "./data";
 
+const mode = `${process.env.NEXT_PUBLIC_ENV_MODE}`;
 
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+    refreshToken?: string;
+  }
+
+  interface User {
+    role?: string;
+    accessToken?: string;
+    refreshToken?: string;
+  }
+}
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
-
   session: {
     strategy: "jwt",
   },
   providers: [
-    Google,
-    GitHub,
-     CredentialsProvider({
-            credentials: {
-              
-                email: {},
-                password: {},
-            },
-            async authorize(credentials) {
-                if (credentials === null) return null;
-                
-                try {
-                    const user = getUserByEmail(credentials?.email as string);
-                    if (user) {
-                        const isMatch = user?.password === credentials.password;
+    CredentialsProvider({
+      credentials: {
+        email: {
+          label: "Email",
+          type: "email",
+        },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (credentials === null) return null;
 
-                        if (isMatch) {
-                            return user;
-                        } else {
-                            throw new Error("Email or Password is not correct");
-                        }
-                    } else {
-                        throw new Error("User not found");
-                    }
-                } catch (error) {
-                    throw new Error(error as string);
-                }
+        const { email, password } = credentials as {
+          email: string;
+          password: string;
+        };
+
+        try {
+          let url = "";
+          if (mode === "sandbox") {
+            url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+          } else {
+            url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+          }
+
+          const response = await fetch(`${url}/auth/user/login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-        }),
-   
+            body: JSON.stringify({ email, password }),
+          });
+          const result = await response.json();
+          console.log(result);
+
+          if (result.statusCode === 200) {
+            const user = {
+              id: result.data.user_id,
+              email: result.data.email,
+              name: result.data.name,
+              role: result.data.role,
+              image: result.data.pict,
+              accessToken: result.data.access_token,
+              refreshToken: result.data.refresh_token,
+            };
+            console.log("user in auth.ts", user);
+
+            return user;
+          } else {
+            console.error("Authorization failed:", result);
+            // return null;
+            throw new Error(result.message || "Authorization failed");
+          }
+        } catch (error) {
+          console.error("Authorization error:", error);
+          // return null;
+          throw new Error((error as string) || "Authorization error");
+        }
+      },
+    }),
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
+        token.role = user.role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.accessToken = token.accessToken as string;
+      session.refreshToken = token.refreshToken as string;
+      session.user.role = token.role as string;
+      return session;
+    },
+  },
 });

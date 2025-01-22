@@ -53,7 +53,6 @@ export const FormUpload = ({
     const files = e.target.files;
     if (files) {
       const fileArray = Array.from(files);
-      console.log(fileArray);
     }
   };
 
@@ -92,7 +91,6 @@ export const FormUpload = ({
 
   function onSubmit(data: z.infer<typeof schema>) {
     for (const file of data.fileFaktur) {
-      console.log("file", file);
       mutation.mutate({ fileFaktur: file });
     }
   }

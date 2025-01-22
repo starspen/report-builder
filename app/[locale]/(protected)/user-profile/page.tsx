@@ -4,6 +4,7 @@ import SiteBreadcrumb from "@/components/site-breadcrumb";
 import Image from "next/image";
 import { auth } from "@/lib/auth";
 import Form from "./form";
+import ModalUpload from "./modal-upload";
 
 const UserProfile = async () => {
   const session = await auth();
@@ -24,6 +25,7 @@ const UserProfile = async () => {
                     alt={session?.user?.name?.charAt(0) as string}
                     className="w-full h-full object-cover rounded-full"
                   />
+                  <ModalUpload />
                 </div>
               </div>
               <div className="flex-1">

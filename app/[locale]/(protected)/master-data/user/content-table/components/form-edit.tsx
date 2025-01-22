@@ -23,11 +23,17 @@ import {
   getMasterUserById,
   updateMasterUser,
 } from "@/action/master-user-action";
+import Select from "react-select";
+import makeAnimated from "react-select/animated";
 
 const schema = z.object({
   userId: z.string().optional(),
   userName: z.string().min(2, { message: "This field is required." }),
   userEmail: z.string().min(2, { message: "This field is required." }),
+  userRole: z.object({
+    value: z.string().min(1, { message: "This field is required." }),
+    label: z.string().min(1, { message: "This field is required." }),
+  }),
 });
 export const FormEdit = ({
   setIsModalOpen,
@@ -46,12 +52,45 @@ export const FormEdit = ({
     },
   });
 
+  const animatedComponents = makeAnimated();
+  const styles = {
+    multiValue: (base: any, state: any) => {
+      return state.data.isFixed ? { ...base, opacity: "0.5" } : base;
+    },
+    multiValueLabel: (base: any, state: any) => {
+      return state.data.isFixed
+        ? { ...base, color: "#626262", paddingRight: 6 }
+        : base;
+    },
+    multiValueRemove: (base: any, state: any) => {
+      return state.data.isFixed ? { ...base, display: "none" } : base;
+    },
+    option: (provided: any, state: any) => ({
+      ...provided,
+      fontSize: "14px",
+    }),
+  };
+  const rolesOptions: { value: string; label: string }[] = [
+    { value: "administrator", label: "Administrator" },
+    { value: "maker and blaster", label: "Maker and Blaster" },
+    { value: "approver", label: "Approver" },
+  ];
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
   } = useForm<z.infer<typeof schema>>({
+    defaultValues: {
+      userId: data?.data[0]?.user_id,
+      userEmail: data?.data[0]?.email,
+      userName: data?.data[0]?.name,
+      userRole: {
+        value: data?.data[0]?.role,
+        label: data?.data[0]?.role,
+      },
+    },
     resolver: zodResolver(schema),
   });
 
@@ -89,8 +128,19 @@ export const FormEdit = ({
       setValue("userId", data?.data[0]?.user_id);
       setValue("userEmail", data?.data[0]?.email);
       setValue("userName", data?.data[0]?.name);
+      setValue("userRole", {
+        value: data?.data[0]?.role,
+        label: data?.data[0]?.role,
+      });
     }
   }, [data, setValue]);
+
+  const defaultRole = data
+    ? {
+        value: data?.data[0]?.role,
+        label: data?.data[0]?.role,
+      }
+    : null;
 
   return (
     <DialogContent>
@@ -154,6 +204,44 @@ export const FormEdit = ({
                   })}
                 >
                   {errors.userEmail.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="userRole"
+                className={cn("lg:min-w-[160px]", {
+                  "text-destructive": errors.userRole,
+                })}
+              >
+                Role
+              </Label>
+              <Select
+                {...register("userRole")}
+                id="userRole"
+                isClearable={false}
+                closeMenuOnSelect={false}
+                components={animatedComponents}
+                options={rolesOptions}
+                defaultValue={defaultRole}
+                styles={styles}
+                onChange={(newValue, actionMeta) => {
+                  setValue("userRole", newValue as any);
+                }}
+                className={cn("react-select", {
+                  "border-destructive focus:border-destructive":
+                    errors.userRole,
+                })}
+                classNamePrefix="select"
+                placeholder="Choose Role"
+              />
+              {errors.userRole && (
+                <p
+                  className={cn("text-xs mt-1", {
+                    "text-destructive": errors.userRole,
+                  })}
+                >
+                  {errors.userRole.message}
                 </p>
               )}
             </div>

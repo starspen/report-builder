@@ -6,6 +6,8 @@ import { File } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 export default function ContentTable({ data }: { data: any }) {
   const rupiah = (number: number) => {
@@ -57,7 +59,7 @@ export default function ContentTable({ data }: { data: any }) {
               <div className="col-span-2  flex flex-col gap-2 lg:gap-0 lg:flex-row lg:items-center ">
                 <Label className="lg:min-w-[160px]">Generate Date</Label>
                 <span>
-                  {dayjs(data?.data[0].gen_date).format("DD/MM/YYYY")}
+                  {dayjs.utc(data?.data[0].gen_date).format("DD/MM/YYYY")}
                 </span>
               </div>
               <div className="col-span-2  flex flex-col gap-2 lg:gap-0 lg:flex-row lg:items-center ">
@@ -67,7 +69,7 @@ export default function ContentTable({ data }: { data: any }) {
               <div className="col-span-2  flex flex-col gap-2 lg:gap-0 lg:flex-row lg:items-center ">
                 <Label className="lg:min-w-[160px]">Doc Date</Label>
                 <span>
-                  {dayjs(data?.data[0].doc_date).format("DD/MM/YYYY")}
+                  {dayjs.utc(data?.data[0].doc_date).format("DD/MM/YYYY")}
                 </span>
               </div>
               <div className="col-span-2  flex flex-col gap-2 lg:gap-0 lg:flex-row lg:items-center ">

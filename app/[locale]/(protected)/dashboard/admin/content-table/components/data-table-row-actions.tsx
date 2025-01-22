@@ -11,8 +11,8 @@ interface DataTableRowActionsProps {
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   // const task = taskSchema.parse(row.original);
-  const responseUrl = row.original.response_url;
-  const status = row.original.status;
+  const responseUrl = row.original.redirect_url;
+  const status = row.original.status_payment;
   const openLink = async (responseUrl: string) => {
     window.open(responseUrl, "_blank");
   };
@@ -57,7 +57,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
       size="sm"
       color="info"
       onClick={() => openLink(responseUrl)}
-      disabled={status !== "Pending"}
+      disabled={status !== "PENDING"}
     >
       Pay Now
     </Button>

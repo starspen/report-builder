@@ -283,7 +283,7 @@ export const FormAssign = ({
         }
       });
     }
-  }, [dataTypeDetailInvoice, users, setValue]);
+  }, [dataTypeDetailInvoice, users, selectedApprovals, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mt-3 space-y-4">
@@ -480,7 +480,7 @@ export const FormAssign = ({
       </div>
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
         <Button type="submit" disabled={isLoadingSubmit}>
-          {isLoadingSubmit ? "Submitting..." : "Submit"}
+          {isLoadingSubmit ? "Saving..." : "Save"}
         </Button>
       </div>
     </form>

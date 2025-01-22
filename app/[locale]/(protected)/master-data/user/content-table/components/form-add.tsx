@@ -20,10 +20,16 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { insertMasterUser } from "@/action/master-user-action";
+import Select from "react-select";
+import makeAnimated from "react-select/animated";
 
 const schema = z.object({
   userName: z.string().min(2, { message: "This field is required." }),
   userEmail: z.string().min(2, { message: "This field is required." }),
+  userRole: z.object({
+    value: z.string().min(1, { message: "This field is required." }),
+    label: z.string().min(1, { message: "This field is required." }),
+  }),
 });
 export const FormAdd = ({
   setIsModalOpen,
@@ -32,10 +38,36 @@ export const FormAdd = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
+
+  const animatedComponents = makeAnimated();
+  const styles = {
+    multiValue: (base: any, state: any) => {
+      return state.data.isFixed ? { ...base, opacity: "0.5" } : base;
+    },
+    multiValueLabel: (base: any, state: any) => {
+      return state.data.isFixed
+        ? { ...base, color: "#626262", paddingRight: 6 }
+        : base;
+    },
+    multiValueRemove: (base: any, state: any) => {
+      return state.data.isFixed ? { ...base, display: "none" } : base;
+    },
+    option: (provided: any, state: any) => ({
+      ...provided,
+      fontSize: "14px",
+    }),
+  };
+  const rolesOptions: { value: string; label: string }[] = [
+    { value: "adminitrator", label: "Administrator" },
+    { value: "maker and blaster", label: "Maker and Blaster" },
+    { value: "approver", label: "Approver" },
+  ];
+
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
   });
@@ -130,6 +162,43 @@ export const FormAdd = ({
                   })}
                 >
                   {errors.userEmail.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="userRole"
+                className={cn("lg:min-w-[160px]", {
+                  "text-destructive": errors.userRole,
+                })}
+              >
+                Role
+              </Label>
+              <Select
+                {...register("userRole")}
+                id="userRole"
+                isClearable={false}
+                closeMenuOnSelect={false}
+                components={animatedComponents}
+                options={rolesOptions}
+                styles={styles}
+                onChange={(newValue, actionMeta) => {
+                  setValue("userRole", newValue as any);
+                }}
+                className={cn("react-select", {
+                  "border-destructive focus:border-destructive":
+                    errors.userRole,
+                })}
+                classNamePrefix="select"
+                placeholder="Choose Role"
+              />
+              {errors.userRole && (
+                <p
+                  className={cn("text-xs mt-1", {
+                    "text-destructive": errors.userRole,
+                  })}
+                >
+                  {errors.userRole.message}
                 </p>
               )}
             </div>

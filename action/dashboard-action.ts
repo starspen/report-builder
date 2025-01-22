@@ -6,21 +6,17 @@ export const getQuotaStamp = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `http://sandbox-finpay.ifca.co.id`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(
-      `${url}/api/manage/get-kuota-transaction?company_cd=GQCINV`,
-      {
-        method: "GET",
-      }
-    );
+    const response = await fetch(`${url}/api/peruri/get-saldo`, {
+      method: "GET",
+    });
     const result = await response.json();
 
-    // if (result.statusCode === 200) {
-    if (result.success === true) {
+    if (result.statusCode === 200) {
       return result;
     } else {
       return result;
@@ -35,17 +31,14 @@ export const getStatusTransaction = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `http://sandbox-finpay.ifca.co.id`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(
-      `${url}/api/manage/count-status-transaction?email=demo.fji@ifca.co.id&company_cd=GQCINV`,
-      {
-        method: "GET",
-      }
-    );
+    const response = await fetch(`${url}/api/finpay/get-status-transaction`, {
+      method: "GET",
+    });
     const result = await response.json();
 
     if (result.statusCode === 200) {
@@ -60,35 +53,36 @@ export const getStatusTransaction = async () => {
 };
 
 export const topUpQuota = async (data: any) => {
-  const submitData = {
-    company_cd: "GQCINV",
-    company_name: "PT. First Jakarta International",
-    payment_cd: "PVIWXC",
-    customer: {
-      email: "ahmad.prasetyo@ifca.co.id",
-      name: "Ahmad Donny Prasetyo",
-      mobilePhone: "+6285710008512",
-    },
-    order: {
-      qty: data.quota,
-      amount: data.price,
-      description: "Top Up Quota",
-    },
-    total: data.total,
-    url: {
-      callbackUrl: "http://sandbox-finpay.ifca.co.id/api/notification/payment",
-    },
-  };
-
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `http://sandbox-finpay.ifca.co.id`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/generate/create-request`, {
+    const submitData = {
+      company_cd: "GQCINV",
+      company_name: "PT. First Jakarta International",
+      payment_cd: "PVIWXC",
+      customer: {
+        email: "ahmad.prasetyo@ifca.co.id",
+        // name: "Ahmad Donny Prasetyo",
+        firstName: "Ahmad",
+        lastName: "Donny Prasetyo",
+        mobilePhone: "+6285710008512",
+      },
+      order: {
+        amount: data.total,
+        description: "Top Up Quota",
+        itemAmount: data.quota,
+      },
+      url: {
+        callbackUrl: `${url}/api/finpay/notification`,
+      },
+    };
+
+    const response = await fetch(`${url}/api/finpay/initiate-pay`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -97,8 +91,7 @@ export const topUpQuota = async (data: any) => {
     });
     const result = await response.json();
 
-    // if (result.statusCode === 201) {
-    if (result.success === true) {
+    if (result.statusCode === 201) {
       return result;
     } else {
       return result;
@@ -113,17 +106,14 @@ export const getTransactionSummary = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `http://sandbox-finpay.ifca.co.id`;
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
     } else {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(
-      `${url}/api/manage/get-data-transaction?email=ahmad.prasetyo@ifca.co.id&company_cd=GQCINV&status=`,
-      {
-        method: "GET",
-      }
-    );
+    const response = await fetch(`${url}/api/finpay/get-transaction`, {
+      method: "GET",
+    });
     const result = await response.json();
 
     if (result.statusCode === 200) {

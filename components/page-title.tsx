@@ -22,7 +22,8 @@ const PageTitle = ({
       )}
     >
       <div className="text-2xl font-medium text-default-800 capitalize">
-        {title ? title : name ? name : null}
+        {/* {title ? title : name ? name : null} */}
+        Dashboard
       </div>
       {/* <DateRangePicker /> */}
     </div>

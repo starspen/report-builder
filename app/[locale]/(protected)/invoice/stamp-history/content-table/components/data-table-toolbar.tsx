@@ -62,7 +62,7 @@ export function DataTableToolbar({
         queryClient.invalidateQueries({
           queryKey: ["invoice-stamp-history"],
         });
-        window.open(response.data[0].url, "_blank");
+        window.open(response.data, "_blank");
       } else {
         toast.error(response.message);
       }

@@ -126,8 +126,7 @@ const DashboardPage = () => {
       return result;
     },
     onSuccess: (result) => {
-      // if (result.statusCode === 200) {
-      if (result.success === true) {
+      if (result.statusCode === 200) {
         toast.success(result.message);
         window.location.reload();
       } else {
@@ -164,7 +163,7 @@ const DashboardPage = () => {
                 Quota
               </div>
               <div className="text-xs font-normal text-default-foreground dark:text-default-800">
-                {isLoadingQuotaStamp ? "Loading..." : data?.data?.saldo}
+                {isLoadingQuotaStamp ? "Loading..." : data?.data}
               </div>
             </div>
 

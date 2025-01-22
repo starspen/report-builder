@@ -3,6 +3,8 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -19,6 +21,7 @@ interface Task {
   email_addr: string;
   doc_no: string;
   doc_amt: string;
+  currency_cd: string;
   action: React.ReactNode;
 }
 export const columns: ColumnDef<Task>[] = [
@@ -77,22 +80,48 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => {
       const value = row.getValue("doc_no");
       const doc_amt = row.original.doc_amt;
-      if (Number(doc_amt) >= 5000000) {
-        return (
-          <Badge className={cn("rounded-full px-5 bg-success/20 text-success")}>
-            {String(value)}
-          </Badge>
-        );
+      const currency_cd = row.original.currency_cd;
+
+      if (currency_cd === "USD") {
+        if (Number(doc_amt) >= 300) {
+          return (
+            <Badge
+              className={cn("rounded-full px-5 bg-success/20 text-success")}
+            >
+              {String(value)}
+            </Badge>
+          );
+        } else {
+          return (
+            <Badge
+              className={cn(
+                "rounded-full px-5 bg-destructive/20 text-destructive"
+              )}
+            >
+              {String(value)}
+            </Badge>
+          );
+        }
       } else {
-        return (
-          <Badge
-            className={cn(
-              "rounded-full px-5 bg-destructive/20 text-destructive"
-            )}
-          >
-            {String(value)}
-          </Badge>
-        );
+        if (Number(doc_amt) >= 5000000) {
+          return (
+            <Badge
+              className={cn("rounded-full px-5 bg-success/20 text-success")}
+            >
+              {String(value)}
+            </Badge>
+          );
+        } else {
+          return (
+            <Badge
+              className={cn(
+                "rounded-full px-5 bg-destructive/20 text-destructive"
+              )}
+            >
+              {String(value)}
+            </Badge>
+          );
+        }
       }
     },
   },
@@ -100,9 +129,8 @@ export const columns: ColumnDef<Task>[] = [
     accessorKey: "doc_date",
     header: "Doc Date",
     cell: ({ row }) => {
-      return (
-        <span>{dayjs(row.getValue("doc_date")).format("DD/MM/YYYY")}</span>
-      );
+      const value = row.getValue("doc_date");
+      return <span>{dayjs.utc(value as string).format("DD/MM/YYYY")}</span>;
     },
   },
   {

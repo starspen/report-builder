@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
@@ -99,7 +101,7 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => {
       const value = row.getValue("send_date");
       return (
-        <span>{dayjs(value as string).format("DD/MM/YYYY HH:mm:ss")}</span>
+        <span>{dayjs.utc(value as string).format("DD/MM/YYYY HH:mm:ss")}</span>
       );
     },
   },

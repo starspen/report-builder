@@ -28,7 +28,7 @@ export const defaultConfig: Config = {
   collapsed: true,
   theme: "zinc",
   skin: "default",
-  layout: "vertical",
+  layout: "horizontal",
   sidebar: "classic",
   menuHidden: false,
   showSearchBar: true,

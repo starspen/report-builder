@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,12 +10,11 @@ interface StatsBlock {
   total?: number | string;
   series?: number[];
   chartColor?: string;
-  chartType?: 'area' | 'bar' | 'line' | 'pie' | 'donut' | 'radialBar';
-  opacity?: number
+  chartType?: "area" | "bar" | "line" | "pie" | "donut" | "radialBar";
+  opacity?: number;
 }
 
 const defaultData = [800, 600, 1000, 800, 600, 1000, 800, 900];
-
 
 const StatisticsBlock = ({
   title = " Static Block",
@@ -24,14 +23,13 @@ const StatisticsBlock = ({
   series = defaultData,
   chartColor = "#00EBFF",
   chartType = "area",
-  opacity = 0.1
-
+  opacity = 0.1,
 }: StatsBlock) => {
   const { theme: mode } = useTheme();
   const chartSeries = [
     {
-      data: series
-    }
+      data: series,
+    },
   ];
 
   const options: any = {
@@ -93,30 +91,27 @@ const StatisticsBlock = ({
         low: 0,
         offsetX: 0,
         show: false,
-      }
-    }
+      },
+    },
   };
   return (
     <Card className={cn("  ", className)}>
       <CardContent className=" py-[18px] px-4 ">
-
         <div className="flex gap-6">
           <div className="flex-none">
-            <Chart
+            {/* <Chart
               options={options}
               series={chartSeries}
               type={chartType}
               height={48}
               width={48}
-            />
+            /> */}
           </div>
           <div className="flex-1">
             <div className="text-default-800  text-sm mb-1 font-medium">
               {title}
             </div>
-            <div className="text-default-900  text-lg font-medium">
-              {total}
-            </div>
+            <div className="text-default-900  text-lg font-medium">{total}</div>
           </div>
         </div>
       </CardContent>
