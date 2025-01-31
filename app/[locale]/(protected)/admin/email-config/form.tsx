@@ -13,6 +13,7 @@ import {
   submitEmailConfig,
 } from "@/action/email-config-action";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 const schema = z.object({
   mailDriver: z.string().min(2, { message: "This field is required." }),
@@ -89,7 +90,14 @@ const HorizontalForm = () => {
   }, [data, setValue]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className=" h-screen flex items-center flex-col space-y-2">
+        <span className=" inline-flex gap-1  items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
+      </div>
+    );
   }
 
   return (
@@ -351,7 +359,7 @@ const HorizontalForm = () => {
         </div>
         <div className="col-span-2 lg:pl-[160px] mt-2">
           <Button type="submit" disabled={isLoadingSubmit}>
-            {isLoadingSubmit ? "Saving..." : "Save"}
+            {isLoadingSubmit ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </div>

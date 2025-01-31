@@ -4,13 +4,20 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { ColumnDef } from "@tanstack/react-table";
 
-interface Task {
+export interface Task {
   type_id: string;
   type_cd: string;
   type_descs: string;
   approval_pic: string;
   created_at: string;
+  detail: TaskDetail[];
   action: React.ReactNode;
+}
+
+export interface TaskDetail {
+  type_id: string;
+  user_id: string;
+  job_task: string;
 }
 
 export const columns: ColumnDef<Task>[] = [

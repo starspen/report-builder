@@ -1,16 +1,14 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import SiteBreadcrumb from "@/components/site-breadcrumb";
 import ContentTable from "./content-table";
 
 const ReactTablePage = () => {
   return (
     <div>
-      <SiteBreadcrumb />
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Receipt Email</CardTitle>
+            <CardTitle>Receipt Blast</CardTitle>
           </CardHeader>
           <CardContent>
             <ContentTable />

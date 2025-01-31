@@ -17,8 +17,8 @@ import {
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface Task {
-  entity_cd: string;
-  project_no: string;
+  entity_name: string;
+  project_name: string;
   debtor_acct: string;
   debtor_name: string;
   email_addr: string;
@@ -53,14 +53,14 @@ export const columns: ColumnDef<Task>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "entity_cd",
-    header: "Entity Cd",
-    cell: ({ row }) => <span>{row.getValue("entity_cd")}</span>,
+    accessorKey: "entity_name",
+    header: "Entity Name",
+    cell: ({ row }) => <span>{row.getValue("entity_name")}</span>,
   },
   {
-    accessorKey: "project_no",
-    header: "Project No",
-    cell: ({ row }) => <span>{row.getValue("project_no")}</span>,
+    accessorKey: "project_name",
+    header: "Project Name",
+    cell: ({ row }) => <span>{row.getValue("project_name")}</span>,
   },
   {
     accessorKey: "debtor_acct",
@@ -98,19 +98,19 @@ export const columns: ColumnDef<Task>[] = [
       } else if (value === "SC") {
         descs = "Service Charge";
       } else if (value === "MU") {
-        descs = "Meter Utility";
+        descs = "Proforma Utilitas";
       } else if (value === "AC") {
         descs = "Air Condition/Chilled Water";
       } else if (value === "PK") {
-        descs = "Parking";
+        descs = "Building Facility";
       } else if (value === "CL") {
         descs = "Cleaning";
       } else if (value === "DP") {
         descs = "Deposit";
       } else if (value === "MI") {
-        descs = "Miscellaneous";
+        descs = "Utility, Miscellaneous, Admin";
       } else if (value === "ST") {
-        descs = "Admin";
+        descs = "Miscellanous Charge Electricity (Sat and V-Sat)";
       } else if (value === "OT") {
         descs = "Others";
       }

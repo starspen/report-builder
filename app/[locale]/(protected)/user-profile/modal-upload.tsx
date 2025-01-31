@@ -14,12 +14,13 @@ import { Icon } from "@/components/ui/icon";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { uploadPhotoProfile } from "@/action/profile-action";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useSession } from "next-auth/react";
 
 const schema = z.object({
   filePhoto: z
@@ -44,7 +45,8 @@ const schema = z.object({
 const ModalUpload = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpenUpload, setIsModalOpenUpload] = useState(false);
-  const queryClient = useQueryClient();
+  const { data: session, update } = useSession();
+
   const {
     register,
     handleSubmit,
@@ -70,9 +72,17 @@ const ModalUpload = () => {
 
       return result;
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       if (result.statusCode === 200) {
+        await update({
+          ...session,
+          user: {
+            ...session?.user,
+            image: result.data,
+          },
+        });
         toast.success(result.message);
+        setIsModalOpenUpload(false);
         window.location.reload();
       } else {
         toast.error(result.message);
@@ -101,7 +111,7 @@ const ModalUpload = () => {
         <Icon icon="heroicons:pencil-square" />
       </Button>
 
-      <DialogContent>
+      <DialogContent onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Upload Photo</DialogTitle>
         </DialogHeader>

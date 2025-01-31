@@ -8,17 +8,17 @@ import { MenuTwoColumn } from "./menu-two-column";
 import { MenuDragAble } from "./menu-dragable";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
-export function Menu({ session }: { session: any }) {
+export function Menu({ session, menu }: { session: any; menu: any }) {
   const [config, setConfig] = useConfig();
   const isDesktop = useMediaQuery("(min-width: 1280px)");
 
   if (config.sidebar === "draggable") {
-    return <MenuDragAble session={session} />;
+    return <MenuDragAble session={session} menu={menu} />;
   }
 
   if (config.sidebar === "two-column") {
-    return <MenuTwoColumn session={session} />;
+    return <MenuTwoColumn session={session} menu={menu} />;
   }
 
-  return <MenuClassic session={session} />;
+  return <MenuClassic session={session} menu={menu} />;
 }

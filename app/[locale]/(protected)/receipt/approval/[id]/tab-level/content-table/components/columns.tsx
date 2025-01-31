@@ -66,8 +66,12 @@ export const columns: ColumnDef<Task>[] = [
         );
       } else if (value === "C") {
         return (
-          <Badge className={cn("rounded-full px-5 bg-warning/20 text-warning")}>
-            Cancel
+          <Badge
+            className={cn(
+              "rounded-full px-5 bg-destructive/20 text-destructive"
+            )}
+          >
+            Cancelled
           </Badge>
         );
       } else {
@@ -101,7 +105,13 @@ export const columns: ColumnDef<Task>[] = [
     header: "Approval Remarks",
     cell: ({ row }) => {
       const value = row.getValue("approval_remarks");
-      if (value === "" || value === null || value === "null") {
+      if (
+        value === "" ||
+        value === null ||
+        value === "null" ||
+        value === undefined ||
+        value === "undefined"
+      ) {
         return <span>-</span>;
       } else {
         return <span>{String(value)}</span>;

@@ -15,7 +15,7 @@ import { useMutation } from "@tanstack/react-query";
 import { insertAssignmentInvoice } from "@/action/master-type-invoice-action";
 import { useRouter } from "@/components/navigation";
 
-const schema = z.object({
+export const schema = z.object({
   typeId: z.string().optional(),
   typeCd: z.string().min(2, { message: "This field is required." }),
   typeDescs: z.string().min(2, { message: "This field is required." }),
@@ -49,12 +49,10 @@ interface OptionType {
 }
 
 export const FormAssign = ({
-  dataTypeInvoice,
-  dataTypeDetailInvoice,
+  dataAssign,
   dataUser,
 }: {
-  dataTypeInvoice: any;
-  dataTypeDetailInvoice: any;
+  dataAssign: any;
   dataUser: any;
 }) => {
   const [selectedApprovals, setSelectedApprovals] = useState<{
@@ -63,10 +61,19 @@ export const FormAssign = ({
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const router = useRouter();
   const animatedComponents = makeAnimated();
-  const users: OptionType[] = dataUser?.map((item: any) => ({
-    value: item.user_id,
-    label: item.name,
-  }));
+  const users: OptionType[] = dataUser
+    ?.filter((item: any) => item.role === "maker and blaster")
+    .map((item: any) => ({
+      value: item.user_id,
+      label: item.name,
+    }));
+
+  const usersApproval: OptionType[] = dataUser
+    ?.filter((item: any) => item.role === "approver")
+    .map((item: any) => ({
+      value: item.user_id,
+      label: item.name,
+    }));
 
   const styles = {
     multiValue: (base: any, state: any) => {
@@ -87,17 +94,17 @@ export const FormAssign = ({
   };
 
   const getDefaultValues = (
-    dataTypeInvoice: any,
-    dataTypeDetailInvoice: any,
-    users: OptionType[]
+    dataAssign: any,
+    users: OptionType[],
+    usersApproval: OptionType[]
   ) => {
     return {
-      typeId: dataTypeInvoice[0]?.type_id,
-      typeCd: dataTypeInvoice[0]?.type_cd,
-      typeDescs: dataTypeInvoice[0]?.type_descs,
-      maker: getDefaultMakers(dataTypeDetailInvoice, users),
-      approval: getDefaultApprovals(dataTypeDetailInvoice, users),
-      stampBlast: getDefaultStampBlast(dataTypeDetailInvoice, users),
+      typeId: dataAssign[0]?.type_id,
+      typeCd: dataAssign[0]?.type_cd,
+      typeDescs: dataAssign[0]?.type_descs,
+      maker: getDefaultMakers(dataAssign[0]?.detail, users),
+      approval: getDefaultApprovals(dataAssign[0]?.detail, usersApproval),
+      stampBlast: getDefaultStampBlast(dataAssign[0]?.detail, users),
     };
   };
 
@@ -113,14 +120,16 @@ export const FormAssign = ({
 
   function getDefaultApprovals(
     dataTypeDetailInvoice: any,
-    users: OptionType[]
+    usersApproval: OptionType[]
   ) {
     return dataTypeDetailInvoice
       .filter((item: any) => item.job_task.startsWith("Approval"))
       .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
       .map((item: any) => ({
         value: item.user_id,
-        label: users.find((user) => user.value === item.user_id)?.label || "",
+        label:
+          usersApproval.find((user) => user.value === item.user_id)?.label ||
+          "",
       }));
   }
 
@@ -149,11 +158,7 @@ export const FormAssign = ({
     formState: { errors },
     setValue,
   } = useForm<z.infer<typeof schema>>({
-    defaultValues: getDefaultValues(
-      dataTypeInvoice,
-      dataTypeDetailInvoice,
-      users
-    ),
+    defaultValues: getDefaultValues(dataAssign, users, usersApproval),
     resolver: zodResolver(schema),
   });
 
@@ -195,10 +200,10 @@ export const FormAssign = ({
     const selectedValues = Object.values(selectedApprovals)
       .filter(Boolean)
       .map((item) => item?.value);
-    return users?.filter(
-      (user) =>
-        !selectedValues.includes(user.value) ||
-        selectedApprovals[index]?.value === user.value
+    return usersApproval?.filter(
+      (userApproval) =>
+        !selectedValues.includes(userApproval.value) ||
+        selectedApprovals[index]?.value === userApproval.value
     );
   };
 
@@ -230,15 +235,7 @@ export const FormAssign = ({
     mutation.mutate(formattedData);
   }
 
-  useEffect(() => {
-    if (dataTypeInvoice) {
-      setValue("typeId", dataTypeInvoice[0]?.type_id);
-      setValue("typeCd", dataTypeInvoice[0]?.type_cd);
-      setValue("typeDescs", dataTypeInvoice[0]?.type_descs);
-    }
-  }, [dataTypeInvoice, setValue]);
-
-  const defaultMakers = dataTypeDetailInvoice
+  const defaultMakers = dataAssign[0]?.detail
     .filter((item: any) => item.job_task === "Maker")
     .map((item: any) => ({
       value: item.user_id,
@@ -246,7 +243,7 @@ export const FormAssign = ({
         users.find((user: any) => user.value === item.user_id)?.label || "",
     }));
 
-  const defaultStampBlast = dataTypeDetailInvoice
+  const defaultStampBlast = dataAssign[0]?.detail
     .filter((item: any) => item.job_task === "Stamp & Blast")
     .map((item: any) => ({
       value: item.user_id,
@@ -254,36 +251,37 @@ export const FormAssign = ({
         users.find((user: any) => user.value === item.user_id)?.label || "",
     }));
 
-  const defaultApprovals = dataTypeDetailInvoice
+  const defaultApprovals = dataAssign[0]?.detail
     .filter((item: any) => item.job_task.startsWith("Approval"))
     .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
     .map((item: any) => ({
       value: item.user_id,
       label:
-        users.find((user: any) => user.value === item.user_id)?.label || "",
+        usersApproval.find((user: any) => user.value === item.user_id)?.label ||
+        "",
     }));
 
-  useEffect(() => {
-    if (dataTypeDetailInvoice) {
-      const defaultApprovals = getDefaultApprovals(
-        dataTypeDetailInvoice,
-        users
-      );
-      defaultApprovals.forEach((approval: any, index: any) => {
-        // Cek apakah nilai saat ini berbeda sebelum memanggil setValue
-        if (
-          approval.value !== selectedApprovals[index]?.value ||
-          approval.label !== selectedApprovals[index]?.label
-        ) {
-          setValue(`approval.${index}`, approval);
-          setSelectedApprovals((prev: any) => ({
-            ...prev,
-            [index]: approval,
-          }));
-        }
-      });
-    }
-  }, [dataTypeDetailInvoice, users, selectedApprovals, setValue]);
+  // useEffect(() => {
+  //   if (dataAssign) {
+  //     const defaultApprovals = getDefaultApprovals(
+  //       dataAssign[0]?.detail,
+  //       users
+  //     );
+  //     defaultApprovals.forEach((approval: any, index: any) => {
+  //       // Cek apakah nilai saat ini berbeda sebelum memanggil setValue
+  //       if (
+  //         approval.value !== selectedApprovals[index]?.value ||
+  //         approval.label !== selectedApprovals[index]?.label
+  //       ) {
+  //         setValue(`approval.${index}`, approval);
+  //         setSelectedApprovals((prev: any) => ({
+  //           ...prev,
+  //           [index]: approval,
+  //         }));
+  //       }
+  //     });
+  //   }
+  // }, [dataAssign, users, selectedApprovals, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mt-3 space-y-4">
@@ -390,53 +388,51 @@ export const FormAssign = ({
             )}
           </div>
         </div>
-        {Array.from({ length: dataTypeInvoice[0]?.approval_pic }).map(
-          (_, index) => (
-            <div
-              key={`approval-${index}`}
-              className="col-span-2 flex flex-col gap-2 lg:flex-row lg:items-start"
+        {Array.from({ length: dataAssign[0]?.approval_pic }).map((_, index) => (
+          <div
+            key={`approval-${index}`}
+            className="col-span-2 flex flex-col gap-2 lg:flex-row lg:items-start"
+          >
+            <Label
+              htmlFor={`approval${index}`}
+              className={cn("lg:min-w-[160px]", {
+                "text-destructive": errors.approval && errors.approval[index],
+              })}
             >
-              <Label
-                htmlFor={`approval${index}`}
-                className={cn("lg:min-w-[160px]", {
-                  "text-destructive": errors.approval && errors.approval[index],
+              Approval {index + 1}
+            </Label>
+            <div className="flex flex-col w-full">
+              <Select
+                {...register(`approval.${index}`)}
+                id={`approval${index}`}
+                isClearable={false}
+                closeMenuOnSelect={false}
+                components={animatedComponents}
+                defaultValue={defaultApprovals[index]}
+                options={getFilteredUsers(index)}
+                styles={styles}
+                onChange={(newValue) =>
+                  handleApprovalChange(index, newValue as OptionType | null)
+                }
+                className={cn("react-select", {
+                  "border-destructive focus:border-destructive":
+                    errors.approval && errors.approval[index],
                 })}
-              >
-                Approval {index + 1}
-              </Label>
-              <div className="flex flex-col w-full">
-                <Select
-                  {...register(`approval.${index}`)}
-                  id={`approval${index}`}
-                  isClearable={false}
-                  closeMenuOnSelect={false}
-                  components={animatedComponents}
-                  defaultValue={defaultApprovals[index]}
-                  options={getFilteredUsers(index)}
-                  styles={styles}
-                  onChange={(newValue) =>
-                    handleApprovalChange(index, newValue as OptionType | null)
-                  }
-                  className={cn("react-select", {
-                    "border-destructive focus:border-destructive":
-                      errors.approval && errors.approval[index],
+                classNamePrefix="select"
+                placeholder={`Choose Approval ${index + 1}`}
+              />
+              {errors.approval && errors.approval[index] && (
+                <p
+                  className={cn("text-xs mt-1", {
+                    "text-destructive": errors.approval[index],
                   })}
-                  classNamePrefix="select"
-                  placeholder={`Choose Approval ${index + 1}`}
-                />
-                {errors.approval && errors.approval[index] && (
-                  <p
-                    className={cn("text-xs mt-1", {
-                      "text-destructive": errors.approval[index],
-                    })}
-                  >
-                    {String(errors.approval[index]?.message)}
-                  </p>
-                )}
-              </div>
+                >
+                  {String(errors.approval[index]?.message)}
+                </p>
+              )}
             </div>
-          )
-        )}
+          </div>
+        ))}
         <div className="col-span-2 flex flex-col gap-2 lg:flex-row lg:items-start">
           <Label
             htmlFor="stampBlast"

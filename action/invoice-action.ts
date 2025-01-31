@@ -456,12 +456,14 @@ export const submitInvoiceApproval = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(
-      `${url}/api/invoice-approve?doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_remarks=${data.approvalRemark}&approval_status=${data.approvalStatus}`,
-      {
-        method: "GET",
-      }
-    );
+    let queryParams = `doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_status=${data.approvalStatus}`;
+    if (data.approvalStatus !== "A") {
+      queryParams += `&approval_remarks=${data.approvalRemark}`;
+    }
+
+    const response = await fetch(`${url}/api/invoice-approve?${queryParams}`, {
+      method: "GET",
+    });
     const result = await response.json();
 
     if (result.statusCode === 200) {
@@ -856,6 +858,31 @@ export const downloadInvoiceStampHistory = async (
         method: "GET",
       }
     );
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const getInvoiceInquiry = async () => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/invoice-inqueries`, {
+      method: "GET",
+    });
     const result = await response.json();
 
     if (result.statusCode === 200) {

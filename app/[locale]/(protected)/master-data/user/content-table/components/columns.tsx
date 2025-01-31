@@ -8,10 +8,11 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 
-interface Task {
+export interface Task {
   user_id: string;
   email: string;
   name: string;
+  role: string;
   created_at: string;
   action: React.ReactNode;
 }

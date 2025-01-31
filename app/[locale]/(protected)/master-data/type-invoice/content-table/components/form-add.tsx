@@ -154,7 +154,7 @@ export const FormAdd = ({
                 maxLength={2}
                 onChange={(e) => {
                   const value = e.target.value;
-                  if (/^\d*$/.test(value)) {
+                  if (/^[1-9]\d*$/.test(value)) {
                     e.target.value = value;
                   } else {
                     e.target.value = value.slice(0, -1);

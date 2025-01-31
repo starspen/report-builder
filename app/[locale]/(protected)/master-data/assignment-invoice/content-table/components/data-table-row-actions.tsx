@@ -19,6 +19,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import useTaskStore from "@/store/useTaskStore";
 
 interface DataTableRowActionsProps {
   row: Row<any>;
@@ -28,7 +29,9 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   // const task = taskSchema.parse(row.original);
   const router = useRouter();
   const typeId = row.original.type_id;
+  const { addTask } = useTaskStore();
   const handleDetailAssign = async () => {
+    addTask(row.original);
     router.push(`/master-data/assignment-invoice/${typeId}`);
   };
 

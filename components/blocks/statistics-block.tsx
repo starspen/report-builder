@@ -12,6 +12,7 @@ interface StatsBlock {
   chartColor?: string;
   chartType?: "area" | "bar" | "line" | "pie" | "donut" | "radialBar";
   opacity?: number;
+  onClick?: () => void;
 }
 
 const defaultData = [800, 600, 1000, 800, 600, 1000, 800, 900];
@@ -24,6 +25,7 @@ const StatisticsBlock = ({
   chartColor = "#00EBFF",
   chartType = "area",
   opacity = 0.1,
+  onClick,
 }: StatsBlock) => {
   const { theme: mode } = useTheme();
   const chartSeries = [
@@ -95,7 +97,11 @@ const StatisticsBlock = ({
     },
   };
   return (
-    <Card className={cn("  ", className)}>
+    <Card
+      className={cn("  ", className)}
+      onClick={onClick}
+      style={{ cursor: onClick ? "pointer" : "default" }}
+    >
       <CardContent className=" py-[18px] px-4 ">
         <div className="flex gap-6">
           <div className="flex-none">

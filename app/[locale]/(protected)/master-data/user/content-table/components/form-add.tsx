@@ -58,7 +58,7 @@ export const FormAdd = ({
     }),
   };
   const rolesOptions: { value: string; label: string }[] = [
-    { value: "adminitrator", label: "Administrator" },
+    { value: "administrator", label: "Administrator" },
     { value: "maker and blaster", label: "Maker and Blaster" },
     { value: "approver", label: "Approver" },
   ];

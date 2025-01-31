@@ -24,13 +24,19 @@ import {
 } from "@/components/ui/menubar";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
-export default function HorizontalMenu({ session }: { session: any }) {
+export default function HorizontalMenu({
+  session,
+  menu,
+}: {
+  session: any;
+  menu: any;
+}) {
   const [config] = useConfig();
 
   const t = useTranslations("Menu");
   const pathname = usePathname();
 
-  const menuList = getHorizontalMenuList(pathname, t, session);
+  const menuList = getHorizontalMenuList(pathname, t, session, menu);
 
   const [openDropdown, setOpenDropdown] = React.useState<boolean>(false);
 

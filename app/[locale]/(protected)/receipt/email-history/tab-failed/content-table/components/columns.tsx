@@ -19,6 +19,8 @@ import {
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface Task {
+  entity_name: string;
+  project_name: string;
   debtor_acct: string;
   debtor_name: string;
   email_addr: string;
@@ -51,6 +53,16 @@ export const columns: ColumnDef<Task>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
+  },
+  {
+    accessorKey: "entity_name",
+    header: "Entity Name",
+    cell: ({ row }) => <span>{row.getValue("entity_name")}</span>,
+  },
+  {
+    accessorKey: "project_name",
+    header: "Project Name",
+    cell: ({ row }) => <span>{row.getValue("project_name")}</span>,
   },
   {
     accessorKey: "debtor_acct",

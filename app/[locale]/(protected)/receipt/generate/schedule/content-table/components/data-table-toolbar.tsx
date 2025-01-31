@@ -38,13 +38,13 @@ export function DataTableToolbar({
     const value = event.target.value;
     table.setGlobalFilter(value);
   };
-  const projectNoFilter = table.getColumn("project_no");
-  const projectNoSet = new Set(
-    table.getFilteredRowModel().rows.map((row) => row.original.project_no)
+  const projectNameFilter = table.getColumn("project_name");
+  const projectNameSet = new Set(
+    table.getFilteredRowModel().rows.map((row) => row.original.project_name)
   );
-  const projectNo = Array.from(projectNoSet).map((projectNo) => ({
-    value: projectNo,
-    label: projectNo,
+  const projectName = Array.from(projectNameSet).map((projectName) => ({
+    value: projectName,
+    label: projectName,
   }));
 
   const handleOpenModal = async () => {
@@ -92,11 +92,11 @@ export function DataTableToolbar({
         className="h-8 min-w-[200px] max-w-sm"
       />
 
-      {projectNoFilter && (
+      {projectNameFilter && (
         <DataTableFacetedFilter
-          column={projectNoFilter}
+          column={projectNameFilter}
           title="Project"
-          options={projectNo}
+          options={projectName}
         />
       )}
 

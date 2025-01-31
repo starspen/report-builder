@@ -53,7 +53,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             body: JSON.stringify({ email, password }),
           });
           const result = await response.json();
-          console.log(result);
 
           if (result.statusCode === 200) {
             const user = {
@@ -65,7 +64,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               accessToken: result.data.access_token,
               refreshToken: result.data.refresh_token,
             };
-            console.log("user in auth.ts", user);
 
             return user;
           } else {
@@ -82,18 +80,26 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.role = user.role;
+        token.image = user.image;
       }
+
+      if (trigger === "update") {
+        return { ...token, ...session.user };
+      }
+
       return token;
     },
     async session({ session, token }) {
       session.accessToken = token.accessToken as string;
       session.refreshToken = token.refreshToken as string;
       session.user.role = token.role as string;
+      session.user.image = token.image as string;
+
       return session;
     },
   },

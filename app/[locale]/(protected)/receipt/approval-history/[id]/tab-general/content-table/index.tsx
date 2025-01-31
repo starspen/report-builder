@@ -37,7 +37,7 @@ export default function ContentTable({ data }: { data: any }) {
         <Card>
           <CardContent className="p-4">
             <h4 className="text-default-900 text-xl font-medium">
-              Invoice Information
+              Receipt Information
             </h4>
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div className="col-span-2  flex flex-col gap-2 lg:gap-0 lg:flex-row lg:items-center ">
@@ -94,11 +94,11 @@ export default function ContentTable({ data }: { data: any }) {
         <Card>
           <CardContent className="p-4">
             <h4 className="text-default-900 text-xl font-medium">
-              Invoice Attachment
+              Receipt Attachment
             </h4>
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div className="col-span-2  flex flex-col gap-2 lg:gap-0 lg:flex-row lg:items-center ">
-                <Label className="lg:min-w-[160px]">File Invoice</Label>
+                <Label className="lg:min-w-[160px]">File Receipt</Label>
                 <Button
                   className="bg-transparent  ring-transparent hover:bg-transparent hover:ring-0 hover:ring-offset-0 hover:ring-transparent w-28 border-transparent"
                   size="icon"

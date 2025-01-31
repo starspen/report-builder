@@ -38,14 +38,27 @@ export function DataTableToolbar({
     const value = event.target.value;
     table.setGlobalFilter(value);
   };
-  const projectNoFilter = table.getColumn("project_no");
-  const projectNoSet = new Set(
-    table.getFilteredRowModel().rows.map((row) => row.original.project_no)
+  const projectNameFilter = table.getColumn("project_name");
+  const projectNameSet = new Set(
+    table.getFilteredRowModel().rows.map((row) => row.original.project_name)
   );
-  const projectNo = Array.from(projectNoSet).map((projectNo) => ({
-    value: projectNo,
-    label: projectNo,
+  const projectName = Array.from(projectNameSet).map((projectName) => ({
+    value: projectName,
+    label: projectName,
   }));
+
+  const relatedClassDescriptions: Record<string, string> = {
+    RT: "Rental",
+    SC: "Service Charge",
+    MU: "Proforma Utilitas",
+    AC: "Air Condition/Chilled Water",
+    PK: "Building Facility",
+    CL: "Cleaning",
+    DP: "Deposit",
+    MI: "Utility, Miscellaneous, Admin",
+    ST: "Miscellanous Charge Electricity (Sat and V-Sat)",
+    OT: "Other Charge",
+  };
 
   const relatedClassFilter = table.getColumn("related_class");
   const relatedClassSet = new Set(
@@ -53,7 +66,7 @@ export function DataTableToolbar({
   );
   const relatedClass = Array.from(relatedClassSet).map((relatedClass) => ({
     value: relatedClass,
-    label: relatedClass,
+    label: relatedClassDescriptions[relatedClass] || relatedClass,
   }));
 
   const handleOpenModal = async () => {
@@ -109,11 +122,11 @@ export function DataTableToolbar({
         className="h-8 min-w-[200px] max-w-sm"
       />
 
-      {projectNoFilter && (
+      {projectNameFilter && (
         <DataTableFacetedFilter
-          column={projectNoFilter}
+          column={projectNameFilter}
           title="Project"
-          options={projectNo}
+          options={projectName}
         />
       )}
 

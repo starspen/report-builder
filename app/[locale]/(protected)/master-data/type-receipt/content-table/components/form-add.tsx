@@ -51,7 +51,7 @@ export const FormAdd = ({
       if (result.statusCode === 201) {
         toast.success(result.message);
         queryClient.invalidateQueries({
-          queryKey: ["master-type-invoice"],
+          queryKey: ["master-type-receipt"],
         });
         setIsModalOpen(false);
       } else {
@@ -154,7 +154,7 @@ export const FormAdd = ({
                 maxLength={2}
                 onChange={(e) => {
                   const value = e.target.value;
-                  if (/^\d*$/.test(value)) {
+                  if (/^[1-9]\d*$/.test(value)) {
                     e.target.value = value;
                   } else {
                     e.target.value = value.slice(0, -1);

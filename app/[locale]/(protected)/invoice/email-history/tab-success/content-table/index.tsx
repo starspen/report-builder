@@ -13,14 +13,13 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, CalendarIcon } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useForm, Controller } from "react-hook-form";
-import { CalendarIcon } from "lucide-react";
 // import { data } from "./data";
 
 const schema = z.object({
@@ -71,13 +70,20 @@ export default function AdvancedTable() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className=" h-screen flex items-center flex-col space-y-2">
+        <span className=" inline-flex gap-1  items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
+      </div>
+    );
   }
 
   return (
     <Fragment>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+        <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
           <div className="sm:col-span-2 sm:col-start-1">
             <Label htmlFor="startDate">Start Date</Label>
             <div className="mt-2">

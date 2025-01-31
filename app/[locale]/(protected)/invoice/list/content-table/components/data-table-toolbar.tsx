@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { submitInvoiceEmail } from "@/action/invoice-action";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface DataTableToolbarProps {
   table: Table<any>;
@@ -39,13 +39,13 @@ export function DataTableToolbar({
     table.setGlobalFilter(value);
   };
 
-  const projectNoFilter = table.getColumn("project_no");
-  const projectNoSet = new Set(
-    table.getFilteredRowModel().rows.map((row) => row.original.project_no)
+  const projectNameFilter = table.getColumn("project_name");
+  const projectNameSet = new Set(
+    table.getFilteredRowModel().rows.map((row) => row.original.project_name)
   );
-  const projectNo = Array.from(projectNoSet).map((projectNo) => ({
-    value: projectNo,
-    label: projectNo,
+  const projectName = Array.from(projectNameSet).map((projectName) => ({
+    value: projectName,
+    label: projectName,
   }));
 
   const handleOpenModal = async () => {
@@ -56,41 +56,87 @@ export function DataTableToolbar({
     }
   };
 
+  const mutation = useMutation({
+    mutationFn: async ({
+      docNo,
+      processId,
+      relatedClass,
+    }: {
+      docNo: string;
+      processId: string;
+      relatedClass: string;
+    }) => {
+      const result = await submitInvoiceEmail(docNo, processId, relatedClass);
+      return result;
+    },
+    onMutate: () => {
+      setIsLoading(true);
+    },
+    onSuccess: () => {
+      toast.success("Success submitting email");
+      queryClient.invalidateQueries({
+        queryKey: ["invoice-list"],
+      });
+    },
+    onError: () => {
+      toast.error("Error occurred while submitting data");
+    },
+    onSettled: () => {
+      setIsLoading(false);
+      setIsModalOpen(false);
+    },
+  });
+
   const handleSubmitInvoiceEmail = async () => {
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
-        const processId = rowData.process_id;
-        const relatedClass = rowData.related_class;
-
-        setIsLoading(true);
-        try {
-          const response = await submitInvoiceEmail(
-            docNo,
-            processId,
-            relatedClass
-          );
-          if (isLoading) {
-            toast.info("Submitting email, please wait...");
-          }
-          if (response.statusCode === 200) {
-            toast.success("Success submitting email");
-            queryClient.invalidateQueries({
-              queryKey: ["invoice-email"],
-            });
-          } else {
-            toast.error(response.message);
-          }
-        } catch (error) {
-          toast.error("Error occurred while submitting data");
-        } finally {
-          setIsLoading(false);
-        }
+        const {
+          doc_no: docNo,
+          process_id: processId,
+          related_class: relatedClass,
+        } = rowData;
+        mutation.mutate({ docNo, processId, relatedClass });
       }
     }
-    setIsModalOpen(false);
   };
+
+  // const handleSubmitInvoiceEmail = async () => {
+  //   for (const rowId of Array.from(selectedRows)) {
+  //     const rowData = table.getRow(String(rowId))?.original;
+  //     if (rowData) {
+  //       const docNo = rowData.doc_no;
+  //       const processId = rowData.process_id;
+  //       const relatedClass = rowData.related_class;
+
+  //       setIsLoading(true);
+
+  //       try {
+  //         const response = await submitInvoiceEmail(
+  //           docNo,
+  //           processId,
+  //           relatedClass
+  //         );
+  //         if (isLoading) {
+  //           toast.info("Submitting email, please wait...");
+  //         }
+  //         if (response.statusCode === 200) {
+  //           toast.success("Success submitting email");
+  //           queryClient.invalidateQueries({
+  //             queryKey: ["invoice-email"],
+  //           });
+  //         } else {
+  //           toast.error(response.message);
+  //         }
+  //       } catch (error) {
+  //         toast.error("Error occurred while submitting data");
+  //       } finally {
+  //         setIsLoading(false);
+  //       }
+  //     }
+  //   }
+  //   setIsModalOpen(false);
+  // };
 
   return (
     <div className="flex flex-1 flex-wrap items-center gap-2">
@@ -101,11 +147,11 @@ export function DataTableToolbar({
         className="h-8 min-w-[200px] max-w-sm"
       />
 
-      {projectNoFilter && (
+      {projectNameFilter && (
         <DataTableFacetedFilter
-          column={projectNoFilter}
+          column={projectNameFilter}
           title="Project"
-          options={projectNo}
+          options={projectName}
         />
       )}
 

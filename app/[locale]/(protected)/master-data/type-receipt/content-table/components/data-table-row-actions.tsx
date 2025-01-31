@@ -52,7 +52,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
     if (result.statusCode === 201) {
       toast.success(result.message);
       queryClient.invalidateQueries({
-        queryKey: ["master-type-invoice"],
+        queryKey: ["master-type-receipt"],
       });
       setIsModalOpen(false);
     } else {
@@ -107,8 +107,8 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           <Pencil className="w-4 h-4" />
         </Button>
 
-        {isModalOpenEdit && (
-          <FormEdit setIsModalOpen={setIsModalOpenEdit} selectedId={typeId} />
+        {isModalOpenEdit && row.original && (
+          <FormEdit setIsModalOpen={setIsModalOpenEdit} row={row.original} />
         )}
       </Dialog>
 

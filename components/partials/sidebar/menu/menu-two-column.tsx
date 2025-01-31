@@ -26,11 +26,11 @@ import IconNav from "./icon-nav";
 import SidebarNav from "./sideabr-nav";
 import { useTranslations } from "next-intl";
 
-export function MenuTwoColumn({ session }: { session: any }) {
+export function MenuTwoColumn({ session, menu }: { session: any; menu: any }) {
   // translate
   const t = useTranslations("Menu");
   const pathname = usePathname();
-  const menuList = getMenuList(pathname, t, session);
+  const menuList = getMenuList(pathname, t, session, menu);
 
   return (
     <>

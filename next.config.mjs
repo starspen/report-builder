@@ -43,6 +43,11 @@ const nextConfig = {
       },
       {
         protocol: "http",
+        hostname: "192.168.1.28",
+        port: "5000",
+      },
+      {
+        protocol: "http",
         hostname: "demo.property365.co.id",
         port: "5025",
       },

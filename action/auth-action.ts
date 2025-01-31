@@ -46,7 +46,6 @@ export const loginUser = async (data: any) => {
 //       body: JSON.stringify(data),
 //     });
 //     const result = await response.json();
-//     console.log(result);
 
 //     if (result.statusCode === 200) {
 //       await signIn("credentials", {

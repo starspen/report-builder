@@ -11,13 +11,12 @@ import { Icon } from "@/components/ui/icon";
 import { signOut, auth } from "@/lib/auth";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
-import { Button } from "@/components/ui/button";
 
 const ProfileInfo = async () => {
   const session = await auth();
 
   return (
-    <div className="md:block hidden">
+    <div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild className=" cursor-pointer">
           <div className=" flex items-center gap-3  text-default-800 ">

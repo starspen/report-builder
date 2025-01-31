@@ -11,8 +11,11 @@ import {
   getReceiptStampSuccess,
   getReceiptEmail,
 } from "@/action/receipt-action";
+import { useRouter } from "@/components/navigation";
+import { Loader2 } from "lucide-react";
 
 const DashboardPage = () => {
+  const router = useRouter();
   const { data: invoiceStamp, isLoading: isLoadingInvoiceStamp } = useQuery({
     queryKey: ["get-total-invoice-stamp"],
     queryFn: async () => {
@@ -51,7 +54,14 @@ const DashboardPage = () => {
     isLoadingReceiptStamp ||
     isLoadingReceiptBlast
   ) {
-    return <div>Loading...</div>;
+    return (
+      <div className=" h-screen flex items-center flex-col space-y-2">
+        <span className=" inline-flex gap-1  items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
+      </div>
+    );
   }
 
   return (
@@ -65,23 +75,25 @@ const DashboardPage = () => {
                   title="Total Ready Invoice Stamp"
                   total={invoiceStamp}
                   className="bg-info/10"
+                  onClick={() => router.push("/invoice/stamp")}
                 />
                 <StatisticsBlock
                   title="Total Ready Invoice Blast"
                   total={invoiceBlast}
-                  className="bg-primary/10"
+                  className="bg-primary/10 cursor-pointer"
+                  onClick={() => router.push("/invoice/email")}
                 />
                 <StatisticsBlock
                   title="Total Ready Receipt Stamp"
                   total={receiptStamp}
-                  className="bg-success/10"
-                  chartColor="#FB8F65"
+                  className="bg-success/10 cursor-pointer"
+                  onClick={() => router.push("/receipt/stamp")}
                 />
                 <StatisticsBlock
                   title="Total Ready Receipt Blast"
                   total={receiptBlast}
-                  className="bg-warning/10"
-                  chartColor="#2563eb"
+                  className="bg-warning/10 cursor-pointer"
+                  onClick={() => router.push("/receipt/email")}
                 />
               </div>
             </CardContent>

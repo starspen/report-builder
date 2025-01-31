@@ -52,7 +52,7 @@ const Social = ({ locale }: { locale: string }) => {
             action={async () => {
               "use server";
               await signIn("google", {
-                redirectTo: `/${locale}/dashboard/admin`,
+                redirectTo: `/${locale}/dashboard/home`,
               });
             }}
           >

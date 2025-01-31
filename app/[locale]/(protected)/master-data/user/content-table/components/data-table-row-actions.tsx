@@ -106,8 +106,8 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           <Pencil className="w-4 h-4" />
         </Button>
 
-        {isModalOpenEdit && (
-          <FormEdit setIsModalOpen={setIsModalOpenEdit} selectedId={userId} />
+        {isModalOpenEdit && row.original && (
+          <FormEdit setIsModalOpen={setIsModalOpenEdit} row={row.original} />
         )}
       </Dialog>
 

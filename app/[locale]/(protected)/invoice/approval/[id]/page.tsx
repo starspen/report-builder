@@ -1,11 +1,10 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "@/components/navigation";
-import { MoveLeft } from "lucide-react";
+import { MoveLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import SiteBreadcrumb from "@/components/site-breadcrumb";
 import ContentTabGeneral from "./tab-general/content-table";
 import ContentTabApproval from "./tab-level/content-table";
 import { Separator } from "@/components/ui/separator";
@@ -102,11 +101,11 @@ const ReactTablePage = () => {
 
   return (
     <div>
-      <SiteBreadcrumb />
       <div className="space-y-6">
         <Button
           onClick={router.back}
           size="icon"
+          title="Back"
           className="rounded-full bg-default-100 hover:text-default-50 hover:outline-0 hover:outline-offset-0  hover:border-0 hover:ring-0 text-default-600 hover:ring-offset-0 p-4"
         >
           <MoveLeft className=" h-5 w-5" />
@@ -132,7 +131,7 @@ const ReactTablePage = () => {
                   >
                     Approve
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     color="warning"
                     size="sm"
@@ -144,7 +143,7 @@ const ReactTablePage = () => {
                     disabled={isLoadingSubmit}
                   >
                     Revise
-                  </Button>
+                  </Button> */}
                   <Button
                     variant="outline"
                     color="destructive"
@@ -216,7 +215,12 @@ const ReactTablePage = () => {
             <Separator className="my-4" />
 
             {isLoadingHd || isLoadingLevel ? (
-              <div>Loading...</div>
+              <div className=" h-screen flex items-center flex-col space-y-2">
+                <span className=" inline-flex gap-1  items-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </span>
+              </div>
             ) : (
               <>
                 <ContentTabGeneral data={dataHd} />

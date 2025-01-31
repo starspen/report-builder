@@ -1,39 +1,17 @@
 "use client";
+
 import { useRouter } from "@/components/navigation";
-import { MoveLeft } from "lucide-react";
+import { MoveLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import SiteBreadcrumb from "@/components/site-breadcrumb";
 import { FormAssign } from "./form-assign";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getTypeInvoiceById,
-  getTypeInvoiceDetailById,
-} from "@/action/master-type-invoice-action";
 import { getMasterUser } from "@/action/master-user-action";
-import { useParams } from "next/navigation";
+import useTaskReceiptStore from "@/store/useTaskReceiptStore";
 
 const ReactTablePage = () => {
+  const { tasks } = useTaskReceiptStore();
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const typeId = params?.id;
-  const { data: dataTypeInvoice, isLoading: isLoadingTypeInvoice } = useQuery({
-    queryKey: ["master-type-invoice-id"],
-    queryFn: async () => {
-      const result = await getTypeInvoiceById(typeId as string);
-      return result;
-    },
-  });
-
-  const { data: dataTypeDetailInvoice, isLoading: isLoadingTypeDetailInvoice } =
-    useQuery({
-      queryKey: ["master-type-invoice-detail-id"],
-      queryFn: async () => {
-        const result = await getTypeInvoiceDetailById(typeId as string);
-        return result;
-      },
-    });
-
   const { data: dataUser, isLoading: isLoadingUser } = useQuery({
     queryKey: ["master-user"],
     queryFn: async () => {
@@ -43,17 +21,24 @@ const ReactTablePage = () => {
     },
   });
 
-  if (isLoadingTypeInvoice || isLoadingTypeDetailInvoice || isLoadingUser) {
-    return <div>Loading...</div>;
+  if (isLoadingUser) {
+    return (
+      <div className=" h-screen flex items-center flex-col space-y-2">
+        <span className=" inline-flex gap-1  items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
+      </div>
+    );
   }
 
   return (
     <div>
-      <SiteBreadcrumb />
       <div className="space-y-6">
         <Button
           onClick={router.back}
           size="icon"
+          title="Back"
           className="rounded-full bg-default-100 hover:text-default-50 hover:outline-0 hover:outline-offset-0  hover:border-0 hover:ring-0 text-default-600 hover:ring-offset-0 p-4"
         >
           <MoveLeft className=" h-5 w-5" />
@@ -66,11 +51,7 @@ const ReactTablePage = () => {
               </h4>
             </div>
 
-            <FormAssign
-              dataTypeInvoice={dataTypeInvoice?.data || []}
-              dataTypeDetailInvoice={dataTypeDetailInvoice?.data || []}
-              dataUser={dataUser?.data || []}
-            />
+            <FormAssign dataAssign={tasks} dataUser={dataUser?.data || []} />
           </CardContent>
         </Card>
       </div>

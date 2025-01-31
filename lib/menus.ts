@@ -1,5 +1,3 @@
-import { useSession } from "next-auth/react";
-
 export type SubChildren = {
   href: string;
   label: string;
@@ -32,10 +30,17 @@ export type Group = {
   id: string;
 };
 
-export function getMenuList(pathname: string, t: any, session: any): Group[] {
+export function getMenuList(
+  pathname: string,
+  t: any,
+  session: any,
+  menu: any
+): Group[] {
   const isAdmin = session?.user?.role === "administrator";
   const isMaker = session?.user?.role === "maker and blaster";
   const isApprover = session?.user?.role === "approver";
+  const hasInvoiceData = menu?.hasInvoiceData;
+  const hasOrData = menu?.hasOrData;
 
   return [
     {
@@ -85,7 +90,7 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
       menus: [
         {
           id: "master-data",
-          href: "/master-data/user",
+          href: "#",
           label: "Master Data",
           active: pathname.includes("/master-data/user"),
           icon: "heroicons-outline:list-bullet",
@@ -136,15 +141,15 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
       menus: [
         {
           id: "invoice",
-          href: "/invoice/email",
+          href: "#",
           label: "Invoice",
           active: pathname.includes("/invoice"),
           icon: "heroicons-outline:document-text",
           submenus: [
             {
-              href: "/invoice/generate",
+              href: "#",
               label: "Generate Invoice",
-              active: pathname === "/invoice/generate",
+              active: pathname === "/invoice/generate/schedule",
               icon: "heroicons-outline:document-plus",
               children: [
                 {
@@ -163,7 +168,7 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
                   active: pathname === "/invoice/generate/proforma",
                 },
               ],
-              visible: isAdmin || isMaker,
+              visible: isMaker && hasInvoiceData,
             },
             {
               href: "/invoice/list",
@@ -171,7 +176,7 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
               active: pathname === "/invoice/list",
               icon: "",
               children: [],
-              visible: isAdmin || isMaker,
+              visible: isMaker && hasInvoiceData,
             },
             {
               href: "/invoice/approval",
@@ -179,7 +184,7 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
               active: pathname === "/invoice/approval",
               icon: "",
               children: [],
-              visible: isAdmin || isApprover,
+              visible: isApprover && hasInvoiceData,
             },
             {
               href: "/invoice/approval-history",
@@ -187,7 +192,7 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
               active: pathname === "/invoice/approval-history",
               icon: "",
               children: [],
-              visible: isAdmin || isApprover,
+              visible: isApprover && hasInvoiceData,
             },
             {
               href: "/invoice/stamp",
@@ -215,14 +220,21 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
             },
             {
               href: "/invoice/email-history",
-              label: "Invoice Email History",
+              label: "Invoice Blast History",
               active: pathname === "/invoice/email-history",
               icon: "",
               children: [],
               visible: isAdmin || isMaker,
             },
+            {
+              href: "/invoice/inquiry",
+              label: "Invoice Inquiry",
+              active: pathname === "/invoice/inquiry",
+              icon: "",
+              children: [],
+            },
           ].filter((submenu) => submenu.visible !== false),
-          visible: isAdmin || isMaker || isApprover,
+          visible: isAdmin || isMaker || (isApprover && hasInvoiceData),
         },
       ].filter((menu) => menu.visible !== false),
     },
@@ -232,24 +244,24 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
       menus: [
         {
           id: "receipt",
-          href: "/receipt/stamp",
+          href: "#",
           label: "Official Receipt",
           active: pathname.includes("/receipt"),
           icon: "heroicons-outline:receipt-percent",
           submenus: [
             {
-              href: "/receipt/generate",
+              href: "#",
               label: "Generate Receipt",
               active: pathname === "/receipt/generate",
               icon: "heroicons-outline:document-plus",
               children: [
                 {
                   href: "/receipt/generate/schedule",
-                  label: "Receipt Schedule",
+                  label: "Receipt",
                   active: pathname === "/receipt/generate/schedule",
                 },
               ],
-              visible: isAdmin || isMaker,
+              visible: isMaker && hasOrData,
             },
             {
               href: "/receipt/list",
@@ -257,7 +269,7 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
               active: pathname === "/receipt/list",
               icon: "",
               children: [],
-              visible: isAdmin || isMaker,
+              visible: isMaker && hasOrData,
             },
             {
               href: "/receipt/approval",
@@ -265,7 +277,7 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
               active: pathname === "/receipt/approval",
               icon: "",
               children: [],
-              visible: isAdmin || isApprover,
+              visible: isApprover && hasOrData,
             },
             {
               href: "/receipt/approval-history",
@@ -273,7 +285,7 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
               active: pathname === "/receipt/approval-history",
               icon: "",
               children: [],
-              visible: isAdmin || isApprover,
+              visible: isApprover && hasOrData,
             },
             {
               href: "/receipt/stamp",
@@ -307,8 +319,15 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
               children: [],
               visible: isAdmin || isMaker,
             },
+            {
+              href: "/receipt/inquiry",
+              label: "Receipt Inquiry",
+              active: pathname === "/receipt/inquiry",
+              icon: "",
+              children: [],
+            },
           ].filter((submenu) => submenu.visible !== false),
-          visible: isAdmin || isMaker || isApprover,
+          visible: isAdmin || isMaker || (isApprover && hasOrData),
         },
       ].filter((menu) => menu.visible !== false),
     },
@@ -369,11 +388,14 @@ export function getMenuList(pathname: string, t: any, session: any): Group[] {
 export function getHorizontalMenuList(
   pathname: string,
   t: any,
-  session: any
+  session: any,
+  menu: any
 ): Group[] {
   const isAdmin = session?.user?.role === "administrator";
   const isMaker = session?.user?.role === "maker and blaster";
   const isApprover = session?.user?.role === "approver";
+  const hasInvoiceData = menu?.hasInvoiceData;
+  const hasOrData = menu?.hasOrData;
 
   return [
     {
@@ -423,7 +445,7 @@ export function getHorizontalMenuList(
       menus: [
         {
           id: "master-data",
-          href: "/master-data/user",
+          href: "#",
           label: "Master Data",
           active: pathname.includes("/master-data/user"),
           icon: "heroicons-outline:list-bullet",
@@ -474,15 +496,15 @@ export function getHorizontalMenuList(
       menus: [
         {
           id: "invoice",
-          href: "/invoice/email",
+          href: "#",
           label: "Invoice",
           active: pathname.includes("/invoice"),
           icon: "heroicons-outline:document-text",
           submenus: [
             {
-              href: "/invoice/generate",
+              href: "#",
               label: "Generate Invoice",
-              active: pathname === "/invoice/generate",
+              active: pathname === "/invoice/generate/schedule",
               icon: "heroicons-outline:document-plus",
               children: [
                 {
@@ -501,7 +523,7 @@ export function getHorizontalMenuList(
                   active: pathname === "/invoice/generate/proforma",
                 },
               ],
-              visible: isAdmin || isMaker,
+              visible: isMaker && hasInvoiceData,
             },
             {
               href: "/invoice/list",
@@ -509,7 +531,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/list",
               icon: "",
               children: [],
-              visible: isAdmin || isMaker,
+              visible: isMaker && hasInvoiceData,
             },
             {
               href: "/invoice/approval",
@@ -517,7 +539,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/approval",
               icon: "",
               children: [],
-              visible: isAdmin || isApprover,
+              visible: isApprover && hasInvoiceData,
             },
             {
               href: "/invoice/approval-history",
@@ -525,7 +547,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/approval-history",
               icon: "",
               children: [],
-              visible: isAdmin || isApprover,
+              visible: isApprover && hasInvoiceData,
             },
             {
               href: "/invoice/stamp",
@@ -553,14 +575,21 @@ export function getHorizontalMenuList(
             },
             {
               href: "/invoice/email-history",
-              label: "Invoice Email History",
+              label: "Invoice Blast History",
               active: pathname === "/invoice/email-history",
               icon: "",
               children: [],
               visible: isAdmin || isMaker,
             },
+            {
+              href: "/invoice/inquiry",
+              label: "Invoice Inquiry",
+              active: pathname === "/invoice/inquiry",
+              icon: "",
+              children: [],
+            },
           ].filter((submenu) => submenu.visible !== false),
-          visible: isAdmin || isMaker || isApprover,
+          visible: isAdmin || isMaker || (isApprover && hasInvoiceData),
         },
       ].filter((menu) => menu.visible !== false),
     },
@@ -570,24 +599,24 @@ export function getHorizontalMenuList(
       menus: [
         {
           id: "receipt",
-          href: "/receipt/stamp",
+          href: "#",
           label: "Official Receipt",
           active: pathname.includes("/receipt"),
           icon: "heroicons-outline:receipt-percent",
           submenus: [
             {
-              href: "/receipt/generate",
+              href: "#",
               label: "Generate Receipt",
               active: pathname === "/receipt/generate",
               icon: "heroicons-outline:document-plus",
               children: [
                 {
                   href: "/receipt/generate/schedule",
-                  label: "Receipt Schedule",
+                  label: "Receipt",
                   active: pathname === "/receipt/generate/schedule",
                 },
               ],
-              visible: isAdmin || isMaker,
+              visible: isMaker && hasOrData,
             },
             {
               href: "/receipt/list",
@@ -595,7 +624,7 @@ export function getHorizontalMenuList(
               active: pathname === "/receipt/list",
               icon: "",
               children: [],
-              visible: isAdmin || isMaker,
+              visible: isMaker && hasOrData,
             },
             {
               href: "/receipt/approval",
@@ -603,7 +632,7 @@ export function getHorizontalMenuList(
               active: pathname === "/receipt/approval",
               icon: "",
               children: [],
-              visible: isAdmin || isApprover,
+              visible: isApprover && hasOrData,
             },
             {
               href: "/receipt/approval-history",
@@ -611,7 +640,7 @@ export function getHorizontalMenuList(
               active: pathname === "/receipt/approval-history",
               icon: "",
               children: [],
-              visible: isAdmin || isApprover,
+              visible: isApprover && hasOrData,
             },
             {
               href: "/receipt/stamp",
@@ -645,8 +674,15 @@ export function getHorizontalMenuList(
               children: [],
               visible: isAdmin || isMaker,
             },
+            {
+              href: "/receipt/inquiry",
+              label: "Receipt Inquiry",
+              active: pathname === "/receipt/inquiry",
+              icon: "",
+              children: [],
+            },
           ].filter((submenu) => submenu.visible !== false),
-          visible: isAdmin || isMaker || isApprover,
+          visible: isAdmin || isMaker || (isApprover && hasOrData),
         },
       ].filter((menu) => menu.visible !== false),
     },

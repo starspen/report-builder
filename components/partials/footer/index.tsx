@@ -15,7 +15,7 @@ const DashCodeFooter = async () => {
         </div>
         <div className="ltr:md:text-right rtl:md:text-end text-center text-sm">
           <a
-            href="http://id.ifca.co.id/"
+            href="https://www.property365.co.id/"
             target="_blank"
             className="text-primary font-semibold"
           >
@@ -24,10 +24,7 @@ const DashCodeFooter = async () => {
         </div>
       </div>
       <div className="flex md:hidden justify-around items-center">
-        <Link
-          href="profile"
-          className="relative bg-card bg-no-repeat backdrop-filter backdrop-blur-[40px] rounded-full footer-bg dark:bg-default-300 h-[65px] w-[65px] z-[-1] -mt-[40px] flex justify-center items-center"
-        >
+        <div className="relative bg-card bg-no-repeat backdrop-filter backdrop-blur-[40px] rounded-full footer-bg dark:bg-default-300 h-[65px] w-[65px] z-[-1] -mt-[40px] flex justify-center items-center">
           <div className="h-[50px] w-[50px] rounded-full relative left-[0px] top-[0px] custom-dropshadow">
             <Image
               src={session?.user?.image as string}
@@ -37,7 +34,7 @@ const DashCodeFooter = async () => {
               className="w-full h-full rounded-full border-2"
             />
           </div>
-        </Link>
+        </div>
       </div>
     </FooterContent>
   );

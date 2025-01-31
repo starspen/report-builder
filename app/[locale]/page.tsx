@@ -12,10 +12,16 @@ const Login = ({ params: { locale } }: { params: { locale: string } }) => {
           <div
             className="lg:block hidden flex-1 overflow-hidden text-[40px] leading-[48px] text-default-600 
  relative z-[1] bg-default-50 flex items-center justify-center"
-            style={{ backgroundImage: "url(/images/auth/fji2.jpg)" }}
+            style={{
+              backgroundImage: "url(/images/auth/office.jpg)",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              position: "relative",
+            }}
           >
             <div className="max-w-[520px] pt-40 ps-20 text-center">
-              <div className="mb-6 inline-block">
+              {/* <div className="mb-6 inline-block">
                 <Image
                   src="/images/auth/first-jakarta-logo-removebg.png"
                   alt=""
@@ -23,13 +29,13 @@ const Login = ({ params: { locale } }: { params: { locale: string } }) => {
                   height={300}
                   className=" w-12 "
                 />
-              </div>
+              </div> */}
 
-              <h4>
+              {/* <h4>
                 <span className="text-default-900">
                   PT. First Jakarta International
                 </span>
-              </h4>
+              </h4> */}
             </div>
             {/* <div className="absolute left-0 2xl:bottom-[-160px] bottom-[-130px] h-full w-full z-[-1]">
               <Image

@@ -19,12 +19,10 @@ import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  getMasterUserById,
-  updateMasterUser,
-} from "@/action/master-user-action";
+import { updateMasterUser } from "@/action/master-user-action";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
+import { Task } from "./columns";
 
 const schema = z.object({
   userId: z.string().optional(),
@@ -37,20 +35,13 @@ const schema = z.object({
 });
 export const FormEdit = ({
   setIsModalOpen,
-  selectedId,
+  row,
 }: {
   setIsModalOpen: (value: boolean) => void;
-  selectedId: string;
+  row: Task;
 }) => {
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const queryClient = useQueryClient();
-  const { data } = useQuery({
-    queryKey: ["master-user-id"],
-    queryFn: async () => {
-      const result = await getMasterUserById(selectedId);
-      return result;
-    },
-  });
 
   const animatedComponents = makeAnimated();
   const styles = {
@@ -83,12 +74,12 @@ export const FormEdit = ({
     setValue,
   } = useForm<z.infer<typeof schema>>({
     defaultValues: {
-      userId: data?.data[0]?.user_id,
-      userEmail: data?.data[0]?.email,
-      userName: data?.data[0]?.name,
+      userId: row.user_id,
+      userEmail: row.email,
+      userName: row.name,
       userRole: {
-        value: data?.data[0]?.role,
-        label: data?.data[0]?.role,
+        value: row.role,
+        label: row.role,
       },
     },
     resolver: zodResolver(schema),
@@ -123,22 +114,10 @@ export const FormEdit = ({
     mutation.mutate(data);
   }
 
-  useEffect(() => {
-    if (data) {
-      setValue("userId", data?.data[0]?.user_id);
-      setValue("userEmail", data?.data[0]?.email);
-      setValue("userName", data?.data[0]?.name);
-      setValue("userRole", {
-        value: data?.data[0]?.role,
-        label: data?.data[0]?.role,
-      });
-    }
-  }, [data, setValue]);
-
-  const defaultRole = data
+  const defaultRole = row
     ? {
-        value: data?.data[0]?.role,
-        label: data?.data[0]?.role,
+        value: row.role,
+        label: row.role,
       }
     : null;
 

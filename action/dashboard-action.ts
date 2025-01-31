@@ -1,4 +1,5 @@
 "use server";
+import { auth } from "@/lib/auth";
 
 const mode = `${process.env.NEXT_PUBLIC_ENV_MODE}`;
 
@@ -114,6 +115,38 @@ export const getTransactionSummary = async () => {
     const response = await fetch(`${url}/api/finpay/get-transaction`, {
       method: "GET",
     });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const getMenu = async () => {
+  try {
+    const session = await auth();
+    const email = session?.user?.email;
+    const role = session?.user?.role;
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/menu-list?email=${email}&role=${role}`,
+      {
+        method: "GET",
+      }
+    );
     const result = await response.json();
 
     if (result.statusCode === 200) {

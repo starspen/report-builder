@@ -23,6 +23,7 @@ import {
   getTypeInvoiceById,
   updateTypeInvoice,
 } from "@/action/master-type-invoice-action";
+import { Task } from "./columns";
 
 const schema = z.object({
   typeId: z.string().optional(),
@@ -32,20 +33,13 @@ const schema = z.object({
 });
 export const FormEdit = ({
   setIsModalOpen,
-  selectedId,
+  row,
 }: {
   setIsModalOpen: (value: boolean) => void;
-  selectedId: string;
+  row: Task;
 }) => {
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const queryClient = useQueryClient();
-  const { data } = useQuery({
-    queryKey: ["master-type-invoice-id"],
-    queryFn: async () => {
-      const result = await getTypeInvoiceById(selectedId);
-      return result;
-    },
-  });
 
   const {
     register,
@@ -53,6 +47,12 @@ export const FormEdit = ({
     formState: { errors },
     setValue,
   } = useForm<z.infer<typeof schema>>({
+    defaultValues: {
+      typeId: row.type_id,
+      typeCd: row.type_cd,
+      typeDescs: row.type_descs,
+      approvalPic: row.approval_pic,
+    },
     resolver: zodResolver(schema),
   });
 
@@ -84,15 +84,6 @@ export const FormEdit = ({
   function onSubmit(data: z.infer<typeof schema>) {
     mutation.mutate(data);
   }
-
-  useEffect(() => {
-    if (data) {
-      setValue("typeId", data?.data[0]?.type_id);
-      setValue("typeCd", data?.data[0]?.type_cd);
-      setValue("typeDescs", data?.data[0]?.type_descs);
-      setValue("approvalPic", data?.data[0]?.approval_pic);
-    }
-  }, [data, setValue]);
 
   return (
     <DialogContent>
@@ -179,7 +170,7 @@ export const FormEdit = ({
                 maxLength={2}
                 onChange={(e) => {
                   const value = e.target.value;
-                  if (/^\d*$/.test(value)) {
+                  if (/^[1-9]\d*$/.test(value)) {
                     e.target.value = value;
                   } else {
                     e.target.value = value.slice(0, -1);

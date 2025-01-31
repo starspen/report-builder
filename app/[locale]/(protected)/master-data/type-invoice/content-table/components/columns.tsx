@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 
-interface Task {
+export interface Task {
   type_id: string;
   type_cd: string;
   type_descs: string;

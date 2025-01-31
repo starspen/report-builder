@@ -12,9 +12,12 @@ import HorizontalMenu from "./horizontal-menu";
 import LocalSwitcher from "./locale-switcher";
 import HeaderLogo from "./header-logo";
 import { auth } from "@/lib/auth";
+import { getMenu } from "@/action/dashboard-action";
 
 const DashCodeHeader = async () => {
   const session = await auth();
+  const menu = await getMenu();
+
   return (
     <>
       <HeaderContent>
@@ -30,10 +33,10 @@ const DashCodeHeader = async () => {
           {/* <Messages /> */}
           {/* <Notifications /> */}
           <ProfileInfo />
-          <SheetMenu session={session} />
+          <SheetMenu session={session} menu={menu.data} />
         </div>
       </HeaderContent>
-      <HorizontalMenu session={session} />
+      <HorizontalMenu session={session} menu={menu.data} />
     </>
   );
 };

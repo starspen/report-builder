@@ -42,6 +42,15 @@ export function DataTableToolbar({
     table.setGlobalFilter(value);
   };
 
+  const projectNameFilter = table.getColumn("project_name");
+  const projectNameSet = new Set(
+    table.getFilteredRowModel().rows.map((row) => row.original.project_name)
+  );
+  const projectName = Array.from(projectNameSet).map((projectName) => ({
+    value: projectName,
+    label: projectName,
+  }));
+
   const handleOpenModal = async () => {
     if (selectedRows.size > 0) {
       setIsModalOpen(true);
@@ -88,6 +97,14 @@ export function DataTableToolbar({
         onChange={handleFilterChange}
         className="h-8 min-w-[200px] max-w-sm"
       />
+
+      {projectNameFilter && (
+        <DataTableFacetedFilter
+          column={projectNameFilter}
+          title="Project"
+          options={projectName}
+        />
+      )}
 
       <Dialog open={isModalOpenUpload} onOpenChange={setIsModalOpenUpload}>
         <Button

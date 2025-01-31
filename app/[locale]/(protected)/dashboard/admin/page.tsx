@@ -3,6 +3,19 @@
 import Image from "next/image";
 import { StatisticsBlock } from "@/components/blocks/statistics-block";
 import { UpgradeBlock } from "@/components/blocks/upgrade-block";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 import { BlockBadge, WelcomeBlock } from "@/components/blocks/welcome-block";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +43,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { topUpQuota } from "@/action/dashboard-action";
 import ContentTable from "./content-table";
 import { getQuotaStamp } from "@/action/dashboard-action";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 const schema = z.object({
   quota: z.object({
     value: z.string().min(1, { message: "Required" }),
@@ -105,6 +120,49 @@ const DashboardPage = () => {
     // { value: "5000", label: "5000" },
   ];
 
+  const lists1 = [
+    {
+      id: 1,
+      text: 'Click the "Top Up" button',
+    },
+    {
+      id: 2,
+      text: "Choose the quota amount",
+    },
+    {
+      id: 3,
+      text: 'Click the "Continue Payment" button',
+    },
+    {
+      id: 4,
+      text: "Check the transaction on your dashboard",
+    },
+    {
+      id: 5,
+      text: 'Then, the page will be redirected to the "Choose Payment Channel"',
+    },
+    {
+      id: 6,
+      text: "Choose the Payment Channel",
+    },
+    {
+      id: 7,
+      text: 'Click the "Pay Now" button',
+    },
+    {
+      id: 8,
+      text: "The page will show the Virtual Account information",
+    },
+    {
+      id: 9,
+      text: "Make a payment via ATM or mobile banking",
+    },
+    {
+      id: 10,
+      text: "Transaction success",
+    },
+  ];
+
   const {
     register,
     handleSubmit,
@@ -148,7 +206,7 @@ const DashboardPage = () => {
   return (
     <div>
       <div className="grid grid-cols-12 items-center gap-5 mb-5">
-        <div className="col-span-4">
+        <div className="col-span-12 md:col-span-4">
           <UpgradeBlock className="bg-primary">
             <div className="max-w-[168px] relative z-10">
               <div className="text-base font-medium text-default-foreground dark:text-default-900">
@@ -167,7 +225,7 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            <div className="mt-6 mb-24 z-10">
+            <div className="mt-6 mb-24 z-10 flex items-center gap-2">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
@@ -178,7 +236,7 @@ const DashboardPage = () => {
                     Top Up
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent onInteractOutside={(e) => e.preventDefault()}>
                   <DialogHeader>
                     <DialogTitle>Top Up</DialogTitle>
                   </DialogHeader>
@@ -264,8 +322,77 @@ const DashboardPage = () => {
                   </DialogDescription>
                 </DialogContent>
               </Dialog>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          size="icon"
+                          className="bg-default-foreground text-default hover:bg-default-foreground hover:opacity-80 dark:bg-default dark:text-default-100 font-medium"
+                        >
+                          <Info className=" h-6 w-6" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent
+                        onInteractOutside={(e) => e.preventDefault()}
+                      >
+                        <DialogHeader>
+                          <DialogTitle>Information for Top Up</DialogTitle>
+                        </DialogHeader>
+                        <DialogDescription className="pb-8">
+                          <Accordion
+                            type="single"
+                            collapsible
+                            className="w-full"
+                          >
+                            <AccordionItem value="item-1">
+                              <AccordionTrigger>
+                                How to top up quota?
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <ScrollArea className="h-[350px]">
+                                  <div className="text-default-600  text-sm font-normal mt-3 space-y-4">
+                                    <div className="flex justify-between items-start pb-4">
+                                      <ul className="space-y-3 rounded-md bg-trasparent  ">
+                                        {lists1.map((item, i) => (
+                                          <li
+                                            key={i}
+                                            className="text-sm lg:text-base text-default-600  flex gap-2 items-center"
+                                          >
+                                            <span className="h-[10px] w-[10px] bg-default-900 rounded-full inline-block"></span>
+                                            <span>{item.text}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </ScrollArea>
+                              </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-2">
+                              <AccordionTrigger>
+                                When will the quota be increased?
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <p className="text-default-600  text-sm lg:text-base font-normal">
+                                  The e-stamp quota top up will increase after
+                                  the payment is verified by the payment gateway
+                                </p>
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        </DialogDescription>
+                      </DialogContent>
+                    </Dialog>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>How to top up quota? </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-            <div className="absolute bottom-0 start-0 z-9 w-full">
+            {/* <div className="absolute bottom-0 start-0 z-9 w-full">
               <Image
                 src="/images/svg/line.svg"
                 width={500}
@@ -273,7 +400,7 @@ const DashboardPage = () => {
                 alt="Line Image"
                 draggable={false}
               />
-            </div>
+            </div> */}
             <div className="absolute -bottom-4 end-5">
               <Image
                 src="/images/svg/rabit.svg"

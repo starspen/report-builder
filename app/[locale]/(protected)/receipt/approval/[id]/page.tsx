@@ -1,11 +1,10 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "@/components/navigation";
-import { MoveLeft } from "lucide-react";
+import { MoveLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import SiteBreadcrumb from "@/components/site-breadcrumb";
 import ContentTabGeneral from "./tab-general/content-table";
 import ContentTabApproval from "./tab-level/content-table";
 import { Separator } from "@/components/ui/separator";
@@ -36,7 +35,7 @@ const ReactTablePage = () => {
   const params = useParams<{ id: string }>();
   const processId = params?.id;
   const { data: dataHd, isLoading: isLoadingHd } = useQuery({
-    queryKey: ["invoice-approval-detail"],
+    queryKey: ["receipt-approval-detail"],
     queryFn: async () => {
       const result = await getInvoiceApprovalHd(processId as string);
       return result;
@@ -44,7 +43,7 @@ const ReactTablePage = () => {
   });
 
   const { data: dataLevel, isLoading: isLoadingLevel } = useQuery({
-    queryKey: ["invoice-approval-detail-level"],
+    queryKey: ["receipt-approval-detail-level"],
     queryFn: async () => {
       const result = await getInvoiceApprovalDetail(processId as string);
       return result;
@@ -102,11 +101,11 @@ const ReactTablePage = () => {
 
   return (
     <div>
-      <SiteBreadcrumb />
       <div className="space-y-6">
         <Button
           onClick={router.back}
           size="icon"
+          title="Back"
           className="rounded-full bg-default-100 hover:text-default-50 hover:outline-0 hover:outline-offset-0  hover:border-0 hover:ring-0 text-default-600 hover:ring-offset-0 p-4"
         >
           <MoveLeft className=" h-5 w-5" />
@@ -115,7 +114,7 @@ const ReactTablePage = () => {
           <CardContent className="p-4">
             <div className="flex justify-between mb-6">
               <h4 className="text-default-900 text-xl font-medium">
-                Detail Invoice
+                Detail Receipt
               </h4>
               <label className="inline-flex text-sm cursor-pointer">
                 <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -132,7 +131,7 @@ const ReactTablePage = () => {
                   >
                     Approve
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     color="warning"
                     size="sm"
@@ -144,7 +143,7 @@ const ReactTablePage = () => {
                     disabled={isLoadingSubmit}
                   >
                     Revise
-                  </Button>
+                  </Button> */}
                   <Button
                     variant="outline"
                     color="destructive"
@@ -216,7 +215,12 @@ const ReactTablePage = () => {
             <Separator className="my-4" />
 
             {isLoadingHd || isLoadingLevel ? (
-              <div>Loading...</div>
+              <div className=" h-screen flex items-center flex-col space-y-2">
+                <span className=" inline-flex gap-1  items-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </span>
+              </div>
             ) : (
               <>
                 <ContentTabGeneral data={dataHd} />
