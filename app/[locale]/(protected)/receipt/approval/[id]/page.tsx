@@ -24,10 +24,10 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-  getInvoiceApprovalHd,
-  getInvoiceApprovalDetail,
-  submitInvoiceApproval,
-} from "@/action/invoice-action";
+  getReceiptApprovalHd,
+  getReceiptApprovalDetail,
+  submitReceiptApproval,
+} from "@/action/receipt-action";
 import { useParams } from "next/navigation";
 
 const ReactTablePage = () => {
@@ -37,7 +37,7 @@ const ReactTablePage = () => {
   const { data: dataHd, isLoading: isLoadingHd } = useQuery({
     queryKey: ["receipt-approval-detail"],
     queryFn: async () => {
-      const result = await getInvoiceApprovalHd(processId as string);
+      const result = await getReceiptApprovalHd(processId as string);
       return result;
     },
   });
@@ -45,7 +45,7 @@ const ReactTablePage = () => {
   const { data: dataLevel, isLoading: isLoadingLevel } = useQuery({
     queryKey: ["receipt-approval-detail-level"],
     queryFn: async () => {
-      const result = await getInvoiceApprovalDetail(processId as string);
+      const result = await getReceiptApprovalDetail(processId as string);
       return result;
     },
   });
@@ -76,7 +76,7 @@ const ReactTablePage = () => {
         approvalStatus: actionType,
       };
       setIsLoadingSubmit(true);
-      const result = await submitInvoiceApproval(dataPost);
+      const result = await submitReceiptApproval(dataPost);
       return result;
     },
     onSuccess: (result) => {

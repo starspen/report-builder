@@ -53,8 +53,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
               <TableHead>Doc Date</TableHead>
               <TableHead>Currency Cd</TableHead>
               <TableHead>Doc Amt</TableHead>
-              <TableHead>File Invoice</TableHead>
-              <TableHead>File Reference</TableHead>
+              <TableHead>File Receipt</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -75,20 +74,6 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                   }}
                   title={`${data.filenames}`}
                   disabled={!data.filenames}
-                >
-                  <File className="text-red-600 w-4 h-4" />
-                </Button>
-              </TableCell>
-              <TableCell>
-                <Button
-                  className="bg-transparent  ring-transparent hover:bg-transparent hover:ring-0 hover:ring-offset-0 hover:ring-transparent w-28 border-transparent"
-                  size="icon"
-                  onClick={(event) => {
-                    handlePreviewFile(data.filenames2, data.invoice_tipe);
-                    event.preventDefault();
-                  }}
-                  title={`${data.filenames2}`}
-                  disabled={!data.filenames2}
                 >
                   <File className="text-red-600 w-4 h-4" />
                 </Button>

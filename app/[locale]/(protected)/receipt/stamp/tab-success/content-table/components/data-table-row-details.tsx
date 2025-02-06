@@ -49,7 +49,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
               <TableHead>Descs</TableHead>
               <TableHead>Currency Cd</TableHead>
               <TableHead>Doc Amt</TableHead>
-              <TableHead>File Invoice</TableHead>
+              <TableHead>File Receipt</TableHead>
               <TableHead>File Status Sign</TableHead>
             </TableRow>
           </TableHeader>

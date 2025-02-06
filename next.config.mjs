@@ -52,9 +52,9 @@ const nextConfig = {
         port: "5025",
       },
       {
-        protocol: "https",
-        hostname: "demo.property365.co.id",
-        port: "5025",
+        protocol: "http",
+        hostname: "10.10.0.25",
+        port: "5000",
       },
     ],
   },

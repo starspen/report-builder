@@ -128,6 +128,81 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
           </Table>
         </CardContent>
       </Card>
+
+      {data.details && data.details.length > 0 && (
+        <>
+          <Separator className="my-4" />
+          <Card>
+            <CardContent className="p-4">
+              <h4 className="text-default-900 text-xl font-medium">
+                Approval Information
+              </h4>
+              <Table>
+                <TableHeader className="bg-default-200 dark:bg-default-300">
+                  <TableRow>
+                    <TableHead>Approval Level</TableHead>
+                    <TableHead>Approval User</TableHead>
+                    <TableHead>Approval Status</TableHead>
+                    <TableHead>Approval Date</TableHead>
+                    <TableHead>Approval Remarks</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.details.map((item: any, index: number) => (
+                    <TableRow key={index}>
+                      <TableCell>{item.approval_level}</TableCell>
+                      <TableCell>{item.approval_user}</TableCell>
+                      <TableCell>
+                        {item.approval_status == "A" ? (
+                          <Badge className="rounded-full px-5 bg-success/20 text-success">
+                            Approved
+                          </Badge>
+                        ) : item.approval_status == "R" ? (
+                          <Badge className="rounded-full px-5 bg-warning/20 text-warning">
+                            Revise
+                          </Badge>
+                        ) : item.approval_status == "C" ? (
+                          <Badge className="rounded-full px-5 bg-destructive/20 text-destructive">
+                            Cancelled
+                          </Badge>
+                        ) : (
+                          <Badge className="rounded-full px-5 bg-default/20 text-default">
+                            Pending
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {item.approval_date === "" ||
+                        item.approval_date === null ||
+                        item.approval_date === "null" ? (
+                          <span>-</span>
+                        ) : (
+                          <span>
+                            {dayjs
+                              .utc(item.approval_date)
+                              .format("DD/MM/YYYY HH:mm:ss")}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {item.approval_remarks === "" ||
+                        item.approval_remarks === null ||
+                        item.approval_remarks === "null" ||
+                        item.approval_remarks === undefined ||
+                        item.approval_remarks === "undefined" ? (
+                          <span>-</span>
+                        ) : (
+                          <span>{item.approval_remarks}</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </>
   );
 }
