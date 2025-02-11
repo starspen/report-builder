@@ -472,10 +472,14 @@ export const resendReceiptEmail = async (docNo: string) => {
 
 export const stampReceipt = async (fileName: string, fileType: string) => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.name;
+
     const data = {
       company_cd: "GQCINV",
       file_name: fileName,
       file_type: fileType,
+      audit_user: auditUser,
     };
 
     let url = "";
@@ -582,10 +586,14 @@ export const getReceiptStampFailed = async () => {
 
 export const restampReceipt = async (fileName: string, fileType: string) => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.name;
+
     const data = {
       company_cd: "GQCINV",
       file_name: fileName,
       file_type: fileType,
+      audit_user: auditUser,
     };
 
     let url = "";

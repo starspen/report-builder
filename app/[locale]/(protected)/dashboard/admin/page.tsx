@@ -184,7 +184,7 @@ const DashboardPage = () => {
       return result;
     },
     onSuccess: (result) => {
-      if (result.statusCode === 200) {
+      if (result.statusCode === 201) {
         toast.success(result.message);
         window.location.reload();
       } else {

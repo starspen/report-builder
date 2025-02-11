@@ -62,16 +62,18 @@ export const topUpQuota = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
+    const session = await auth();
+    const email = session?.user?.email;
+    const name = session?.user?.name;
+
     const submitData = {
       company_cd: "GQCINV",
       company_name: "PT. First Jakarta International",
       payment_cd: "PVIWXC",
       customer: {
-        email: "ahmad.prasetyo@ifca.co.id",
-        // name: "Ahmad Donny Prasetyo",
-        firstName: "Ahmad",
-        lastName: "Donny Prasetyo",
-        mobilePhone: "+6285710008512",
+        email: email,
+        name: name,
+        mobilePhone: "+6285711112222",
       },
       order: {
         amount: data.total,

@@ -125,7 +125,7 @@ export const FormAssign = ({
 
   const getFilteredUsers = (data: any, index: number) => {
     const selectedValues = data.approval
-      .filter((approval: OptionType | null) => approval !== null)
+      .filter((approval: OptionType | null) => approval && approval.value)
       .map((approval: OptionType) => approval.value);
 
     return usersApproval?.filter(
@@ -357,7 +357,11 @@ export const FormAssign = ({
                 closeMenuOnSelect={false}
                 components={animatedComponents}
                 defaultValue={defaultApprovals[index]}
-                options={getFilteredUsers(dataApproval, index)}
+                options={
+                  dataApproval.approval.length > 0
+                    ? getFilteredUsers(dataApproval, index)
+                    : usersApproval
+                }
                 styles={styles}
                 onChange={(newValue) =>
                   handleApprovalChange(index, newValue as OptionType | null)
