@@ -12,7 +12,6 @@ import { auth } from "@/lib/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import HistoryPageView from "./page-view"
 import HistoryPageHeader from "./page-header";
-import toggleEmeterai from "@/components/toggleEmeterai"
 // import { useState } from "react";
 
 const StampHistoryPage = async () => {

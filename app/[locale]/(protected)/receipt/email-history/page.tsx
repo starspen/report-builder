@@ -13,10 +13,14 @@ const ReactTablePage = () => {
             <CardTitle>Receipt Blast History</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="success" className="content-center">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="success">Success</TabsTrigger>
-                <TabsTrigger value="failed">Failed</TabsTrigger>
+            <Tabs defaultValue="success" className="w-full">
+              <TabsList className="">
+                <TabsTrigger value="success"
+                className="relative before:absolute before:top-full before:left-0 before:h-px before:w-full data-[state=active]:before:bg-primary"
+                >Success</TabsTrigger>
+                <TabsTrigger value="failed"
+                className="relative before:absolute before:top-full before:left-0 before:h-px before:w-full data-[state=active]:before:bg-primary"
+                >Failed</TabsTrigger>
               </TabsList>
               <TabsContent value="success">
                 <ContentTableSuccess />
