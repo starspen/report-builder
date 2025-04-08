@@ -29,7 +29,17 @@ const schema = z.object({
   typeId: z.string().optional(),
   typeCd: z.string().min(2, { message: "This field is required." }),
   typeDescs: z.string().min(2, { message: "This field is required." }),
+  status: z.string().min(1, { message: "This field is required." }),
   approvalPic: z.string().min(1, { message: "This field is required." }),
+})
+.superRefine((data, ctx) => {
+  if (data.status === "Y" && (!data.approvalPic || data.approvalPic.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Approval PIC is required when Need Approval is Yes.",
+      path: ["approvalPic"],
+    });
+  }
 });
 export const FormEdit = ({
   setIsModalOpen,
@@ -46,15 +56,19 @@ export const FormEdit = ({
     handleSubmit,
     formState: { errors },
     setValue,
+    watch
   } = useForm<z.infer<typeof schema>>({
     defaultValues: {
       typeId: row.type_id,
       typeCd: row.type_cd,
       typeDescs: row.type_descs,
       approvalPic: row.approval_pic,
+      status: Number(row.approval_pic) > 0 ? "Y" : "N",
     },
     resolver: zodResolver(schema),
   });
+
+  const needApproval = watch("status");
 
   const mutation = useMutation({
     mutationFn: async (data: z.infer<typeof schema>) => {
@@ -152,41 +166,82 @@ export const FormEdit = ({
             </div>
             <div className="space-y-2">
               <Label
-                htmlFor="approvalPic"
+                htmlFor="status"
                 className={cn("lg:min-w-[160px]", {
-                  "text-destructive": errors.approvalPic,
+                  "text-destructive": errors.status,
                 })}
               >
-                Approval PIC
+                Need Approval
               </Label>
-              <Input
-                {...register("approvalPic")}
-                type="text"
-                id="approvalPic"
-                className={cn("", {
-                  "border-destructive focus:border-destructive":
-                    errors.approvalPic,
-                })}
-                maxLength={2}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^[1-9]\d*$/.test(value)) {
-                    e.target.value = value;
-                  } else {
-                    e.target.value = value.slice(0, -1);
-                  }
-                }}
-              />
-              {errors.approvalPic && (
+              <div className="flex space-x-4">
+                <label className="flex items-center space-x-1">
+                  <input
+                    {...register("status")}
+                    type="radio"
+                    value="Y"
+                    id="status_yes"
+                  />
+                  <span>Yes</span>
+                </label>
+                <label className="flex items-center space-x-1">
+                  <input
+                    {...register("status")}
+                    type="radio"
+                    value="N"
+                    id="status_no"
+                  />
+                  <span>No</span>
+                </label>
+              </div>
+              {errors.status && (
                 <p
                   className={cn("text-xs mt-1", {
-                    "text-destructive": errors.approvalPic,
+                    "text-destructive": errors.status,
                   })}
                 >
-                  {errors.approvalPic.message}
+                  {errors.status.message}
                 </p>
               )}
             </div>
+            {needApproval === "Y" && (
+              <div className="space-y-2">
+                <Label
+                  htmlFor="approvalPic"
+                  className={cn("lg:min-w-[160px]", {
+                    "text-destructive": errors.approvalPic,
+                  })}
+                >
+                  Approval PIC
+                </Label>
+                <Input
+                  {...register("approvalPic")}
+                  type="text"
+                  id="approvalPic"
+                  className={cn("", {
+                    "border-destructive focus:border-destructive":
+                      errors.approvalPic,
+                  })}
+                  maxLength={2}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^[1-9]\d*$/.test(value)) {
+                      e.target.value = value;
+                    } else {
+                      e.target.value = value.slice(0, -1);
+                    }
+                  }}
+                />
+                {errors.approvalPic && (
+                  <p
+                    className={cn("text-xs mt-1", {
+                      "text-destructive": errors.approvalPic,
+                    })}
+                  >
+                    {errors.approvalPic.message}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
             {!isLoadingSubmit && (

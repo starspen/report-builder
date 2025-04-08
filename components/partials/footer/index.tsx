@@ -11,9 +11,12 @@ const DashCodeFooter = async () => {
     <FooterContent>
       <div className=" md:flex  justify-between text-default-600 hidden">
         <div className="text-center ltr:md:text-start rtl:md:text-right text-sm">
-          Copyright &copy; {new Date().getFullYear()}
+          Copyright &copy; {new Date().getFullYear()} IFCA Property365 Indonesia, All rights Reserved
         </div>
-        <div className="ltr:md:text-right rtl:md:text-end text-center text-sm">
+        <div className="ltr:md:text-right rtl:md:text-end text-center text-sm flex">
+          <p className="mr-2">
+          Hand-crafted & Made by  
+          </p>
           <a
             href="https://www.property365.co.id/"
             target="_blank"

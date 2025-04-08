@@ -61,10 +61,11 @@ export function DataTableToolbar({
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
         const docNo = rowData.doc_no;
+        const email = rowData.email_addr;
 
         setIsLoading(true);
         try {
-          const response = await resendInvoiceEmail(docNo);
+          const response = await resendInvoiceEmail(docNo, email);
           if (isLoading) {
             toast.info("Resending email, please wait...");
           }

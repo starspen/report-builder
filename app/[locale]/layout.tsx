@@ -13,6 +13,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import DirectionProvider from "@/providers/direction-provider";
 import AuthProvider from "@/providers/auth.provider";
+import SessionChecker from "@/components/sessionChecker";
+import AutoSignIn from "@/components/autoSignIn";
 
 export const metadata: Metadata = {
   title: "IFCA Software",
@@ -35,6 +37,8 @@ export default async function RootLayout({
           <AuthProvider>
             <ThemeProvider attribute="class" defaultTheme="light">
               <MountedProvider>
+                {/* <SessionChecker/> */}
+                <AutoSignIn />
                 <DirectionProvider direction={direction}>
                   {children}
                 </DirectionProvider>

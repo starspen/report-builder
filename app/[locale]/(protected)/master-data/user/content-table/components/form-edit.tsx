@@ -64,6 +64,8 @@ export const FormEdit = ({
   const rolesOptions: { value: string; label: string }[] = [
     { value: "administrator", label: "Administrator" },
     { value: "maker and blaster", label: "Maker and Blaster" },
+    { value: "maker", label: "Maker" },
+    { value: "blaster", label: "Blaster" },
     { value: "approver", label: "Approver" },
   ];
 

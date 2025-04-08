@@ -25,10 +25,12 @@ import { useQueryClient } from "@tanstack/react-query";
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
+  refetch: () => Promise<any>;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
+  refetch
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -81,29 +83,34 @@ export function DataTableToolbar({
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
-        const billType = rowData.bill_type;
-        const meterType = rowData.meter_type;
-        const relatedClass = rowData.related_class;
+        const doc_no = rowData.doc_no;
+        const project_no = rowData.project_no;
+        const debtor_acct = rowData.debtor_acct;
+        const trx_type = rowData.trx_type;
+        const entity_cd = rowData.entity_cd;
+        
 
         setIsLoading(true);
         try {
           const response = await generateInvoiceSchedule(
-            docNo,
-            billType,
-            meterType,
-            relatedClass
+            doc_no,
+            project_no,
+            debtor_acct,
+            trx_type,
+            entity_cd
           );
           if (isLoading) {
             toast.info("Generating invoice, please wait...");
           }
-          if (response.statusCode === 200) {
+          if (response.statusCode === 201) {
             toast.success("Success generate invoice");
-            queryClient.invalidateQueries({ queryKey: ["invoice-schedule"] });
+            // queryClient.invalidateQueries({ queryKey: ["invoice-schedule"] });
+            await refetch()
           } else {
             toast.error(response.message);
           }
         } catch (error) {
+          console.log(error)
           toast.error("Error occurred while generating invoice");
         } finally {
           setIsLoading(false);

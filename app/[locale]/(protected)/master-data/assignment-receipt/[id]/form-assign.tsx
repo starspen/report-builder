@@ -58,12 +58,20 @@ export const FormAssign = ({
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const router = useRouter();
   const animatedComponents = makeAnimated();
-  const users: OptionType[] = dataUser
-    ?.filter((item: any) => item.role === "maker and blaster")
+  const usersMaker: OptionType[] = dataUser
+  ?.filter((item: any) => item.role === "maker" || item.role === "maker and blaster")
+  .map((item: any) => ({
+    value: item.user_id,
+    label: item.name,
+  }));
+
+  const usersBlaster: OptionType[] = dataUser
+    ?.filter((item: any) => item.role === "blaster" || item.role === "maker and blaster")
     .map((item: any) => ({
       value: item.user_id,
       label: item.name,
     }));
+
 
   const usersApproval: OptionType[] = dataUser
     ?.filter((item: any) => item.role === "approver")
@@ -97,7 +105,8 @@ export const FormAssign = ({
 
   const getDefaultValues = (
     dataAssign: any,
-    users: OptionType[],
+    usersMaker: OptionType[],
+    usersBlaster: OptionType[],
     usersApproval: OptionType[]
   ) => {
     if (!Array.isArray(dataAssign) || dataAssign.length === 0) return {};
@@ -110,13 +119,13 @@ export const FormAssign = ({
       typeDescs: dataAssign[0]?.type_descs,
       maker: details
         .filter((item: any) => item.job_task === "Maker")
-        .map(mapUser(users)),
+        .map(mapUser(usersMaker)),
       approval: details
         .filter((item: any) => item.job_task.startsWith("Approval"))
         .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
         .map(mapUser(usersApproval)),
       stampBlast: details.find((item: any) => item.job_task === "Stamp & Blast")
-        ? mapUser(users)(
+        ? mapUser(usersBlaster)(
             details.find((item: any) => item.job_task === "Stamp & Blast")
           )
         : { value: "", label: "" },
@@ -148,7 +157,7 @@ export const FormAssign = ({
     setValue,
     watch,
   } = useForm<z.infer<typeof schema>>({
-    defaultValues: getDefaultValues(dataAssign, users, usersApproval),
+    defaultValues: getDefaultValues(dataAssign, usersMaker, usersBlaster, usersApproval),
     resolver: zodResolver(schema),
   });
 
@@ -208,7 +217,7 @@ export const FormAssign = ({
     .map((item: any) => ({
       value: item.user_id,
       label:
-        users.find((user: any) => user.value === item.user_id)?.label || "",
+      usersMaker.find((user: any) => user.value === item.user_id)?.label || "",
     }));
 
   const defaultStampBlast = dataAssign[0]?.detail
@@ -216,7 +225,7 @@ export const FormAssign = ({
     .map((item: any) => ({
       value: item.user_id,
       label:
-        users.find((user: any) => user.value === item.user_id)?.label || "",
+        usersBlaster.find((user: any) => user.value === item.user_id)?.label || "",
     }));
 
   const defaultApprovals = dataAssign[0]?.detail
@@ -314,7 +323,7 @@ export const FormAssign = ({
               components={animatedComponents}
               defaultValue={defaultMakers}
               isMulti
-              options={users}
+              options={usersMaker}
               styles={styles}
               onChange={(newValue, actionMeta) => {
                 setValue("maker", newValue as any);
@@ -402,7 +411,7 @@ export const FormAssign = ({
               closeMenuOnSelect={false}
               components={animatedComponents}
               defaultValue={defaultStampBlast}
-              options={users}
+              options={usersBlaster}
               styles={styles}
               onChange={(newValue, actionMeta) => {
                 setValue("stampBlast", newValue as any);

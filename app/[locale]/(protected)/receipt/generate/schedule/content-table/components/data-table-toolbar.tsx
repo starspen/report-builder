@@ -59,15 +59,23 @@ export function DataTableToolbar({
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
+        const doc_no = rowData.doc_no;
+        const project_no = rowData.project_no;
+        const entity_cd = rowData.entity_cd;
+        const debtor_acct = rowData.debtor_acct;
 
         setIsLoading(true);
         try {
-          const response = await generateReceiptSchedule(docNo);
+          const response = await generateReceiptSchedule(
+            doc_no,
+            project_no,
+            entity_cd,
+            debtor_acct
+          );
           if (isLoading) {
             toast.info("Generating receipt, please wait...");
           }
-          if (response.statusCode === 200) {
+          if (response.statusCode === 200 || response.statusCode === 201) {
             toast.success("Success generate receipt");
             queryClient.invalidateQueries({ queryKey: ["receipt-schedule"] });
           } else {

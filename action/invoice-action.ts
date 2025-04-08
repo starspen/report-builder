@@ -11,11 +11,6 @@ export const getInvoiceSchedule = async (
     const session = await auth();
     const auditUser = session?.user?.email;
 
-    const data = {
-      startDate: startDate,
-      endDate: endDate,
-      auditUser: auditUser,
-    };
 
     let url = "";
     if (mode === "sandbox") {
@@ -24,13 +19,15 @@ export const getInvoiceSchedule = async (
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice-schedule`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(`
+      ${url}/api/invoice/schedule/get?startDate=${startDate}&endDate=${endDate}
+      `,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
     const result = await response.json();
 
     if (result.statusCode === 200) {
@@ -45,14 +42,23 @@ export const getInvoiceSchedule = async (
 };
 
 export const generateInvoiceSchedule = async (
-  docNo: string,
-  billType: string,
-  meterType: string,
-  relatedClass: string
+  doc_no: string,
+  project_no: string,
+  debtor_acct: string,
+  trx_type: string,
+  entity_cd: string
 ) => {
   try {
     const session = await auth();
     const auditUser = session?.user?.name;
+    const data = {
+      doc_no,
+      project_no,
+      debtor_acct,
+      trx_type,
+      entity_cd,
+      auditUser
+    }
 
     let url = "";
     if (mode === "sandbox") {
@@ -62,12 +68,17 @@ export const generateInvoiceSchedule = async (
     }
 
     const response = await fetch(
-      `${url}/api/invoice-schedule-generate?doc_no=${docNo}&bill_type=${billType}&meter_type=${meterType}&related_class=${relatedClass}&name=${auditUser}`,
+      `${url}/api/invoice/schedule/generate`,
       {
-        method: "GET",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       }
     );
     const result = await response.json();
+    console.log(result)
 
     if (result.statusCode === 200) {
       return result;
@@ -85,11 +96,6 @@ export const getInvoiceManual = async (startDate: string, endDate: string) => {
     const session = await auth();
     const auditUser = session?.user?.email;
 
-    const data = {
-      startDate: startDate,
-      endDate: endDate,
-      auditUser: auditUser,
-    };
 
     let url = "";
     if (mode === "sandbox") {
@@ -98,13 +104,15 @@ export const getInvoiceManual = async (startDate: string, endDate: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice-manual`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(`
+      ${url}/api/invoice/manual/get?startDate=${startDate}&endDate=${endDate}
+      `,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
     const result = await response.json();
 
     if (result.statusCode === 200) {
@@ -119,12 +127,23 @@ export const getInvoiceManual = async (startDate: string, endDate: string) => {
 };
 
 export const generateInvoiceManual = async (
-  docNo: string,
-  relatedClass: string
+  doc_no: string,
+  project_no: string,
+  debtor_acct: string,
+  trx_type: string,
+  entity_cd: string
 ) => {
   try {
     const session = await auth();
     const auditUser = session?.user?.name;
+    const data = {
+      doc_no,
+      project_no,
+      debtor_acct,
+      trx_type,
+      entity_cd,
+      auditUser
+    }
 
     let url = "";
     if (mode === "sandbox") {
@@ -134,9 +153,13 @@ export const generateInvoiceManual = async (
     }
 
     const response = await fetch(
-      `${url}/api/invoice-manual-generate/?doc_no=${docNo}&related_class=${relatedClass}&name=${auditUser}`,
+      `${url}/api/invoice/manual/generate`,
       {
-        method: "GET",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       }
     );
     const result = await response.json();
@@ -478,6 +501,8 @@ export const submitInvoiceApproval = async (data: any) => {
 };
 
 export const getInvoiceEmail = async () => {
+  const session = await auth();
+  const auditUser = session?.user?.email;
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -486,7 +511,7 @@ export const getInvoiceEmail = async () => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice/email`, {
+    const response = await fetch(`${url}/api/invoice/email/${auditUser}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -560,11 +585,16 @@ export const getInvoiceEmailHistorySuccess = async (
   startDate: string,
   endDate: string
 ) => {
+  const session = await auth();
+  const auditUser = session?.user?.email;
   try {
+    const session = await auth();
+    const auditUser = session?.user?.name;
     const data = {
       startDate: startDate,
       endDate: endDate,
       status: "S",
+      auditUser
     };
 
     let url = "";
@@ -599,10 +629,13 @@ export const getInvoiceEmailHistoryFailed = async (
   endDate: string
 ) => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.name;
     const data = {
       startDate: startDate,
       endDate: endDate,
       status: "F",
+      auditUser
     };
 
     let url = "";
@@ -632,7 +665,7 @@ export const getInvoiceEmailHistoryFailed = async (
   }
 };
 
-export const resendInvoiceEmail = async (docNo: string) => {
+export const resendInvoiceEmail = async (docNo: string, email: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -641,7 +674,7 @@ export const resendInvoiceEmail = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/mail/blast-email-inv/${docNo}`, {
+    const response = await fetch(`${url}/api/mail/resend-inv?doc_no=${docNo}&email=${email}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -663,7 +696,7 @@ export const stampInvoice = async (fileName: string, fileType: string) => {
     const auditUser = session?.user?.name;
 
     const data = {
-      company_cd: "GQCINV",
+      company_cd: "EPBOIQ",
       file_name: fileName,
       file_type: fileType,
       audit_user: auditUser,
@@ -722,6 +755,8 @@ export const noStampInvoice = async (docNo: string) => {
 };
 
 export const getInvoiceStampSuccess = async () => {
+  const session = await auth();
+  const auditUser = session?.user?.email;
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -730,7 +765,7 @@ export const getInvoiceStampSuccess = async () => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice/stamp/S`, {
+    const response = await fetch(`${url}/api/invoice/stamp/S/${auditUser}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -747,6 +782,8 @@ export const getInvoiceStampSuccess = async () => {
 };
 
 export const getInvoiceStampFailed = async () => {
+  const session = await auth();
+  const auditUser = session?.user?.email;
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -755,7 +792,7 @@ export const getInvoiceStampFailed = async () => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/invoice/stamp/F`, {
+    const response = await fetch(`${url}/api/invoice/stamp/F/${auditUser}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -777,7 +814,7 @@ export const reStampInvoice = async (fileName: string, fileType: string) => {
     const auditUser = session?.user?.name;
 
     const data = {
-      company_cd: "GQCINV",
+      company_cd: "EPBOIQ",
       file_name: fileName,
       file_type: fileType,
       audit_user: auditUser,
@@ -816,7 +853,7 @@ export const getInvoiceStampHistory = async (
 ) => {
   try {
     const data = {
-      company_cd: "GQCINV",
+      company_cd: "EPBOIQ",
       startDate: startDate,
       endDate: endDate,
     };

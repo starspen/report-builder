@@ -105,6 +105,7 @@ export function DataTableToolbar({
       )}
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      {selectedRows.size > 0 && (
         <Button
           variant="outline"
           color="primary"
@@ -116,6 +117,7 @@ export function DataTableToolbar({
           <Repeat2 className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
           Restamp
         </Button>
+      )}
 
         <AlertDialogContent>
           <AlertDialogHeader>

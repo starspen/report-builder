@@ -65,7 +65,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
         url = `${process.env.NEXT_PUBLIC_FILE_SIGNED_PRODUCTION_URL}`;
       }
     }
-    window.open(url + "GQCINV/" + formatInvoice + "/" + filename, "_blank");
+    window.open(url + "EPBOIQ/" + formatInvoice + "/" + filename, "_blank");
   };
 
   const handlePreviewFileReference = (
@@ -81,7 +81,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
     } else {
       url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
     }
-    window.open(url + "GQCINV/" + formatInvoice + "/" + filename, "_blank");
+    window.open(url + "EPBOIQ/" + formatInvoice + "/" + filename, "_blank");
   };
 
   const handlePreviewFileFakturPajak = (filename: string) => {
@@ -93,7 +93,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
     } else {
       url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
     }
-    window.open(url + "GQCINV/FAKTUR/" + filename, "_blank");
+    window.open(url + "EPBOIQ/FAKTUR/" + filename, "_blank");
   };
 
   return (

@@ -16,27 +16,52 @@ import { getMenu } from "@/action/dashboard-action";
 
 const DashCodeHeader = async () => {
   const session = await auth();
+  const userRole = session?.user?.role || "administrator";
   const menu = await getMenu();
+
+  // return (
+  //   <>
+  //     <HeaderContent>
+  //       <div className=" flex gap-3 items-center">
+  //         <HeaderLogo />
+  //         <SidebarToggle />
+  //         {/* <HeaderSearch /> */}
+  //       </div>
+  //       <div className="nav-tools flex items-center  md:gap-4 gap-3">
+  //         {/* <LocalSwitcher /> */}
+  //         <ThemeSwitcher />
+  //         {/* <Cart /> */}
+  //         {/* <Messages /> */}
+  //         {/* <Notifications /> */}
+  //         <ProfileInfo />
+  //         <SheetMenu session={session} menu={menu.data} />
+  //       </div>
+  //     </HeaderContent>
+  //     <HorizontalMenu session={session} menu={menu.data} />
+  //   </>
+  // );
 
   return (
     <>
       <HeaderContent>
-        <div className=" flex gap-3 items-center">
+        <div className="flex items-center gap-3">
           <HeaderLogo />
           <SidebarToggle />
           {/* <HeaderSearch /> */}
         </div>
-        <div className="nav-tools flex items-center  md:gap-4 gap-3">
+        <div className="nav-tools flex items-center gap-3 md:gap-4">
           {/* <LocalSwitcher /> */}
           <ThemeSwitcher />
           {/* <Cart /> */}
           {/* <Messages /> */}
           {/* <Notifications /> */}
           <ProfileInfo />
-          <SheetMenu session={session} menu={menu.data} />
+          {userRole && (
+            <SheetMenu session={session} menu={menu ?? ""} />
+          )}
         </div>
       </HeaderContent>
-      <HorizontalMenu session={session} menu={menu.data} />
+      <HorizontalMenu session={session} menu={menu}/>
     </>
   );
 };

@@ -145,6 +145,7 @@ export function DataTableToolbar({
       )}
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      {selectedRows.size > 0 && (
         <Button
           variant="outline"
           color="success"
@@ -156,6 +157,7 @@ export function DataTableToolbar({
           <Stamp className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
           Stamp
         </Button>
+      )}
 
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -200,6 +202,7 @@ export function DataTableToolbar({
         open={isModalOpenNoStamp}
         onOpenChange={setIsModalOpenNoStamp}
       >
+        {selectedRows.size > 0 && (
         <Button
           variant="outline"
           color="primary"
@@ -211,6 +214,7 @@ export function DataTableToolbar({
           <Ban className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
           No Stamp
         </Button>
+        )}
 
         <AlertDialogContent>
           <AlertDialogHeader>

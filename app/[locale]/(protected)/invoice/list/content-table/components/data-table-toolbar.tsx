@@ -156,17 +156,20 @@ export function DataTableToolbar({
       )}
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      {selectedRows.size > 0 && (
         <Button
           variant="outline"
           color="primary"
           size="sm"
-          className="ltr:ml-2 rtl:mr-2  h-8 "
+          className="ltr:ml-2 rtl:mr-2 h-8"
           onClick={handleOpenModal}
           disabled={isLoading}
         >
           <Send className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
           Submit
         </Button>
+      )}
+
 
         <AlertDialogContent>
           <AlertDialogHeader>

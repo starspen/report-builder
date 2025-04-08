@@ -59,7 +59,9 @@ export const FormAssign = ({
   const router = useRouter();
   const animatedComponents = makeAnimated();
   const users: OptionType[] = dataUser
-    ?.filter((item: any) => item.role === "maker and blaster")
+    ?.filter(
+      (item: any) => item.role === "maker and blaster" || item.role === "maker"
+    )
     .map((item: any) => ({
       value: item.user_id,
       label: item.name,
@@ -163,7 +165,7 @@ export const FormAssign = ({
       return result;
     },
     onSuccess: (result) => {
-      if (result.statusCode === 201) {
+      if (result.statusCode === 200 || result.statusCode === 201) {
         toast.success(result.message);
         router.push("/master-data/assignment-invoice");
       } else {
@@ -303,7 +305,7 @@ export const FormAssign = ({
               "text-destructive": errors.maker,
             })}
           >
-            Maker
+            Creator
           </Label>
           <div className="flex flex-col w-full">
             <Select
@@ -392,7 +394,7 @@ export const FormAssign = ({
               "text-destructive": errors.stampBlast,
             })}
           >
-            Stamp & Blast Email
+            Creator & Broadcaster
           </Label>
           <div className="flex flex-col w-full">
             <Select
@@ -412,7 +414,7 @@ export const FormAssign = ({
                   errors.stampBlast,
               })}
               classNamePrefix="select"
-              placeholder="Choose Stamp & Blast Email"
+              placeholder="Choose Creator & Broadcaster"
             />
             {errors.stampBlast && (
               <p

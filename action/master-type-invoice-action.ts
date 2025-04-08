@@ -81,7 +81,7 @@ export const insertTypeInvoice = async (data: any) => {
   const dataInsert = {
     type_cd: data.typeCd,
     type_descs: data.typeDescs,
-    status: "Y",
+    status: data.status,
     approval_pic: data.approvalPic,
   };
 
@@ -118,7 +118,7 @@ export const updateTypeInvoice = async (data: any) => {
     type_id: data.typeId,
     type_cd: data.typeCd,
     type_descs: data.typeDescs,
-    status: "Y",
+    status: data.status,
     approval_pic: data.approvalPic,
   };
 
@@ -179,6 +179,7 @@ export const deleteTypeInvoice = async (id: string) => {
 };
 
 export const insertAssignmentInvoice = async (data: any) => {
+  console.log(data)
   try {
     let url = "";
     if (mode === "sandbox") {

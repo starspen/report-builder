@@ -1,0 +1,68 @@
+"use client";
+
+import { EyeIcon, PrinterIcon } from "lucide-react";
+import { Row } from "@tanstack/react-table";
+
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+import { labels } from "../data/data";
+import { DataProps } from "../data";
+import { useRouter } from "@/components/navigation";
+import { Link } from "@/components/navigation";
+// import { taskSchema } from "../data/schema";
+
+interface DataTableRowActionsProps {
+  row: Row<DataProps>;
+}
+
+export function DataTableRowActions({ row }: DataTableRowActionsProps) {
+  const router = useRouter();
+  const entity_cd = encodeURIComponent(
+    row.original.entity_cd.replace(/\s+/g, ""),
+  );
+  const reg_id = encodeURIComponent(row.original.reg_id.replace(/\//g, "_"));
+  return (
+    <div className="flex items-center gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7 border-default-200 text-default-400 ring-offset-transparent hover:ring-secondary dark:border-default-300"
+              color="secondary"
+              onClick={() => {
+                router.push(`/assets/details/${entity_cd}/${reg_id}`);
+              }}
+            >
+              <EyeIcon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>View</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href={`/assets/print/${entity_cd}/${reg_id}`}
+              target="_blank"
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-default-200 text-default-400 ring-offset-transparent hover:bg-secondary hover:text-secondary-foreground dark:border-default-300"
+            >
+              <PrinterIcon className="h-4 w-4" />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>Print QR</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}

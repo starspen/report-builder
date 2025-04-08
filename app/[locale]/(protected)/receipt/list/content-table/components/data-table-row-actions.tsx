@@ -48,10 +48,10 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const handleDeleteInvoice = async (docNo: string, processId: string) => {
     setIsLoading(true);
     const result = await deleteInvoice(docNo, processId);
-    if (result.statusCode === 200) {
+    if (result.statusCode === 200 || result.statusCode === 201) {
       toast.success(result.message);
       queryClient.invalidateQueries({
-        queryKey: ["invoice-list"],
+        queryKey: ["receipt-list"],
       });
       setIsModalOpen(false);
     } else {

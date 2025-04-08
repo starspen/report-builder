@@ -7,10 +7,6 @@ export const getReceiptSchedule = async (
   startDate: string,
   endDate: string
 ) => {
-  const data = {
-    start_date: startDate,
-    end_date: endDate,
-  };
 
   try {
     let url = "";
@@ -20,13 +16,15 @@ export const getReceiptSchedule = async (
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/receipt/get`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(`
+      ${url}/api/receipt/get?startDate=${startDate}&endDate=${endDate}
+      `,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
     const result = await response.json();
 
     if (result.statusCode === false) {
@@ -40,10 +38,22 @@ export const getReceiptSchedule = async (
   }
 };
 
-export const generateReceiptSchedule = async (docNo: string) => {
+export const generateReceiptSchedule = async (
+  doc_no: string,
+  project_no: string,
+  entity_cd: string,
+  debtor_acct: string
+) => {
   try {
     const session = await auth();
     const auditUser = session?.user?.name;
+    const data = {
+      doc_no,
+      project_no,
+      entity_cd,
+      auditUser,
+      debtor_acct
+    }
 
     let url = "";
     if (mode === "sandbox") {
@@ -53,14 +63,18 @@ export const generateReceiptSchedule = async (docNo: string) => {
     }
 
     const response = await fetch(
-      `${url}/api/receipt/generate?doc_no=${docNo}&audit_user=${auditUser}`,
+      `${url}/api/receipt/generate`,
       {
-        method: "GET",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       }
     );
     const result = await response.json();
 
-    if (result.statusCode === 200) {
+    if (result.statusCode === 201) {
       return result;
     } else {
       return result;
@@ -117,6 +131,8 @@ export const submitReceiptEmail = async (
       audit_user: auditUser,
       related_class: relatedClass,
     };
+
+    console.log(data)
 
     let url = "";
     if (mode === "sandbox") {
@@ -300,8 +316,13 @@ export const submitReceiptApproval = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
+    let queryParams = `doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_status=${data.approvalStatus}`;
+    if (data.approvalStatus !== "A") {
+      queryParams += `&approval_remarks=${data.approvalRemark}`;
+    }
+
     const response = await fetch(
-      `${url}/api/receipt-approve?doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_remarks=${data.approvalRemark}&approval_status=${data.approvalStatus}`,
+      `${url}/api/receipt-approve?${queryParams}`,
       {
         method: "GET",
       }
@@ -320,6 +341,9 @@ export const submitReceiptApproval = async (data: any) => {
 };
 
 export const getReceiptEmail = async () => {
+  const session = await auth();
+  // console.log(session?.user)
+  const auditUser = session?.user?.email;
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -328,7 +352,7 @@ export const getReceiptEmail = async () => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/receipt/email`, {
+    const response = await fetch(`${url}/api/receipt/email/${auditUser}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -373,10 +397,13 @@ export const getReceiptEmailHistorySuccess = async (
   startDate: string,
   endDate: string
 ) => {
+  const session = await auth();
+  const auditUser = session?.user?.name;
   const data = {
     startDate: startDate,
     endDate: endDate,
     status: "S",
+    auditUser
   };
 
   try {
@@ -411,10 +438,13 @@ export const getReceiptEmailHistoryFailed = async (
   startDate: string,
   endDate: string
 ) => {
+  const session = await auth();
+  const auditUser = session?.user?.name;
   const data = {
     startDate: startDate,
     endDate: endDate,
     status: "F",
+    auditUser
   };
 
   try {
@@ -476,7 +506,7 @@ export const stampReceipt = async (fileName: string, fileType: string) => {
     const auditUser = session?.user?.name;
 
     const data = {
-      company_cd: "GQCINV",
+      company_cd: "EPBOIQ",
       file_name: fileName,
       file_type: fileType,
       audit_user: auditUser,
@@ -535,6 +565,8 @@ export const noStampReceipt = async (docNo: string) => {
 };
 
 export const getReceiptStampSuccess = async () => {
+  const session = await auth();
+  const auditUser = session?.user?.email;
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -543,7 +575,7 @@ export const getReceiptStampSuccess = async () => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/receipt/stamp/S`, {
+    const response = await fetch(`${url}/api/receipt/stamp/S/${auditUser}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -590,7 +622,7 @@ export const restampReceipt = async (fileName: string, fileType: string) => {
     const auditUser = session?.user?.name;
 
     const data = {
-      company_cd: "GQCINV",
+      company_cd: "EPBOIQ",
       file_name: fileName,
       file_type: fileType,
       audit_user: auditUser,
@@ -628,7 +660,7 @@ export const getReceiptStampHistory = async (
   endDate: string
 ) => {
   const data = {
-    company_cd: "GQCINV",
+    company_cd: "EPBOIQ",
     startDate: startDate,
     endDate: endDate,
   };

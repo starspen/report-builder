@@ -37,7 +37,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
     } else {
       url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
     }
-    window.open(url + "GQCINV/" + formatInvoice + "/" + filename, "_blank");
+    window.open(url + "EPBOIQ/" + formatInvoice + "/" + filename, "_blank");
   };
 
   return (

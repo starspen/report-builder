@@ -147,7 +147,7 @@ const LoginForm = () => {
           Forgot Password?
         </Link>
       </div> */}
-      <Button fullWidth disabled={isPending}>
+      <Button fullWidth disabled={isPending} className="bg-green-800 dark:bg-green-600">
         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {isPending ? "Loading..." : "Sign In"}
       </Button>

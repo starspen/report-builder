@@ -7,11 +7,15 @@ import DashCodeHeader from "@/components/partials/header";
 import { auth } from "@/lib/auth";
 import { redirect } from "@/components/navigation";
 import LoaderProvider from "@/providers/loader-provider";
+import SessionChecker from "@/components/sessionChecker";
+import { msalInstance } from "@/lib/msal";
 
 const layout = async ({ children }: { children: React.ReactNode }) => {
   const session = await auth();
 
-  if (!session) {
+  const user = msalInstance.getActiveAccount();
+
+  if (!session && !user) {
     redirect("/");
   }
   return (
@@ -20,7 +24,10 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
       <DashCodeHeader />
       <DashCodeSidebar />
       <LayoutContentProvider>
-        <LoaderProvider>{children}</LoaderProvider>
+        <LoaderProvider>
+          {/* <SessionChecker/> */}
+          {children}
+          </LoaderProvider>
       </LayoutContentProvider>
       <DashCodeFooter />
     </LayoutProvider>

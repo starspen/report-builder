@@ -21,6 +21,7 @@ import {
 import { submitInvoiceEmail } from "@/action/invoice-action";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { submitReceiptEmail } from "@/action/receipt-action";
 
 interface DataTableToolbarProps {
   table: Table<any>;
@@ -56,17 +57,18 @@ export function DataTableToolbar({
     }
   };
 
-  const handleSubmitInvoiceEmail = async () => {
+  const handleSubmitReceiptEmail = async () => {
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
         const docNo = rowData.doc_no;
         const processId = rowData.process_id;
-        const relatedClass = rowData.related_class;
+        // const relatedClass = rowData.related_class;
+        const relatedClass = "OR";
 
         setIsLoading(true);
         try {
-          const response = await submitInvoiceEmail(
+          const response = await submitReceiptEmail(
             docNo,
             processId,
             relatedClass
@@ -110,17 +112,19 @@ export function DataTableToolbar({
       )}
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      {selectedRows.size > 0 && (
         <Button
           variant="outline"
           color="primary"
           size="sm"
-          className="ltr:ml-2 rtl:mr-2  h-8 "
+          className="ltr:ml-2 rtl:mr-2 h-8"
           onClick={handleOpenModal}
           disabled={isLoading}
         >
           <Send className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
           Submit
         </Button>
+      )}
 
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -140,7 +144,7 @@ export function DataTableToolbar({
             )}
             <Button
               className="relative"
-              onClick={handleSubmitInvoiceEmail}
+              onClick={handleSubmitReceiptEmail}
               disabled={isLoading}
             >
               {isLoading ? (

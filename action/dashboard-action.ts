@@ -67,7 +67,7 @@ export const topUpQuota = async (data: any) => {
     const name = session?.user?.name;
 
     const submitData = {
-      company_cd: "GQCINV",
+      company_cd: "EPBOIQ",
       company_name: "PT. First Jakarta International",
       payment_cd: "PVIWXC",
       customer: {
@@ -150,6 +150,7 @@ export const getMenu = async () => {
       }
     );
     const result = await response.json();
+    // console.log(result)
 
     if (result.statusCode === 200) {
       return result;

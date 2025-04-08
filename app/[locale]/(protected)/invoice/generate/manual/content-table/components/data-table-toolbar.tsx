@@ -81,16 +81,25 @@ export function DataTableToolbar({
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
-        const relatedClass = rowData.related_class;
+        const doc_no = rowData.doc_no;
+        const project_no = rowData.project_no;
+        const debtor_acct = rowData.debtor_acct;
+        const trx_type = rowData.trx_type;
+        const entity_cd = rowData.entity_cd;
 
         setIsLoading(true);
         try {
-          const response = await generateInvoiceManual(docNo, relatedClass);
+          const response = await generateInvoiceManual(
+            doc_no,
+            project_no,
+            debtor_acct,
+            trx_type,
+            entity_cd
+          );
           if (isLoading) {
             toast.info("Generating invoice, please wait...");
           }
-          if (response.statusCode === 200) {
+          if (response.statusCode === 200 || response.statusCode === 201) {
             toast.success("Success generate invoice");
             queryClient.invalidateQueries({ queryKey: ["invoice-manual"] });
           } else {

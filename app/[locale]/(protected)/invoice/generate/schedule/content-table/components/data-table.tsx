@@ -32,8 +32,9 @@ import { DataTableRowDetails } from "./data-table-row-details";
 interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];
   data: TData[];
+  refetch: () => Promise<any>;
 }
-export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
+export function DataTable<TData>({ columns, data, refetch  }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
@@ -73,6 +74,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
       <DataTableToolbar
         table={table}
         selectedRows={new Set(Object.keys(rowSelection))}
+        refetch={refetch}
       />
       <div className="rounded-md border">
         <Table>

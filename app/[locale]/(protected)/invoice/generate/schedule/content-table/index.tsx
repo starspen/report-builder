@@ -36,7 +36,7 @@ export default function AdvancedTable() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [shouldFetch, setShouldFetch] = useState(false);
   const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["invoice-schedule"],
     queryFn: async () => {
       const formattedStartDate = startDate ? format(startDate, "yyyyMMdd") : "";
@@ -203,7 +203,7 @@ export default function AdvancedTable() {
       </form>
       <Separator className="my-4" />
 
-      <DataTable data={data?.data || []} columns={columns} />
+      <DataTable data={data?.data || []} columns={columns} refetch={refetch} />
     </Fragment>
   );
 }

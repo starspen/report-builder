@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.7.4",
+    "@azure/msal-browser": "^3.28.0",
+    "@azure/msal-react": "^2.2.0",
     "@dnd-kit/core": "^6.1.0",
     "@dnd-kit/modifiers": "^7.0.0",
     "@dnd-kit/sortable": "^8.0.0",
@@ -23,6 +26,7 @@
     "@fullcalendar/timegrid": "^6.1.15",
     "@hookform/resolvers": "^3.9.0",
     "@iconify/react": "^5.0.1",
+    "@prisma/client": "^6.4.1",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-aspect-ratio": "^1.0.3",
@@ -61,6 +65,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@vercel/analytics": "^1.3.1",
     "apexcharts": "^3.49.2",
+    "bcrypt": "^5.1.1",
     "chart.js": "^4.4.3",
     "class-variance-authority": "^0.7.0",
     "cleave.js": "^1.6.0",
@@ -101,6 +106,7 @@
     "react-resizable-panels": "^2.0.19",
     "react-select": "^5.8.0",
     "react-syntax-highlighter": "^15.5.0",
+    "react-to-print": "^3.0.2",
     "recharts": "^2.12.7",
     "rtl-detect": "^1.1.2",
     "sharp": "^0.33.4",
@@ -110,11 +116,13 @@
     "tailwindcss-animate": "^1.0.7",
     "tedious": "^18.6.1",
     "vaul": "^0.9.1",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
+    "@types/bcrypt": "^5.0.2",
     "@types/leaflet": "^1.9.12",
     "@types/node": "^20",
     "@types/react": "^18",
@@ -123,6 +131,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "postcss": "^8",
+    "raw-loader": "^4.0.2",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
