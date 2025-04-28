@@ -7,11 +7,15 @@ import { getReceiptStampFailed } from "@/action/receipt-action";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
-export default function AdvancedTable() {
+interface failedStampProps {
+  session:any;
+  source:string;
+}
+export default function AdvancedTable({session, source} : failedStampProps) {
   const { data, isLoading } = useQuery({
-    queryKey: ["receipt-stamp-failed"],
+    queryKey: ["receipt-stamp-failed", source],
     queryFn: async () => {
-      const result = await getReceiptStampFailed();
+      const result = await getReceiptStampFailed(source);
 
       return result;
     },

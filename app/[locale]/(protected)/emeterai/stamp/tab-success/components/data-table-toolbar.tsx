@@ -80,6 +80,9 @@ export function DataTableToolbar({ table, source }: DataTableToolbarProps) {
         } catch (error) {
           toast.error("Error occurred while stamping");
         } finally {
+          queryClient.invalidateQueries({
+            queryKey: ["unsignEmeterai"],
+          });
           setIsLoading(false);
         }
       }
@@ -112,6 +115,10 @@ export function DataTableToolbar({ table, source }: DataTableToolbarProps) {
             });
           } else {
             toast.error(response.message);
+            toast.error("Error occurred while stamping");
+            queryClient.invalidateQueries({
+              queryKey: ["unsignEmeterai"],
+            });
           }
         } catch (error) {
           toast.error("Error occurred while stamping");
@@ -151,9 +158,10 @@ export function DataTableToolbar({ table, source }: DataTableToolbarProps) {
         className="h-8 min-w-[200px] max-w-sm"
       />
       {selectedRows.length > 0 && (
-        <AlertDialog>
+        <AlertDialog  open={isModalOpen} onOpenChange={setIsModalOpen}>
           <AlertDialogTrigger asChild>
             <Button
+              onClick={() => setIsModalOpen(true)}
               variant="soft"
               className="h-8 bg-success px-2 text-white hover:bg-success/90 lg:px-3"
             >
@@ -174,10 +182,10 @@ export function DataTableToolbar({ table, source }: DataTableToolbarProps) {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={source === "pb" ? onStampPB : onStampX}
-              >
-                Continue
+              <AlertDialogAction asChild>
+                <Button onClick={source === "pb" ? onStampPB : onStampX} disabled={isLoading}>
+                  {isLoading ? "Stamping..." : "Continue"}
+                </Button>
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

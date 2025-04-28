@@ -90,6 +90,9 @@ export function DataTableToolbar({
         } catch (error) {
           toast.error("Error occurred while stamping");
         } finally {
+          queryClient.invalidateQueries({
+            queryKey: ["receipt-stamp-success"],
+          });
           setIsLoading(false);
         }
       }

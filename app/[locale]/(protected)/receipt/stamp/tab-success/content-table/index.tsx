@@ -7,11 +7,15 @@ import { getReceiptStampSuccess } from "@/action/receipt-action";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
-export default function AdvancedTable() {
+interface pendingStampProps {
+  session:any;
+  source:string;
+}
+export default function AdvancedTable({session, source} : pendingStampProps) {
   const { data, isLoading } = useQuery({
-    queryKey: ["receipt-stamp-success"],
+    queryKey: ["receipt-stamp-success", source],
     queryFn: async () => {
-      const result = await getReceiptStampSuccess();
+      const result = await getReceiptStampSuccess(source);
 
       return result;
     },

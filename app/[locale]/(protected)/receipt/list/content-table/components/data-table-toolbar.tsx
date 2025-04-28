@@ -76,7 +76,7 @@ export function DataTableToolbar({
           if (isLoading) {
             toast.info("Submitting email, please wait...");
           }
-          if (response.statusCode === 200) {
+          if (response.statusCode === 200 || response.statusCode === 201) {
             toast.success("Success submitting email");
             queryClient.invalidateQueries({
               queryKey: ["invoice-email"],

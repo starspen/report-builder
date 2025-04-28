@@ -31,6 +31,11 @@ const schema = z.object({
   }),
 });
 
+// interface stampHistoryProps {
+//   session:any;
+//   source:string;
+// }
+// export default function AdvancedTable({session, source} : stampHistoryProps) {
 export default function AdvancedTable() {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);

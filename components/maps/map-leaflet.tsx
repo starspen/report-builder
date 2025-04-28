@@ -2,6 +2,7 @@ import { useState } from "react";
 import Leaflet from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
+const PROJECT_NAME = process.env.NEXT_PUBLIC_PROJECT_NAME;
 
 // Set default icon paths
 // Leaflet.Icon.Default.imagePath = "../node_modules/leaflet";
@@ -47,7 +48,7 @@ const MapsLeaflet = ({
       style={{ height: height }}
     >
       <TileLayer
-        attribution="BTID Dev"
+        attribution={`${PROJECT_NAME} Dev`}
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <Marker position={position} icon={customIcon}></Marker>

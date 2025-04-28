@@ -82,6 +82,9 @@ export function DataTableToolbar({
         } catch (error) {
           toast.error("Error occurred while sending email");
         } finally {
+          queryClient.invalidateQueries({
+            queryKey: ["invoice-email"],
+          });
           setIsLoading(false);
         }
       }

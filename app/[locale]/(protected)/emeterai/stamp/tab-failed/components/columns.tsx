@@ -69,9 +69,11 @@ export const columns: ColumnDef<DataProps>[] = [
       if (header.accessorKey === "resource_url") {
         const docNo = row.getValue("doc_no");
         const baseUrl = process.env.NEXT_PUBLIC_FTP_BASE_URL
+        const url:string = row.getValue("resource_url")
         return (
           <Link
-            href={`${baseUrl}/UNSIGNED/PROPERTYX/${docNo}.pdf`}
+            //href={`${baseUrl}/UNSIGNED/PROPERTYX/${docNo}.pdf`}
+            href={url}
             target="_blank"
             className="left-0"
           >

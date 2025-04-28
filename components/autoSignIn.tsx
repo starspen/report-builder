@@ -12,7 +12,8 @@ const AutoSignIn: React.FC = () => {
       const accounts = msalInstance.getAllAccounts();
       console.log("accounts from autoSignIn : ")
       console.log(msalInstance.getActiveAccount())
-      // if (accounts.length === 0) {
+      // if (accounts.length > 0) {
+      if (accounts.length === 0) {
         try {
           await handleLogin("ssoSilent");
           // await handleLogin("popup");
@@ -20,7 +21,7 @@ const AutoSignIn: React.FC = () => {
         } catch (error) {
           console.error("Silent SSO failed", error);
         }
-      // }
+      }
     };
 
     attemptSilentSignIn();

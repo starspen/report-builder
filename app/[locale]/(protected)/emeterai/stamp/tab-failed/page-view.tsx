@@ -5,13 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
 
-interface PendingPageViewProps {
+interface FailedPageViewProps {
   session: any;
   source: string;
 }
-export default function FailedPageView({ session, source }: PendingPageViewProps) {
+export default function FailedPageView({ session, source }: FailedPageViewProps) {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["failedEmeterai"],
+    queryKey: ["failedEmeterai", source],
     queryFn: async () => {
       const result = await getFailedEmeterai(source);
       return result;
@@ -26,7 +26,7 @@ export default function FailedPageView({ session, source }: PendingPageViewProps
   return (
     <div>
       {Array.isArray(data.data) && data.data.length > 0 ? (
-        <DataTable data={data.data} columns={columns} />
+        <DataTable data={data.data} columns={columns} source={source}/>
       ) : (
         <div>No data available</div>
       )}

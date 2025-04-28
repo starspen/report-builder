@@ -1,28 +1,19 @@
 "use client";
 import { getStampHistory, getUnsignEmeterai } from "@/action/emeterai-action";
 import { useQuery } from "@tanstack/react-query";
-import FailedPageView from "./tab-failed/page-view";
-import PendingPageView from "./tab-success/page-view";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import PendingStampView from "./tab-success/content-table";
+import FailedPageView from "./tab-failed/content-table";
 export default function StampPageHeader({ session }: { session: any }) {
   const [source, setSource] = useState("x");
 
   return (
     <>
       <CardHeader className="flex flex-row items-center">
-        <CardTitle className="text-default flex-1">Emeterai</CardTitle>
+        <CardTitle className="text-default flex-1">Receipt Stamp</CardTitle>
         <div className="border border-default-200 dark:border-default-300  rounded p-1 flex items-center bg-background">
             <span
             className={cn(
@@ -40,18 +31,6 @@ export default function StampPageHeader({ session }: { session: any }) {
             )}
             onClick={() => setSource("pb")}> PB </span>
           </div>
-        {/* <Select value={source} onValueChange={setSource}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Source" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Source</SelectLabel>
-              <SelectItem value="x">X</SelectItem>
-              <SelectItem value="pb">PB</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select> */}
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="success" className="w-full">
@@ -67,10 +46,12 @@ export default function StampPageHeader({ session }: { session: any }) {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="success">
-            <PendingPageView session={session} source={source} />
+            <PendingStampView session={session} source={source} />
+            {/* <PendingStampView/> */}
           </TabsContent>
           <TabsContent value="failed">
             <FailedPageView session={session} source={source} />
+            {/* <FailedPageView/> */}
           </TabsContent>
         </Tabs>
       </CardContent>

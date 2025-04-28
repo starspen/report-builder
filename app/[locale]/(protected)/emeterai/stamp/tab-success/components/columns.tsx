@@ -85,13 +85,39 @@ export const columns: ColumnDef<DataProps>[] = [
         return <span>{idrFormat(value as number)}</span>;
       }
       if (header.accessorKey === "file_status") {
-        return (
-          <Badge
-            className={cn("rounded-full px-5", "bg-success/20 text-success")}
-          >
-            Success
-          </Badge>
-        );
+        const statusColors: Record<string, string> = {
+          S: "bg-success/20 text-success",
+          F: "bg-destructive/20 text-destructive",
+          A: "bg-warning/20 text-warning",
+        };
+        switch (value) {
+          case "S":
+            return (
+              <Badge className={cn("rounded-full px-5", statusColors)}>
+                Success
+              </Badge>
+            );
+          case "F":
+            return (
+              <Badge className={cn("rounded-full px-5", statusColors)}>
+                Failed
+              </Badge>
+            );
+          case "A":
+            return (
+              <Badge className={cn("rounded-full px-5", statusColors)}>
+                Approved
+              </Badge>
+            );
+          default:
+            return (
+              <Badge
+                className={cn("rounded-full px-5", "bg-info/20 text-info")}
+              >
+                Pending
+              </Badge>
+            );
+        }
       }
       return <span>{String(value)}</span>;
     },

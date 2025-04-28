@@ -16,6 +16,7 @@ declare module "next-auth" {
       name?: string;
       email?: string;
       signInMethod?: string | null;
+      accessToken?: string | null;
     };
     // idToken: string;
   }
@@ -25,6 +26,7 @@ declare module "next-auth" {
     dept_cd?: string | null;
     role?: string | null;
     password?: string | null;
+    accessToken?: string | null;
   }
 
   // interface User extends DefaultUser, UserType {}
@@ -32,7 +34,7 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
-    // accessToken: string;
+    accessToken: string | null;
     // idToken: string;
   }
 }

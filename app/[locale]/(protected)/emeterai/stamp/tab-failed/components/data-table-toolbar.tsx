@@ -27,10 +27,12 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { stampingFile } from "@/action/emeterai-action";
+import { stampInvoice } from "@/action/invoice-action";
 interface DataTableToolbarProps {
   table: Table<any>;
+  source: string;
 }
-export function DataTableToolbar({ table }: DataTableToolbarProps) {
+export function DataTableToolbar({ table, source }: DataTableToolbarProps) {
   const router = useRouter();
   const statusColumn = table.getColumn("file_status");
   const queryClient = useQueryClient();
@@ -57,8 +59,37 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
 
     XLSX.writeFile(workbook, `print-qr-${formattedDate}.xlsx`);
   }
+  const onStampPB = async () => {
+    for (const rowData of selectedRows) {
+      if (rowData) {  
+        setIsLoading(true);
+        try {
+          const response = await stampInvoice(rowData.file_name, rowData.invoice_tipe);
+          if (isLoading) {
+            toast.info("Stamping, please wait...");
+          }
+          if (response.statusCode === 200 || response.statusCode === 201) {
+            toast.success("Success stamping");
+            queryClient.invalidateQueries({
+              queryKey: ["failedEamterai"],
+            });
+          } else {
+            toast.error(response.message);
+            queryClient.invalidateQueries({
+              queryKey: ["failedEamterai"],
+            });
+          }
+        } catch (error) {
+          toast.error("Error occurred while stamping");
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    }
+    setIsModalOpen(false);
+  };
 
-  const onStamp = async () => {
+  const onStampX = async () => {
     for (const rowData of selectedRows) {
       if (rowData) {
         const data = {
@@ -83,6 +114,9 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
             });
           } else {
             toast.error(response.message);
+            queryClient.invalidateQueries({
+              queryKey: ["failedEamterai"],
+            });
           }
         } catch (error) {
           toast.error("Error occurred while stamping");
@@ -104,9 +138,10 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
         className="h-8 min-w-[200px] max-w-sm"
       />
       {selectedRows.length > 0 && (
-        <AlertDialog>
+        <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <AlertDialogTrigger asChild>
             <Button
+              onClick={() => setIsModalOpen(true)}
               variant="soft"
               className="h-8 bg-success px-2 text-white hover:bg-success/90 lg:px-3"
             >
@@ -127,8 +162,10 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onStamp}>
-              Continue
+              <AlertDialogAction asChild>
+                <Button onClick={source === "pb" ? onStampPB : onStampX} disabled={isLoading}>
+                  {isLoading ? "Stamping..." : "Continue"}
+                </Button>
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

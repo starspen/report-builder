@@ -169,6 +169,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.role = user.role;
         token.picture = user.image || null;
         token.signInMethod = account?.provider || null;
+        token.accessToken = user.accessToken || null;
         // user.id = user.id;
         // user.div_cd = user.div_cd || null;
         // user.dept_cd = user.dept_cd || null;
@@ -197,6 +198,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       session.user.emailVerified = new Date(token.emailVerified as string);
       session.user.signInMethod = token.signInMethod as string | undefined;
       session.user.image = token.picture || '/default-avatar.png';
+      if(token.accessToken !== null){
+        session.user.accessToken = token.accessToken;
+      }
       return session;
     },
     async redirect({ url, baseUrl }) {

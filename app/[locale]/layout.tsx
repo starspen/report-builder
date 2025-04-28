@@ -32,13 +32,13 @@ export default async function RootLayout({
   const direction = getLangDir(locale);
   return (
     <html lang={locale} dir={direction}>
-      <body className={`${inter.className} dashcode-app`}>
+      <body className={`${inter.className} ifca-app`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <AuthProvider>
             <ThemeProvider attribute="class" defaultTheme="light">
               <MountedProvider>
                 {/* <SessionChecker/> */}
-                <AutoSignIn />
+                {/* <AutoSignIn /> */}
                 <DirectionProvider direction={direction}>
                   {children}
                 </DirectionProvider>

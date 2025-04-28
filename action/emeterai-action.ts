@@ -21,6 +21,7 @@ export const getUnsignEmeterai = async (source:string) => {
     }
     let response;
     if(source === "x"){
+      console.log("pending emeterai from x")
       response = await fetch(
        `${url}/api/getUnsignedEmaterai/${source}`,
        {
@@ -28,18 +29,19 @@ export const getUnsignEmeterai = async (source:string) => {
        },
      );
      const result = await response.json();
-     console.log(result)
+    //  console.log(result)
      return result;
     }
     else if (source === "pb"){
+      console.log("pending emeterai from pb")
       response = await fetch(
-       `${url}/api/invoice/stamp/S/${auditUser}`,
+       `${url}/api/receipt/stamp/S/${auditUser}`,
        {
          method: "GET",
        },
      );
      const result = await response.json();
-     console.log(result)
+    //  console.log(result)
      return result;
 
     }
@@ -60,6 +62,7 @@ export const getFailedEmeterai = async (source:string) => {
     }
     let response;
     if(source === "x"){
+      console.log("failed emeterai from x")
       response = await fetch(
        `${url}/api/getFailedEmaterai/${source}`,
        {
@@ -71,6 +74,7 @@ export const getFailedEmeterai = async (source:string) => {
      return result;
     }
     else if (source === "pb"){
+      console.log("failed emeterai from pb")
       response = await fetch(
        `${url}/api/invoice/stamp/F/${auditUser}`,
        {
@@ -125,6 +129,8 @@ interface StampBody {
 }
 
 export const stampingFile = async (stampBody: StampBody) => {
+  const session = await auth();
+  const access_token = session?.user?.accessToken;
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -136,6 +142,7 @@ export const stampingFile = async (stampBody: StampBody) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${access_token}`,
       },
       body: JSON.stringify(stampBody)
     });

@@ -2,6 +2,8 @@ import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { layoutType, sidebarType, navBarType } from "@/lib/type";
 
+const PROJECT_NAME = process.env.NEXT_PUBLIC_PROJECT_NAME;
+
 export type Config = {
   collapsed: boolean;
   theme: string;
@@ -23,29 +25,6 @@ export type Config = {
   sidebarBgImage?: string;
   radius: number;
 };
-// export const defaultConfig: Config = {
-//   // collapsed: false,
-//   collapsed: true,
-//   theme: "zinc",
-//   skin: "default",
-//   layout: "vertical",
-//   sidebar: "classic",
-//   menuHidden: false,
-//   showSearchBar: true,
-//   topHeader: "default",
-//   contentWidth: "wide",
-//   navbar: "sticky",
-//   footer: "default",
-//   isRtl: false,
-//   showSwitcher: true,
-//   subMenu: false,
-//   hasSubMenu: false,
-//   sidebarTheme: "green",
-//   headerTheme: "green",
-//   sidebarBgImage: "/images/all-img/img-2.jpeg",
-//   radius: 0.5,
-// };
-
 export const defaultConfig: Config = {
   collapsed: false,
   theme: "zinc",
@@ -62,8 +41,8 @@ export const defaultConfig: Config = {
   showSwitcher: false,
   subMenu: false,
   hasSubMenu: true,
-  sidebarTheme: "green",
-  headerTheme: "green",
+  sidebarTheme: PROJECT_NAME === "Btid" ? "green" : "gold-beige",
+  headerTheme: PROJECT_NAME === "Btid" ? "green" : "gold-beige",
   radius: 0.5,
   sidebarBgImage: "/images/all-img/img-2.jpeg",
 };

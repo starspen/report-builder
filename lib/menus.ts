@@ -148,11 +148,11 @@ export function getMenuList(
                   label: "Invoice Manual",
                   active: pathname === "/invoice/generate/manual",
                 },
-                {
-                  href: "/invoice/generate/proforma",
-                  label: "Invoice Proforma",
-                  active: pathname === "/invoice/generate/proforma",
-                },
+                // {
+                //   href: "/invoice/generate/proforma",
+                //   label: "Invoice Proforma",
+                //   active: pathname === "/invoice/generate/proforma",
+                // },
               ],
               visible: (isMaker && hasInvoiceDataMaker) || isAdmin,
             },
@@ -573,11 +573,11 @@ export function getHorizontalMenuList(
                   label: "Invoice Manual",
                   active: pathname === "/invoice/generate/manual",
                 },
-                {
-                  href: "/invoice/generate/proforma",
-                  label: "Invoice Proforma",
-                  active: pathname === "/invoice/generate/proforma",
-                },
+                // {
+                //   href: "/invoice/generate/proforma",
+                //   label: "Invoice Proforma",
+                //   active: pathname === "/invoice/generate/proforma",
+                // },
               ],
               visible: (isMaker && hasInvoiceData) || isAdmin,
             },

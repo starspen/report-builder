@@ -82,7 +82,7 @@ export function DataTableToolbar({
           if (response.statusCode === 200) {
             toast.success("Success stamping");
             queryClient.invalidateQueries({
-              queryKey: ["receipt-stamp-success"],
+              queryKey: ["invoice-stamp-success"],
             });
           } else {
             toast.error(response.message);
@@ -90,6 +90,9 @@ export function DataTableToolbar({
         } catch (error) {
           toast.error("Error occurred while stamping");
         } finally {
+          queryClient.invalidateQueries({
+            queryKey: ["invoice-stamp-success"],
+          });
           setIsLoading(false);
         }
       }

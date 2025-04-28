@@ -564,7 +564,7 @@ export const noStampReceipt = async (docNo: string) => {
   }
 };
 
-export const getReceiptStampSuccess = async () => {
+export const getReceiptStampSuccess = async (source:string) => {
   const session = await auth();
   const auditUser = session?.user?.email;
   try {
@@ -574,8 +574,15 @@ export const getReceiptStampSuccess = async () => {
     } else {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
+    let apiUrl = ""
+    if (source === "pb"){
+      apiUrl = `${url}/api/receipt/stamp/S/${auditUser}`
+    } 
+    else if (source === "x"){
+      apiUrl = `${url}/api/getUnsignedEmaterai/${source}`
+    }
 
-    const response = await fetch(`${url}/api/receipt/stamp/S/${auditUser}`, {
+    const response = await fetch(`${apiUrl}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -591,7 +598,9 @@ export const getReceiptStampSuccess = async () => {
   }
 };
 
-export const getReceiptStampFailed = async () => {
+export const getReceiptStampFailed = async (source:string) => {
+  const session = await auth();
+  const auditUser = session?.user?.email;
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -599,8 +608,14 @@ export const getReceiptStampFailed = async () => {
     } else {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
-
-    const response = await fetch(`${url}/api/receipt/stamp/F`, {
+    let apiUrl = ""
+    if (source === "pb"){
+      apiUrl = `${url}/api/receipt/stamp/F/${auditUser}`
+    } 
+    else if (source === "x"){
+      apiUrl = `${url}/api/getFailedEmaterai/${source}`
+    }
+    const response = await fetch(`${apiUrl}`, {
       method: "GET",
     });
     const result = await response.json();

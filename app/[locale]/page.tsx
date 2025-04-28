@@ -8,6 +8,9 @@ import AzureAd from "@/components/partials/azure-ad";
 import { msalInstance } from "@/lib/msal";
 import { redirect } from "@/components/navigation";
 import { auth } from "@/lib/auth";
+
+const PROJECT_NAME = process.env.NEXT_PUBLIC_PROJECT_NAME;
+
 const Login = async ({ params: { locale } }: { params: { locale: string } }) => {
   const session = await auth();
   const user = msalInstance.getActiveAccount();
@@ -58,7 +61,7 @@ const Login = async ({ params: { locale } }: { params: { locale: string } }) => 
           <div
             className="relative hidden flex-1 overflow-hidden bg-cover bg-center bg-no-repeat text-[40px] leading-[48px] text-default-600 lg:block"
             style={{
-              backgroundImage: `url(/images/all-img/KKB-Marina-Bay-Area.jpg)`,
+              backgroundImage: `url(${PROJECT_NAME === "Btid" ? "/images/all-img/KKB-Marina-Bay-Area.jpg" : "/images/all-img/GOB_View_10.png"})`,
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
@@ -66,7 +69,7 @@ const Login = async ({ params: { locale } }: { params: { locale: string } }) => 
               <div className="flex flex-1 flex-col items-center justify-end">
                 <Link href="/">
                   <Image
-                    src="/images/icon/logo-kkb-putih.svg"
+                    src={PROJECT_NAME === "Btid" ? "/images/icon/logo-kkb-putih.svg" : "/images/icon/gob-white.svg"}
                     alt=""
                     width={500}
                     height={500}

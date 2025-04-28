@@ -19,6 +19,9 @@ const schema = z.object({
   email: z.string().email({ message: "Your email is invalid." }),
   password: z.string().min(4),
 });
+
+const PROJECT_NAME = process.env.NEXT_PUBLIC_PROJECT_NAME;
+
 const LoginForm = () => {
   const [isPending, startTransition] = React.useTransition();
   const router = useRouter();
@@ -147,10 +150,14 @@ const LoginForm = () => {
           Forgot Password?
         </Link>
       </div> */}
-      <Button fullWidth disabled={isPending} className="bg-green-800 dark:bg-green-600">
-        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isPending ? "Loading..." : "Sign In"}
-      </Button>
+        <Button
+          fullWidth
+          disabled={isPending}
+          className={`${PROJECT_NAME === "Btid" ? "bg-success" : "bg-[#EFBF04]"}`}
+        >
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isPending ? "Loading..." : "Sign In"}
+        </Button>
     </form>
   );
 };
