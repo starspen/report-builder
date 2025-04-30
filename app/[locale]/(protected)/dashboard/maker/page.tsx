@@ -35,7 +35,7 @@ const DashboardPage = () => {
   const { data: receiptStamp, isLoading: isLoadingReceiptStamp } = useQuery({
     queryKey: ["get-total-receipt-stamp"],
     queryFn: async () => {
-      const result = await getReceiptStampSuccess();
+      const result = await getReceiptStampSuccess('pb');
       return result.data.length;
     },
   });
