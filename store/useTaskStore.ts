@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import React from "react";
-import { Task } from "@/app/[locale]/(protected)/master-data/assignment-invoice/content-table/components/columns";
+import { Task } from "@/app/[locale]/(protected)/master-data/assignment-invoice-copy/content-table/components/columns";
 
 interface TaskStore {
   tasks: Task[]; // State untuk menyimpan array Task

@@ -7,8 +7,8 @@ const REDIRECT_URI = `${process.env.NEXT_PUBLIC_SITE_URL}/en`;
 
 export const msalConfig: Configuration = {
   auth: {
-    clientId: CLIENT_ID ?? 'fe42e02d-975d-413f-a7db-8893e3c4ff23',
-    authority: `https://login.microsoftonline.com/${TENANT_ID ?? 'ca41deb8-f59b-4135-b83a-0fa73403ce81'}`,
+    clientId: CLIENT_ID ?? 'cc26e251-d5df-47b4-8161-99ca23601a88',
+    authority: `https://login.microsoftonline.com/${TENANT_ID ?? '2c2a3a70-220e-4e14-b1cf-edbff3e55950'}`,
     redirectUri: REDIRECT_URI ?? 'localhost:3000/en',
     postLogoutRedirectUri: "/",
     // scope: API_SCOPE,

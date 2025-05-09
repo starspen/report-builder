@@ -19,6 +19,10 @@ export interface Task {
   role: string;
   created_at: string;
   action: React.ReactNode;
+  amt_range: Array<any>;
+  rowID: any;
+  min: any;
+  max: any;
 }
 
 // export const columns: ColumnDef<Task>[] = [

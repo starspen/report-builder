@@ -18,7 +18,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { submitInvoiceEmail } from "@/action/invoice-action";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { submitReceiptEmail } from "@/action/receipt-action";

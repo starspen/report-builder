@@ -86,6 +86,7 @@ export function DataTableToolbar({
         const debtor_acct = rowData.debtor_acct;
         const trx_type = rowData.trx_type;
         const entity_cd = rowData.entity_cd;
+        const email_addr = rowData.email_addr;
 
         setIsLoading(true);
         try {
@@ -94,7 +95,8 @@ export function DataTableToolbar({
             project_no,
             debtor_acct,
             trx_type,
-            entity_cd
+            entity_cd,
+            email_addr,
           );
           if (isLoading) {
             toast.info("Generating invoice, please wait...");

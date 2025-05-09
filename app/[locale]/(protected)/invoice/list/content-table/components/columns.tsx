@@ -267,7 +267,7 @@ export const columns: ColumnDef<DataProps>[] = [
       }
       }
       if (header.accessorKey === "doc_date") {
-        const value = row.getValue("gen_date");
+        const value = row.getValue("doc_date");
         return <span>{dayjs.utc(value as string).format("DD/MM/YYYY")}</span>;
       }
       

@@ -83,7 +83,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
           if (result.statusCode === 200) {
             const user = {
-              id: result.data.user_id,
+              id: result.data.id,
               email: result.data.email,
               name: result.data.name,
               role: result.data.role,
@@ -167,7 +167,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.div_cd = user.div_cd || null;
         token.dept_cd = user.dept_cd || null;
         token.role = user.role;
-        token.picture = user.image || null;
+        token.image = user.image || null;
         token.signInMethod = account?.provider || null;
         token.accessToken = user.accessToken || null;
         // user.id = user.id;
@@ -197,7 +197,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       session.user.role = token.role as string | undefined;
       session.user.emailVerified = new Date(token.emailVerified as string);
       session.user.signInMethod = token.signInMethod as string | undefined;
-      session.user.image = token.picture || '/default-avatar.png';
+      session.user.image = token.image as string || '/default-avatar.png';
       if(token.accessToken !== null){
         session.user.accessToken = token.accessToken;
       }

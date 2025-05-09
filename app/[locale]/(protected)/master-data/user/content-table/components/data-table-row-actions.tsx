@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
+import { Loader2, MoreHorizontal } from "lucide-react";
 import { Row } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
@@ -30,8 +30,8 @@ import { Dialog } from "@/components/ui/dialog";
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { deleteMasterUser } from "@/action/master-user-action";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteMasterUser, getApprovalRange } from "@/action/master-user-action";
 import { FormEdit } from "./form-edit";
 
 interface DataTableRowActionsProps {
@@ -60,41 +60,26 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
     setIsLoading(false);
   };
 
+  const {data: rangeData, isLoading: isLoadingRange} = useQuery({
+    queryKey: ["approval-amount-range"],
+    queryFn: async () => {
+      const result = await getApprovalRange()
+      return result
+    }
+  })
+
+  if (isLoadingRange) {
+    return (
+      <div className=" h-screen flex items-center flex-col space-y-2">
+        <span className=" inline-flex gap-1  items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
+      </div>
+    );
+  }
+
   return (
-    // <DropdownMenu>
-    //   <DropdownMenuTrigger asChild>
-    //     <Button
-    //       variant="ghost"
-    //       className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
-    //     >
-    //       <MoreHorizontal className="h-4 w-4" />
-    //       <span className="sr-only">Open menu</span>
-    //     </Button>
-    //   </DropdownMenuTrigger>
-    //   <DropdownMenuContent align="end" className="w-[160px]">
-    //     <DropdownMenuItem>Edit</DropdownMenuItem>
-    //     <DropdownMenuItem>Make a copy</DropdownMenuItem>
-    //     <DropdownMenuItem>Favorite</DropdownMenuItem>
-    //     <DropdownMenuSeparator />
-    //     {/* <DropdownMenuSub>
-    //       <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
-    //       <DropdownMenuSubContent>
-    //         <DropdownMenuRadioGroup value={task.label}>
-    //           {labels.map((label) => (
-    //             <DropdownMenuRadioItem key={label.value} value={label.value}>
-    //               {label.label}
-    //             </DropdownMenuRadioItem>
-    //           ))}
-    //         </DropdownMenuRadioGroup>
-    //       </DropdownMenuSubContent>
-    //     </DropdownMenuSub> */}
-    //     <DropdownMenuSeparator />
-    //     <DropdownMenuItem>
-    //       Delete
-    //       <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-    //     </DropdownMenuItem>
-    //   </DropdownMenuContent>
-    // </DropdownMenu>
 
     <div className="flex items-center gap-1">
       <Dialog open={isModalOpenEdit} onOpenChange={setIsModalOpenEdit}>
@@ -107,7 +92,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         </Button>
 
         {isModalOpenEdit && row.original && (
-          <FormEdit setIsModalOpen={setIsModalOpenEdit} row={row.original} />
+          <FormEdit setIsModalOpen={setIsModalOpenEdit} row={row.original} range={rangeData?.data || []}/>
         )}
       </Dialog>
 

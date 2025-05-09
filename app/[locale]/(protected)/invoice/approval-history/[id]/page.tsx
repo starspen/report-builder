@@ -81,7 +81,7 @@ const ReactTablePage = () => {
       return result;
     },
     onSuccess: (result) => {
-      if (result.statusCode === 200) {
+      if (result.statusCode === 201) {
         toast.success(result.message);
         router.push("/invoice/approval-history");
       } else {

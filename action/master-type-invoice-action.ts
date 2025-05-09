@@ -1,5 +1,7 @@
 "use server";
 
+import { auth } from "@/lib/auth";
+
 const mode = `${process.env.NEXT_PUBLIC_ENV_MODE}`;
 
 export const getTypeInvoice = async () => {
@@ -26,6 +28,54 @@ export const getTypeInvoice = async () => {
     return error;
   }
 };
+export const getTypeInvoiceWithAmount = async () => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/invoice/type/get`, {
+      method: "GET",
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+export const getTypeReceiptWithAmount = async () => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/receipt/type/get`, {
+      method: "GET",
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
 
 export const getTypeInvoiceById = async (id: number | string) => {
   try {
@@ -37,6 +87,30 @@ export const getTypeInvoiceById = async (id: number | string) => {
     }
 
     const response = await fetch(`${url}/api/type/get/${id}`, {
+      method: "GET",
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+export const getTypeInvoiceAmountById = async (id: number | string) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/invoice/type/get/${id}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -189,6 +263,39 @@ export const insertAssignmentInvoice = async (data: any) => {
     }
 
     const response = await fetch(`${url}/api/user/assign/type-approval`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 201) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error insert data:", error);
+    return error;
+  }
+};
+
+export const assignApprovalAmountForType = async (data: any) => {
+  const session = await auth();
+  const auditUser = session?.user?.email;
+  data.audit_user = auditUser
+  console.log(data)
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/type/assign/amount`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

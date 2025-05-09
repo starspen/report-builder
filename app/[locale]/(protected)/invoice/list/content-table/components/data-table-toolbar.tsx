@@ -47,7 +47,6 @@ export function DataTableToolbar({
     value: projectName,
     label: projectName,
   }));
-
   const handleOpenModal = async () => {
     if (selectedRows.size > 0) {
       setIsModalOpen(true);
@@ -61,12 +60,23 @@ export function DataTableToolbar({
       docNo,
       processId,
       relatedClass,
+      doc_amt,
+      entity_cd,
+      project_no,
+      debtor_acct,
     }: {
       docNo: string;
       processId: string;
       relatedClass: string;
+      doc_amt: string;
+      entity_cd:string;
+      project_no: string;
+      debtor_acct: string;
     }) => {
-      const result = await submitInvoiceEmail(docNo, processId, relatedClass);
+      const result = await submitInvoiceEmail(
+        docNo, processId, relatedClass, doc_amt,
+        entity_cd, project_no, debtor_acct
+      );
       return result;
     },
     onMutate: () => {
@@ -91,12 +101,17 @@ export function DataTableToolbar({
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
+        console.log(rowData)
         const {
           doc_no: docNo,
           process_id: processId,
           related_class: relatedClass,
+          doc_amt: doc_amt,
+          entity_cd: entity_cd,
+          project_no: project_no,
+          debtor_acct: debtor_acct
         } = rowData;
-        mutation.mutate({ docNo, processId, relatedClass });
+        mutation.mutate({ docNo, processId, relatedClass, doc_amt, entity_cd, project_no, debtor_acct});
       }
     }
   };

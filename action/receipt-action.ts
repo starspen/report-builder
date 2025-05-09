@@ -42,7 +42,8 @@ export const generateReceiptSchedule = async (
   doc_no: string,
   project_no: string,
   entity_cd: string,
-  debtor_acct: string
+  debtor_acct: string,
+  email_addr: string
 ) => {
   try {
     const session = await auth();
@@ -52,7 +53,8 @@ export const generateReceiptSchedule = async (
       project_no,
       entity_cd,
       auditUser,
-      debtor_acct
+      debtor_acct,
+      email_addr
     }
 
     let url = "";

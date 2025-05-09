@@ -81,6 +81,13 @@ export function getMenuList(
           active: pathname.includes("/master-data/user"),
           icon: "heroicons-outline:list-bullet",
           submenus: [
+            // {
+            //   href: "/master-data/amount",
+            //   label: "Amount Range",
+            //   active: pathname === "/master-data/amount",
+            //   icon: "heroicons-outline:user",
+            //   children: [],
+            // },
             {
               href: "/master-data/user",
               label: "User",
@@ -95,10 +102,17 @@ export function getMenuList(
               icon: "heroicons-outline:document-duplicate",
               children: [],
             },
+            // {
+            //   href: "/master-data/assignment-invoice",
+            //   label: "Assignment Invoice",
+            //   active: pathname === "/master-data/assignment-invoice",
+            //   icon: "heroicons-outline:user-group",
+            //   children: [],
+            // },
             {
-              href: "/master-data/assignment-invoice",
+              href: "/master-data/assignment-invoice-copy",
               label: "Assignment Invoice",
-              active: pathname === "/master-data/assignment-invoice",
+              active: pathname === "/master-data/assignment-invoice-copy",
               icon: "heroicons-outline:user-group",
               children: [],
             },
@@ -109,10 +123,17 @@ export function getMenuList(
               icon: "heroicons-outline:document-duplicate",
               children: [],
             },
+            // {
+            //   href: "/master-data/assignment-receipt",
+            //   label: "Assignment Receipt",
+            //   active: pathname === "/master-data/assignment-receipt",
+            //   icon: "heroicons-outline:user-group",
+            //   children: [],
+            // },
             {
-              href: "/master-data/assignment-receipt",
+              href: "/master-data/assignment-receipt-copy",
               label: "Assignment Receipt",
-              active: pathname === "/master-data/assignment-receipt",
+              active: pathname === "/master-data/assignment-receipt-copy",
               icon: "heroicons-outline:user-group",
               children: [],
             },
@@ -170,7 +191,7 @@ export function getMenuList(
               active: pathname === "/invoice/approval",
               icon: "",
               children: [],
-              visible: isApprover && hasInvoiceDataApprover,
+              visible: isApprover,
             },
             {
               href: "/invoice/approval-history",
@@ -178,7 +199,7 @@ export function getMenuList(
               active: pathname === "/invoice/approval-history",
               icon: "",
               children: [],
-              visible: isApprover && hasInvoiceDataApprover,
+              visible: isApprover,
             },
             {
               href: "/invoice/stamp",
@@ -224,7 +245,7 @@ export function getMenuList(
             isAdmin ||
             (isMaker && hasInvoiceDataMaker) ||
             (isBlaster && hasInvoiceDataBlaster) ||
-            (isApprover && hasInvoiceDataApprover),
+            (isApprover),
         },
       ].filter((menu) => menu.visible !== false),
     },
@@ -267,7 +288,7 @@ export function getMenuList(
               active: pathname === "/receipt/approval",
               icon: "",
               children: [],
-              visible: isApprover && hasOrDataApprover,
+              visible: isApprover,
             },
             {
               href: "/receipt/approval-history",
@@ -275,7 +296,7 @@ export function getMenuList(
               active: pathname === "/receipt/approval-history",
               icon: "",
               children: [],
-              visible: isApprover && hasOrDataApprover,
+              visible: isApprover,
             },
             {
               href: "/receipt/stamp",
@@ -320,7 +341,7 @@ export function getMenuList(
           visible:
             isAdmin || 
             (isMaker && hasOrDataMaker) || 
-            (isApprover && hasOrDataApprover) || 
+            (isApprover) || 
             (isBlaster && hasOrDataBlaster),
         },
       ].filter((menu) => menu.visible !== false),
@@ -388,6 +409,14 @@ export function getMenuList(
               href: "/system-admin/users",
               label: "Users",
               active: pathname.includes("/system-admin/users"),
+              icon: "heroicons:arrow-trending-up",
+              children: [],
+              visible: isAdmin,
+            },
+            {
+              href: "/system-admin/assign-user",
+              label: "Assign User",
+              active: pathname.includes("/system-admin/assign-user"),
               icon: "heroicons:arrow-trending-up",
               children: [],
               visible: isAdmin,
@@ -595,7 +624,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/approval",
               icon: "",
               children: [],
-              visible: isApprover && hasInvoiceData,
+              visible: isApprover,
             },
             {
               href: "/invoice/approval-history",
@@ -603,7 +632,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/approval-history",
               icon: "",
               children: [],
-              visible: isApprover && hasInvoiceData,
+              visible: isApprover,
             },
             {
               href: "/invoice/stamp",
@@ -649,7 +678,7 @@ export function getHorizontalMenuList(
             isAdmin ||
             (isMaker && hasInvoiceData) ||
             (isBlaster && hasInvoiceData) ||
-            (isApprover && hasInvoiceData),
+            (isApprover),
         },
       ].filter((menu) => menu.visible !== false),
     },
@@ -692,7 +721,7 @@ export function getHorizontalMenuList(
               active: pathname === "/receipt/approval",
               icon: "",
               children: [],
-              visible: isApprover && hasOrData,
+              visible: isApprover,
             },
             {
               href: "/receipt/approval-history",
@@ -700,7 +729,7 @@ export function getHorizontalMenuList(
               active: pathname === "/receipt/approval-history",
               icon: "",
               children: [],
-              visible: isApprover && hasOrData,
+              visible: isApprover,
             },
             {
               href: "/receipt/stamp",
@@ -743,7 +772,7 @@ export function getHorizontalMenuList(
             },
           ].filter((submenu) => submenu.visible !== false),
           visible:
-            isAdmin || (isMaker && hasOrData) || (isApprover && hasOrData) || (isBlaster && hasOrData),
+            isAdmin || (isMaker && hasOrData) || (isApprover) || (isBlaster && hasOrData),
         },
       ].filter((menu) => menu.visible !== false),
     },
@@ -810,6 +839,14 @@ export function getHorizontalMenuList(
               href: "/system-admin/users",
               label: "Users",
               active: pathname.includes("/system-admin/users"),
+              icon: "heroicons:arrow-trending-up",
+              children: [],
+              visible: isAdmin,
+            },
+            {
+              href: "/system-admin/assign-user",
+              label: "Assign User",
+              active: pathname.includes("/system-admin/assign-user"),
               icon: "heroicons:arrow-trending-up",
               children: [],
               visible: isAdmin,

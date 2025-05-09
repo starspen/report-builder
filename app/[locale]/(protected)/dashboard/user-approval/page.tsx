@@ -28,6 +28,7 @@ export default function DashboardPage() {
       queryKey: ["get-total-invoice-approval"],
       queryFn: async () => {
         const result = await getInvoiceApprovalByUser();
+        console.log(result)
         return result.data.length;
       },
     });
@@ -121,7 +122,7 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="grid grid-cols-12 items-center gap-5 mb-5">
-        {menu.data.hasInvoiceData && (
+        {/* {menu.data.hasInvoiceData && ( */}
           <div className="col-span-12">
             <Card>
               <CardHeader>
@@ -190,8 +191,8 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-        )}
-        {menu.data.hasOrData && (
+        {/* )} */}
+        {/* {menu.data.hasOrData && ( */}
           <div className="col-span-12">
             <Card>
               <CardHeader>
@@ -260,8 +261,8 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-        )}
-        {!menu.data.hasInvoiceData && !menu.data.hasOrData && (
+        {/* )} */}
+        {/* {!menu.data.hasInvoiceData && !menu.data.hasOrData && ( */}
           <div className="col-span-12 text-center">
             <Image
               src="/images/all-img/no-task.svg"
@@ -275,7 +276,7 @@ export default function DashboardPage() {
               administrator if you believe this is an error.
             </p>
           </div>
-        )}
+        {/* )} */}
       </div>
     </div>
   );

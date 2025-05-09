@@ -43,8 +43,13 @@ const nextConfig = {
       },
       {
         protocol: "http",
-        hostname: "192.168.1.28",
-        port: "5000",
+        hostname: "localhost",
+        port: "5001",
+      },
+      {
+        protocol: "http",
+        hostname: "192.168.1.32",
+        port: "5001",
       },
       {
         protocol: "http",

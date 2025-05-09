@@ -42,6 +42,8 @@ const ReactTablePage = () => {
     },
   });
 
+  console.log(dataHd)
+
   const { data: dataLevel, isLoading: isLoadingLevel } = useQuery({
     queryKey: ["invoice-approval-detail-level"],
     queryFn: async () => {
@@ -80,7 +82,7 @@ const ReactTablePage = () => {
       return result;
     },
     onSuccess: (result) => {
-      if (result.statusCode === 200) {
+      if (result.statusCode === 201) {
         toast.success(result.message);
         router.push("/invoice/approval");
       } else {
