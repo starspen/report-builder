@@ -12,11 +12,12 @@ import HorizontalMenu from "./horizontal-menu";
 import LocalSwitcher from "./locale-switcher";
 import HeaderLogo from "./header-logo";
 import { auth } from "@/lib/auth";
-import { getMenu } from "@/action/dashboard-action";
+import { getMenu, getNewMenu } from "@/action/dashboard-action";
 
 const DashCodeHeader = async () => {
   const session = await auth();
   const userRole = session?.user?.role || "administrator";
+  // const menu = await getNewMenu();
   const menu = await getMenu();
 
   // return (

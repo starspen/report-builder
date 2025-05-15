@@ -95,11 +95,11 @@ export default function EditUser({
   } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      modules: userData.module?.map((m) => ({
+      modules: userData.module.map((m) => ({
         value: m.id,
         label: m.name,
       })),
-      roles: userData.roles?.map((r) => ({
+      roles: userData.roles.map((r) => ({
         value: r.id,
         module_id: r.module_id,
         label: r.name,
@@ -110,11 +110,11 @@ export default function EditUser({
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
 
   // All possible options
-  const moduleOptions: ModuleOption[] = userData.moduleList?.map((m) => ({
+  const moduleOptions: ModuleOption[] = userData.moduleList.map((m) => ({
     value: m.id,
     label: m.name,
   }));
-  const roleOptions: RoleOption[] = userData.roleList?.map((r) => ({
+  const roleOptions: RoleOption[] = userData.roleList.map((r) => ({
     value: r.id,
     module_id: r.module_id,
     label: r.name,

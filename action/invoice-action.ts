@@ -136,7 +136,8 @@ export const generateInvoiceManual = async (
   debtor_acct: string,
   trx_type: string,
   entity_cd: string,
-  email_addr: string
+  email_addr: string,
+  related_class: string,
 ) => {
   try {
     const session = await auth();
@@ -148,6 +149,7 @@ export const generateInvoiceManual = async (
       trx_type,
       entity_cd,
       email_addr,
+      related_class,
       auditUser
     }
 

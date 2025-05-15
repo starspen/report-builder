@@ -2,10 +2,11 @@ import React from "react";
 import SidebarContent from "./sidebar-content";
 import { Menu } from "./menu";
 import { auth } from "@/lib/auth";
-import { getMenu } from "@/action/dashboard-action";
+import { getMenu, getNewMenu } from "@/action/dashboard-action";
 
 const DashCodeSidebar = async () => {
   const session = await auth();
+  // const menu = await getNewMenu();
   const menu = await getMenu();
   // console.log("menu : " + menu)
 
