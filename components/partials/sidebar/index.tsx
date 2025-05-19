@@ -6,8 +6,8 @@ import { getMenu, getNewMenu } from "@/action/dashboard-action";
 
 const DashCodeSidebar = async () => {
   const session = await auth();
-  // const menu = await getNewMenu();
-  const menu = await getMenu();
+  const menu = await getNewMenu();
+  // const menu = await getMenu();
   // console.log("menu : " + menu)
 
   return (

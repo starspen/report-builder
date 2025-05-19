@@ -85,7 +85,7 @@ export default function ContentTable({ data }: { data: any }) {
                 <span>{rupiah(data?.data[0].doc_amt)}</span>
               </div>
               <div className="col-span-2  flex flex-col gap-2 lg:gap-0 lg:flex-row lg:items-center ">
-                <Label className="lg:min-w-[160px]">Maker</Label>
+                <Label className="lg:min-w-[160px]">Creator</Label>
                 <span>{data?.data[0].audit_user}</span>
               </div>
             </div>

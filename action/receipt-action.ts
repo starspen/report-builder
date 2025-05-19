@@ -131,10 +131,8 @@ export const submitReceiptEmail = async (
       doc_no: docNo,
       process_id: processId,
       audit_user: auditUser,
-      related_class: relatedClass,
+      related_class: relatedClass || 'OR',
     };
-
-    console.log(data)
 
     let url = "";
     if (mode === "sandbox") {
@@ -152,7 +150,7 @@ export const submitReceiptEmail = async (
     });
     const result = await response.json();
 
-    if (result.statusCode === 200) {
+    if (result.statusCode === 200 || result.statusCode === 201) {
       return result;
     } else {
       return result;
@@ -225,7 +223,10 @@ export const getReceiptApprovalByUser = async () => {
   }
 };
 
-export const getReceiptApprovalHistoryByUser = async () => {
+export const getReceiptApprovalHistoryByUser = async (
+  startDate: string,
+  endDate: string
+) => {
   try {
     const session = await auth();
     const approvalUser = session?.user?.email;
@@ -238,14 +239,14 @@ export const getReceiptApprovalHistoryByUser = async () => {
     }
 
     const response = await fetch(
-      `${url}/api/receipt/get-approval-history/${approvalUser}`,
+      `${url}/api/receipt/get-approval-history/${approvalUser}?start_date=${startDate}&end_date=${endDate}`,
       {
         method: "GET",
       }
     );
     const result = await response.json();
 
-    if (result.statusCode === 200) {
+    if (result.statusCode === 200 || result.statusCode === 201) {
       return result;
     } else {
       return result;
@@ -318,20 +319,19 @@ export const submitReceiptApproval = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    let queryParams = `doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_status=${data.approvalStatus}`;
-    if (data.approvalStatus !== "A") {
+    let queryParams = `doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_status=${data.approvalStatus}&approval_level=${data.approvalLevel}`;
+    if (data.approvalStatus === "A") {
+      queryParams += `&approval_remarks=Approved by ${auditUser}`;
+    } else {
       queryParams += `&approval_remarks=${data.approvalRemark}`;
     }
 
-    const response = await fetch(
-      `${url}/api/receipt-approve?${queryParams}`,
-      {
-        method: "GET",
-      }
-    );
+    const response = await fetch(`${url}/api/receipt-approve?${queryParams}`, {
+      method: "GET",
+    });
     const result = await response.json();
 
-    if (result.statusCode === 200) {
+    if (result.statusCode === 200 || result.statusCode === 201) {
       return result;
     } else {
       return result;

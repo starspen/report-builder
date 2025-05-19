@@ -70,9 +70,10 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                 <TableHead>Descs</TableHead>
                 <TableHead>Currency Cd</TableHead>
                 <TableHead>Doc Amt</TableHead>
-                <TableHead>Maker</TableHead>
+                <TableHead>Creator</TableHead>
                 <TableHead>File Invoice</TableHead>
                 <TableHead>File Reference</TableHead>
+                <TableHead>File Summary Reference</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -112,6 +113,23 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                     <File className="text-red-600 w-4 h-4" />
                   </Button>
                 </TableCell>
+                <TableCell>
+                  <Button
+                    className="bg-transparent  ring-transparent hover:bg-transparent hover:ring-0 hover:ring-offset-0 hover:ring-transparent w-28 border-transparent"
+                    size="icon"
+                    onClick={(event) => {
+                      handlePreviewFileReference(
+                        data.filenames4,
+                        data.invoice_tipe
+                      );
+                      event.preventDefault();
+                    }}
+                    title={`${data.filenames4}`}
+                    disabled={!data.filenames4}
+                  >
+                    <File className="text-red-600 w-4 h-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -129,8 +147,8 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                 <TableHead>Approval Level</TableHead>
                 <TableHead>Approval User</TableHead>
                 <TableHead>Approval Status</TableHead>
-                <TableHead>Approval Date</TableHead>
-                <TableHead>Approval Remarks</TableHead>
+                <TableHead>Approved Date/Cancelled Date</TableHead>
+                <TableHead>Remarks</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

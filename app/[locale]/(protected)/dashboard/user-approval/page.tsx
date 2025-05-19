@@ -28,7 +28,6 @@ export default function DashboardPage() {
       queryKey: ["get-total-invoice-approval"],
       queryFn: async () => {
         const result = await getInvoiceApprovalByUser();
-        console.log(result)
         return result.data.length;
       },
     });
@@ -39,7 +38,7 @@ export default function DashboardPage() {
   } = useQuery({
     queryKey: ["get-total-invoice-approval-history-approved"],
     queryFn: async () => {
-      const result = await getInvoiceApprovalHistoryByUser();
+      const result = await getInvoiceApprovalHistoryByUser("all", "all");
       const approvedResults = result.data.filter(
         (item: any) => item.approval_status === "A"
       );
@@ -54,7 +53,7 @@ export default function DashboardPage() {
   } = useQuery({
     queryKey: ["get-total-invoice-approval-history-rejected"],
     queryFn: async () => {
-      const result = await getInvoiceApprovalHistoryByUser();
+      const result = await getInvoiceApprovalHistoryByUser("all", "all");
       const rejectedResults = result.data.filter(
         (item: any) => item.approval_status == "C"
       );
@@ -77,7 +76,7 @@ export default function DashboardPage() {
   } = useQuery({
     queryKey: ["get-total-receipt-approval-history-approved"],
     queryFn: async () => {
-      const result = await getReceiptApprovalHistoryByUser();
+      const result = await getReceiptApprovalHistoryByUser("all", "all");
       const approvedResults = result.data.filter(
         (item: any) => item.approval_status === "A"
       );
@@ -92,7 +91,7 @@ export default function DashboardPage() {
   } = useQuery({
     queryKey: ["get-total-receipt-approval-history-rejected"],
     queryFn: async () => {
-      const result = await getReceiptApprovalHistoryByUser();
+      const result = await getReceiptApprovalHistoryByUser("all", "all");
       const rejectedResults = result.data.filter(
         (item: any) => item.approval_status == "C"
       );
@@ -122,7 +121,7 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="grid grid-cols-12 items-center gap-5 mb-5">
-        {/* {menu.data.hasInvoiceData && ( */}
+        {menu.data.hasInvoiceDataApprover && (
           <div className="col-span-12">
             <Card>
               <CardHeader>
@@ -191,8 +190,9 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-        {/* )} */}
-        {/* {menu.data.hasOrData && ( */}
+        )}
+
+        {menu.data.hasOrDataApprover && (
           <div className="col-span-12">
             <Card>
               <CardHeader>
@@ -261,8 +261,9 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-        {/* )} */}
-        {/* {!menu.data.hasInvoiceData && !menu.data.hasOrData && ( */}
+        )}
+
+        {!menu.data.hasInvoiceDataApprover && !menu.data.hasOrDataApprover && (
           <div className="col-span-12 text-center">
             <Image
               src="/images/all-img/no-task.svg"
@@ -272,11 +273,12 @@ export default function DashboardPage() {
               className="mx-auto"
             />
             <p className="text-lg text-default-600">
-              You currently have no approval tasks. Please contact the
-              administrator if you believe this is an error.
+              {
+                "You don't currently have an approval task. Please contact administrator if you believe this is an error."
+              }
             </p>
           </div>
-        {/* )} */}
+        )}
       </div>
     </div>
   );

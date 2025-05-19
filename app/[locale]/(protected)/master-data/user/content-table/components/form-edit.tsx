@@ -167,7 +167,7 @@ export const FormEdit = ({
             {errors.userRole && <p className="text-xs text-destructive">{errors.userRole.message}</p>}
           </div>
 
-          {selectedRole?.value === "approver" && (
+          {/* {selectedRole?.value === "approver" && (
             <div className="space-y-2">
               <Label htmlFor="range">Approval Ranges</Label>
               <Select
@@ -180,7 +180,7 @@ export const FormEdit = ({
                 onChange={(opts) => setValue("range", opts as any)}
               />
             </div>
-          )}
+          )} */}
 
           <div className="flex justify-end gap-2">
             <DialogClose asChild>

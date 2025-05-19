@@ -306,9 +306,9 @@ export const submitInvoiceEmail = async (
       doc_no: docNo,
       process_id: processId,
       audit_user: auditUser,
-      related_class: relatedClass,
+      related_class: relatedClass || "DF",
       doc_amt, 
-      type_cd: relatedClass, 
+      type_cd: relatedClass || "DF", 
       entity_cd, 
       project_no, 
       debtor_acct, 
@@ -321,8 +321,8 @@ export const submitInvoiceEmail = async (
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    // const response = await fetch(`${url}/api/invoice-submit`, {
-    const response = await fetch(`${url}/api/invoice/submit`, {
+    const response = await fetch(`${url}/api/invoice-submit`, {
+    // const response = await fetch(`${url}/api/invoice/submit`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -386,8 +386,8 @@ export const getInvoiceApprovalByUser = async () => {
     }
 
     const response = await fetch(
-      // `${url}/api/get-approval-user/${approvalUser}`,
-      `${url}/api/invoice/approval/${approvalUser}`,
+      `${url}/api/get-approval-user/${approvalUser}`,
+      // `${url}/api/invoice/approval/${approvalUser}`,
       {
         method: "GET",
       }
@@ -405,7 +405,10 @@ export const getInvoiceApprovalByUser = async () => {
   }
 };
 
-export const getInvoiceApprovalHistoryByUser = async () => {
+export const getInvoiceApprovalHistoryByUser = async (
+  startDate: string,
+  endDate: string
+) => {
   try {
     const session = await auth();
     const approvalUser = session?.user?.email;
@@ -418,14 +421,14 @@ export const getInvoiceApprovalHistoryByUser = async () => {
     }
 
     const response = await fetch(
-      `${url}/api/get-approval-history/${approvalUser}`,
+      `${url}/api/get-approval-history/${approvalUser}?start_date=${startDate}&end_date=${endDate}`,
       {
         method: "GET",
       }
     );
     const result = await response.json();
 
-    if (result.statusCode === 200) {
+    if (result.statusCode === 200 || result.statusCode === 201) {
       return result;
     } else {
       return result;
@@ -486,11 +489,54 @@ export const getInvoiceApprovalDetail = async (processId: string) => {
   }
 };
 
+export const submitInvoiceApproval = async (data: any) => {
+  try {
+    const session = await auth();
+    const auditUser = session?.user?.email;
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    let queryParams = `doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_status=${data.approvalStatus}&approval_level=${data.approvalLevel}`;
+    if (data.approvalStatus === "A") {
+      queryParams += `&approval_remarks=Approved by ${auditUser}`;
+    } else {
+      queryParams += `&approval_remarks=${data.approvalRemark}`;
+    }
+
+    const response = await fetch(`${url}/api/invoice-approve?${queryParams}`, {
+      method: "GET",
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200 || result.statusCode === 201) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error submit data:", error);
+    return error;
+  }
+};
+
 // export const submitInvoiceApproval = async (data: any) => {
 //   try {
+//     console.log(data)
 //     const session = await auth();
 //     const auditUser = session?.user?.email;
-
+//     const body = {
+//       doc_no: data.docNo,
+//       process_id: data.process_id,
+//       status_approve: data.approvalStatus,
+//       email: auditUser,
+//       approval_remarks: data.approvalRemark,
+//     }
+//     console.log(JSON.stringify(body))
 //     let url = "";
 //     if (mode === "sandbox") {
 //       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -498,14 +544,15 @@ export const getInvoiceApprovalDetail = async (processId: string) => {
 //       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
 //     }
 
-//     let queryParams = `doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_status=${data.approvalStatus}`;
-//     if (data.approvalStatus !== "A") {
-//       queryParams += `&approval_remarks=${data.approvalRemark}`;
-//     }
 
-//     const response = await fetch(`${url}/api/invoice-approve?${queryParams}`, {
-//       method: "GET",
-//     });
+//     const response = await fetch(`${url}/api/invoice/approve`, 
+//       {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body:JSON.stringify(body),
+//       });
 //     const result = await response.json();
 
 //     if (result.statusCode === 200) {
@@ -518,48 +565,6 @@ export const getInvoiceApprovalDetail = async (processId: string) => {
 //     return error;
 //   }
 // };
-
-export const submitInvoiceApproval = async (data: any) => {
-  try {
-    console.log(data)
-    const session = await auth();
-    const auditUser = session?.user?.email;
-    const body = {
-      doc_no: data.docNo,
-      process_id: data.process_id,
-      status_approve: data.approvalStatus,
-      email: auditUser,
-      approval_remarks: data.approvalRemark,
-    }
-    console.log(JSON.stringify(body))
-    let url = "";
-    if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
-    } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
-    }
-
-
-    const response = await fetch(`${url}/api/invoice/approve`, 
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body:JSON.stringify(body),
-      });
-    const result = await response.json();
-
-    if (result.statusCode === 200) {
-      return result;
-    } else {
-      return result;
-    }
-  } catch (error) {
-    console.error("Error submit data:", error);
-    return error;
-  }
-};
 
 export const getInvoiceEmail = async () => {
   const session = await auth();

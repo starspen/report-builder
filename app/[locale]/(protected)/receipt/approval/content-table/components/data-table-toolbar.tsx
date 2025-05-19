@@ -1,21 +1,24 @@
 "use client";
 
 import { X } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "./data-table-view-options";
 
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { Table } from "@tanstack/react-table";
+import { ActionApprove } from "./action-approve";
+import { ActionCancel } from "./action-cancel";
 
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
+  setSelectionRows: () => void;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
+  setSelectionRows,
 }: DataTableToolbarProps) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +51,18 @@ export function DataTableToolbar({
           options={projectName}
         />
       )}
+
+      <ActionApprove
+        table={table}
+        selectedRows={selectedRows}
+        setSelectionRows={setSelectionRows}
+      />
+
+      <ActionCancel
+        table={table}
+        selectedRows={selectedRows}
+        setSelectionRows={setSelectionRows}
+      />
 
       {isFiltered && (
         <Button

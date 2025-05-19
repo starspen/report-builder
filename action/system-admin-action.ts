@@ -225,7 +225,63 @@ export const editModule = async (data: any) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/module/edit/`, {
+    const response = await fetch(`${url}/api/module/edit`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+export const editRole = async (data: any) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/role/edit`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+export const editMenu = async (data: any) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/menu/edit`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

@@ -40,19 +40,13 @@ export function getMenuList(
   const isMaker = ["maker and blaster", "maker"].includes(session?.user?.role);
   const isBlaster = ["maker and blaster", "blaster"].includes(session?.user?.role);
   const isApprover = session?.user?.role === "approver";
+
+  const hasInvoiceDataMaker = menu?.data?.hasInvoiceDataMaker
   const hasOrDataMaker = menu?.data?.hasOrDataMaker
+  const hasInvoiceDataBlaster = menu?.data?.hasInvoiceDataBlaster
   const hasOrDataBlaster = menu?.data?.hasOrDataBlaster
+  const hasInvoiceDataApprover = menu?.data?.hasInvoiceDataApprover
   const hasOrDataApprover = menu?.data?.hasOrDataApprover
-
-  const menuList: string[] = menu?.data?.menuList ?? [];
-  const moduleList: string[] = menu?.data?.moduleList ?? [];
-  console.log(menuList)
-  // helper to check visibility
-  const canSee = (label: string) =>
-    isAdmin || menuList.includes(label);
-
-  const canSeeModule = (label: string) => isAdmin || moduleList.includes(label)
-  // console.log(canSee("Generate Invoice"))
 
   // console.log("user role : " + session?.user?.role)
   // console.log("menu invoice : " + menu?.hasInvoiceData)
@@ -61,182 +55,6 @@ export function getMenuList(
   // console.log("user isMaker : " + isMaker)
   // console.log("user isBlaster : " + isBlaster)
 
-  const invoiceSubmenus: Submenu[] = [
-    {
-      href: "#",
-      label: "Generate Invoice",
-      active: pathname === "/invoice/generate",
-      icon: "heroicons-outline:document-plus",
-      children: [
-        { href: "/invoice/generate/schedule", label: "Invoice Schedule", active: pathname === "" },
-        { href: "/invoice/generate/manual", label: "Invoice Manual", active: pathname === "" },
-      ],
-      visible: canSee("Generate Invoice") || isAdmin,
-    },
-    {
-      href: "/invoice/list",
-      label: "Invoice List",
-      icon: "",
-      active: pathname === "/invoice/list",
-      children: [],
-      visible: canSee("Invoice List") || isAdmin,
-    },
-    {
-      href: "/invoice/approval",
-      label: "Invoice Approval",
-      active: pathname === "/invoice/approval",
-      icon: "",
-      children: [],
-      visible: canSee("Invoice Approval"),
-    },
-    {
-      href: "/invoice/approval-history",
-      label: "Invoice Approval History",
-      active: pathname === "/invoice/approval-history",
-      icon: "",
-      children: [],
-      visible: canSee("Invoice Approval History"),
-    },
-    {
-      href: "/invoice/stamp",
-      label: "Invoice Stamp",
-      active: pathname === "/invoice/stamp",
-      icon: "",
-      children: [],
-      visible: (canSee("Invoice Stamp")) || isAdmin,
-    },
-    {
-      href: "/invoice/stamp-history",
-      label: "Invoice Stamp History",
-      active: pathname === "/invoice/stamp-history",
-      icon: "",
-      children: [],
-      visible: canSee("Invoice Stamp History"),
-    },
-    {
-      href: "/invoice/email",
-      label: "Invoice Blast",
-      active: pathname === "/invoice/email",
-      icon: "",
-      children: [],
-      visible: (canSee("Invoice Blast")) || isAdmin,
-    },
-    {
-      href: "/invoice/email-history",
-      label: "Invoice Blast History",
-      active: pathname === "/invoice/email-history",
-      icon: "",
-      children: [],
-      visible: isAdmin || canSee("Invoice Blast History"),
-    },
-    {
-      href: "/invoice/inquiry",
-      label: "Invoice Inquiry",
-      icon: "",
-      active: pathname === "/invoice/inquiry",
-      children: [],
-      visible: canSee("Invoice Inquiry"),
-    },
-  ];
-  const receiptSubmenus: Submenu[] = [
-    {
-      href: "#",
-      label: "Generate Receipt",
-      active: pathname.includes("/receipt/generate"),
-      icon: "heroicons-outline:document-plus",
-      children: [
-        { href: "/receipt/generate/schedule", label: "Receipt Schedule", active: pathname === "" },
-      ],
-      visible: canSee("Generate Receipt") || isAdmin,
-    },
-    {
-      href: "/receipt/list",
-      label: "Receipt List",
-      icon: "",
-      active: pathname === "/receipt/list",
-      children: [],
-      visible: canSee("Receipt List") || isAdmin,
-    },
-    {
-      href: "/receipt/approval",
-      label: "Receipt Approval",
-      active: pathname === "/receipt/approval",
-      icon: "",
-      children: [],
-      visible: canSee("Receipt Approval"),
-    },
-    {
-      href: "/receipt/approval-history",
-      label: "Receipt Approval History",
-      active: pathname === "/receipt/approval-history",
-      icon: "",
-      children: [],
-      visible: canSee("Receipt Approval History"),
-    },
-    {
-      href: "/receipt/stamp",
-      label: "Receipt Stamp",
-      active: pathname === "/receipt/stamp",
-      icon: "",
-      children: [],
-      visible: (canSee("Receipt Stamp")) || isAdmin,
-    },
-    {
-      href: "/receipt/stamp-history",
-      label: "Receipt Stamp History",
-      active: pathname === "/receipt/stamp-history",
-      icon: "",
-      children: [],
-      visible: canSee("Receipt Stamp History"),
-    },
-    {
-      href: "/receipt/email",
-      label: "Receipt Blast",
-      active: pathname === "/receipt/email",
-      icon: "",
-      children: [],
-      visible: (canSee("Receipt Blast")) || isAdmin,
-    },
-    {
-      href: "/receipt/email-history",
-      label: "Receipt Blast History",
-      active: pathname === "/receipt/email-history",
-      icon: "",
-      children: [],
-      visible: isAdmin || canSee("Receipt Blast History"),
-    },
-    {
-      href: "/receipt/inquiry",
-      label: "Receipt Inquiry",
-      icon: "",
-      active: pathname === "/receipt/inquiry",
-      children: [],
-      visible: canSee("Receipt Inquiry"),
-    },
-  ];
-  const assetSubmenus: Submenu[] = [
-    {
-      href: "/assets/generate-qr",
-      label: "Generate QR",
-      active: pathname === "/assets/generate-qr",
-      icon: "",
-      children: [],
-      visible: canSee("Generate QR"),
-    },
-    {
-      href: "/assets/print-qr",
-      label: "Print QR",
-      active: pathname === "/assets/print-qr",
-      icon: "",
-      children: [],
-      visible: canSee("Print QR"),
-    },
-  ]
-
-  // filter out the hidden ones
-  const filteredInvoiceSubmenus = invoiceSubmenus.filter(s => s.visible);
-  const filteredReceiptSubmenus = receiptSubmenus.filter(s => s.visible);
-  const filterredAssetSubmenus = assetSubmenus.filter(s => s.visible);
   return [
     {
       groupLabel: "Dashboard",
@@ -253,8 +71,8 @@ export function getMenuList(
       ],
     },
     {
-      groupLabel: "Web Blast",
-      id: "invoice",
+      groupLabel: "Master",
+      id: "master-data",
       menus: [
         {
           id: "master-data",
@@ -284,20 +102,20 @@ export function getMenuList(
               icon: "heroicons-outline:document-duplicate",
               children: [],
             },
-            {
-              href: "/master-data/assignment-invoice",
-              label: "Assignment Invoice",
-              active: pathname === "/master-data/assignment-invoice",
-              icon: "heroicons-outline:user-group",
-              children: [],
-            },
             // {
-            //   href: "/master-data/assignment-invoice-copy",
+            //   href: "/master-data/assignment-invoice",
             //   label: "Assignment Invoice",
-            //   active: pathname === "/master-data/assignment-invoice-copy",
+            //   active: pathname === "/master-data/assignment-invoice",
             //   icon: "heroicons-outline:user-group",
             //   children: [],
             // },
+            {
+              href: "/master-data/assignment-invoice-copy",
+              label: "Assignment Invoice",
+              active: pathname === "/master-data/assignment-invoice-copy",
+              icon: "heroicons-outline:user-group",
+              children: [],
+            },
             {
               href: "/master-data/type-receipt",
               label: "Type Receipt",
@@ -305,49 +123,231 @@ export function getMenuList(
               icon: "heroicons-outline:document-duplicate",
               children: [],
             },
-            {
-              href: "/master-data/assignment-receipt",
-              label: "Assignment Receipt",
-              active: pathname === "/master-data/assignment-receipt",
-              icon: "heroicons-outline:user-group",
-              children: [],
-            },
             // {
-            //   href: "/master-data/assignment-receipt-copy",
+            //   href: "/master-data/assignment-receipt",
             //   label: "Assignment Receipt",
-            //   active: pathname === "/master-data/assignment-receipt-copy",
+            //   active: pathname === "/master-data/assignment-receipt",
             //   icon: "heroicons-outline:user-group",
             //   children: [],
             // },
+            {
+              href: "/master-data/assignment-receipt-copy",
+              label: "Assignment Receipt",
+              active: pathname === "/master-data/assignment-receipt-copy",
+              icon: "heroicons-outline:user-group",
+              children: [],
+            },
           ],
           visible: isAdmin,
         },
+      ].filter((menu) => menu.visible !== false),
+    },
+    {
+      groupLabel: "Pages",
+      id: "invoice",
+      menus: [
         {
           id: "invoice",
           href: "#",
           label: "Invoice",
           active: pathname.includes("/invoice"),
           icon: "heroicons-outline:document-text",
-          submenus: filteredInvoiceSubmenus,
+          submenus: [
+            {
+              href: "#",
+              label: "Generate Invoice",
+              active: pathname === "/invoice/generate/schedule",
+              icon: "heroicons-outline:document-plus",
+              children: [
+                {
+                  href: "/invoice/generate/schedule",
+                  label: "Invoice Schedule",
+                  active: pathname === "/invoice/generate/schedule",
+                },
+                {
+                  href: "/invoice/generate/manual",
+                  label: "Invoice Manual",
+                  active: pathname === "/invoice/generate/manual",
+                },
+                // {
+                //   href: "/invoice/generate/proforma",
+                //   label: "Invoice Proforma",
+                //   active: pathname === "/invoice/generate/proforma",
+                // },
+              ],
+              visible: (isMaker && hasInvoiceDataMaker) || isAdmin,
+            },
+            {
+              href: "/invoice/list",
+              label: "Invoice List",
+              active: pathname === "/invoice/list",
+              icon: "",
+              children: [],
+              visible: (isMaker && hasInvoiceDataMaker) || isAdmin,
+            },
+            {
+              href: "/invoice/approval",
+              label: "Invoice Approval",
+              active: pathname === "/invoice/approval",
+              icon: "",
+              children: [],
+              visible: isApprover,
+            },
+            {
+              href: "/invoice/approval-history",
+              label: "Invoice Approval History",
+              active: pathname === "/invoice/approval-history",
+              icon: "",
+              children: [],
+              visible: isApprover,
+            },
+            {
+              href: "/invoice/stamp",
+              label: "Invoice Stamp",
+              active: pathname === "/invoice/stamp",
+              icon: "",
+              children: [],
+              visible: (isBlaster && hasInvoiceDataBlaster) || isAdmin,
+            },
+            {
+              href: "/invoice/stamp-history",
+              label: "Invoice Stamp History",
+              active: pathname === "/invoice/stamp-history",
+              icon: "",
+              children: [],
+              visible: isAdmin || hasInvoiceDataBlaster,
+            },
+            {
+              href: "/invoice/email",
+              label: "Invoice Blast",
+              active: pathname === "/invoice/email",
+              icon: "",
+              children: [],
+              visible: (isBlaster && hasInvoiceDataBlaster) || isAdmin,
+            },
+            {
+              href: "/invoice/email-history",
+              label: "Invoice Blast History",
+              active: pathname === "/invoice/email-history",
+              icon: "",
+              children: [],
+              visible: isAdmin || hasInvoiceDataBlaster,
+            },
+            {
+              href: "/invoice/inquiry",
+              label: "Invoice Inquiry",
+              active: pathname === "/invoice/inquiry",
+              icon: "",
+              children: [],
+            },
+          ].filter((submenu) => submenu.visible !== false),
           visible:
             isAdmin ||
-            filteredInvoiceSubmenus.length > 0,
+            (isMaker && hasInvoiceDataMaker) ||
+            (isBlaster && hasInvoiceDataBlaster) ||
+            (isApprover),
         },
+      ].filter((menu) => menu.visible !== false),
+    },
+    {
+      groupLabel: "",
+      id: "receipt",
+      menus: [
         {
           id: "receipt",
           href: "#",
           label: "Official Receipt",
           active: pathname.includes("/receipt"),
           icon: "heroicons-outline:receipt-percent",
-          submenus: filteredReceiptSubmenus,
+          submenus: [
+            {
+              href: "#",
+              label: "Generate Receipt",
+              active: pathname === "/receipt/generate",
+              icon: "heroicons-outline:document-plus",
+              children: [
+                {
+                  href: "/receipt/generate/schedule",
+                  label: "Receipt",
+                  active: pathname === "/receipt/generate/schedule",
+                },
+              ],
+              visible: (isMaker && hasOrDataMaker) || isAdmin,
+            },
+            {
+              href: "/receipt/list",
+              label: "Receipt List",
+              active: pathname === "/receipt/list",
+              icon: "",
+              children: [],
+              visible: (isMaker && hasOrDataMaker) || isAdmin,
+            },
+            {
+              href: "/receipt/approval",
+              label: "Receipt Approval",
+              active: pathname === "/receipt/approval",
+              icon: "",
+              children: [],
+              visible: isApprover,
+            },
+            {
+              href: "/receipt/approval-history",
+              label: "Receipt Approval History",
+              active: pathname === "/receipt/approval-history",
+              icon: "",
+              children: [],
+              visible: isApprover,
+            },
+            {
+              href: "/receipt/stamp",
+              label: "Receipt Stamp",
+              active: pathname === "/receipt/stamp",
+              icon: "",
+              children: [],
+              visible: (isBlaster && hasOrDataBlaster) || isAdmin,
+            },
+            {
+              href: "/receipt/stamp-history",
+              label: "Receipt Stamp History",
+              active: pathname === "/receipt/stamp-history",
+              icon: "",
+              children: [],
+              visible: isAdmin || hasOrDataBlaster,
+            },
+            {
+              href: "/receipt/email",
+              label: "Receipt Blast",
+              active: pathname === "/receipt/email",
+              icon: "",
+              children: [],
+              visible: (isBlaster && hasOrDataBlaster) || isAdmin,
+            },
+            {
+              href: "/receipt/email-history",
+              label: "Receipt Blast History",
+              active: pathname === "/receipt/email-history",
+              icon: "",
+              children: [],
+              visible: isAdmin || hasOrDataBlaster,
+            },
+            {
+              href: "/receipt/inquiry",
+              label: "Receipt Inquiry",
+              active: pathname === "/receipt/inquiry",
+              icon: "",
+              children: [],
+            },
+          ].filter((submenu) => submenu.visible !== false),
           visible:
-            isAdmin ||
-            filteredReceiptSubmenus.length > 0,
+            isAdmin || 
+            (isMaker && hasOrDataMaker) || 
+            (isApprover) || 
+            (isBlaster && hasOrDataBlaster),
         },
       ].filter((menu) => menu.visible !== false),
     },
     {
-      groupLabel: filterredAssetSubmenus.length > 0 ? "ASSETS" : "",
+      groupLabel: "",
       id: "assets",
       menus: [
         {
@@ -356,8 +356,25 @@ export function getMenuList(
           label: "Assets",
           active: pathname.includes("/assets"),
           icon: "heroicons-outline:receipt-percent",
-          submenus: filterredAssetSubmenus,
-          visible: isAdmin || filterredAssetSubmenus.length > 0
+          submenus: [
+            {
+              href: "/assets/generate-qr",
+              label: "Generate QR",
+              active: pathname === "/assets/generate-qr",
+              icon: "",
+              children: [],
+              visible: true,
+            },
+            {
+              href: "/assets/print-qr",
+              label: "Print QR",
+              active: pathname === "/assets/print-qr",
+              icon: "",
+              children: [],
+              visible: true,
+            },
+          ].filter((submenu) => submenu.visible !== false),
+          visible:true,
         },
       ].filter((menu) => menu.visible !== false),
     },
@@ -400,22 +417,6 @@ export function getMenuList(
               href: "/system-admin/assign-user",
               label: "Assign User",
               active: pathname.includes("/system-admin/assign-user"),
-              icon: "heroicons:arrow-trending-up",
-              children: [],
-              visible: isAdmin,
-            },
-            {
-              href: "/system-admin/modules",
-              label: "Modules",
-              active: pathname.includes("/system-admin/modules"),
-              icon: "heroicons:arrow-trending-up",
-              children: [],
-              visible: isAdmin,
-            },
-            {
-              href: "/system-admin/menus",
-              label: "Menus",
-              active: pathname.includes("/system-admin/menus"),
               icon: "heroicons:arrow-trending-up",
               children: [],
               visible: isAdmin,
@@ -508,188 +509,6 @@ export function getHorizontalMenuList(
   const hasInvoiceData = menu?.hasInvoiceData;
   const hasOrData = menu?.hasOrData;
 
-  const menuList: string[] = menu?.data?.menuList ?? [];
-  // console.log(menu?.data)
-
-  // helper to check visibility
-  const canSee = (label: string) =>
-    isAdmin || menuList.includes(label);
-
-  const invoiceSubmenus: Submenu[] = [
-    {
-      href: "#",
-      label: "Generate Invoice",
-      active: pathname === "/invoice/generate",
-      icon: "heroicons-outline:document-plus",
-      children: [
-        { href: "/invoice/generate/schedule", label: "Invoice Schedule", active: pathname === "" },
-        { href: "/invoice/generate/manual", label: "Invoice Manual", active: pathname === "" },
-      ],
-      visible: canSee("Generate Invoice") || isAdmin,
-    },
-    {
-      href: "/invoice/list",
-      label: "Invoice List",
-      icon: "",
-      active: pathname === "/invoice/list",
-      children: [],
-      visible: canSee("Invoice List") || isAdmin,
-    },
-    {
-      href: "/invoice/approval",
-      label: "Invoice Approval",
-      active: pathname === "/invoice/approval",
-      icon: "",
-      children: [],
-      visible: canSee("Invoice Approval"),
-    },
-    {
-      href: "/invoice/approval-history",
-      label: "Invoice Approval History",
-      active: pathname === "/invoice/approval-history",
-      icon: "",
-      children: [],
-      visible: canSee("Invoice Approval History"),
-    },
-    {
-      href: "/invoice/stamp",
-      label: "Invoice Stamp",
-      active: pathname === "/invoice/stamp",
-      icon: "",
-      children: [],
-      visible: (canSee("Invoice Stamp")) || isAdmin,
-    },
-    {
-      href: "/invoice/stamp-history",
-      label: "Invoice Stamp History",
-      active: pathname === "/invoice/stamp-history",
-      icon: "",
-      children: [],
-      visible: canSee("Invoice Stamp History"),
-    },
-    {
-      href: "/invoice/email",
-      label: "Invoice Blast",
-      active: pathname === "/invoice/email",
-      icon: "",
-      children: [],
-      visible: (canSee("Invoice Blast")) || isAdmin,
-    },
-    {
-      href: "/invoice/email-history",
-      label: "Invoice Blast History",
-      active: pathname === "/invoice/email-history",
-      icon: "",
-      children: [],
-      visible: isAdmin || canSee("Invoice Blast History"),
-    },
-    {
-      href: "/invoice/inquiry",
-      label: "Invoice Inquiry",
-      icon: "",
-      active: pathname === "/invoice/inquiry",
-      children: [],
-      visible: canSee("Invoice Inquiry"),
-    },
-  ];
-  const receiptSubmenus: Submenu[] = [
-    {
-      href: "#",
-      label: "Generate Receipt",
-      active: pathname.includes("/receipt/generate"),
-      icon: "heroicons-outline:document-plus",
-      children: [
-        { href: "/receipt/generate/schedule", label: "Receipt Schedule", active: pathname === "" },
-      ],
-      visible: canSee("Generate Receipt") || isAdmin,
-    },
-    {
-      href: "/receipt/list",
-      label: "Receipt List",
-      icon: "",
-      active: pathname === "/receipt/list",
-      children: [],
-      visible: canSee("Receipt List") || isAdmin,
-    },
-    {
-      href: "/receipt/approval",
-      label: "Receipt Approval",
-      active: pathname === "/receipt/approval",
-      icon: "",
-      children: [],
-      visible: canSee("Receipt Approval"),
-    },
-    {
-      href: "/receipt/approval-history",
-      label: "Receipt Approval History",
-      active: pathname === "/receipt/approval-history",
-      icon: "",
-      children: [],
-      visible: canSee("Receipt Approval History"),
-    },
-    {
-      href: "/receipt/stamp",
-      label: "Receipt Stamp",
-      active: pathname === "/receipt/stamp",
-      icon: "",
-      children: [],
-      visible: (canSee("Receipt Stamp")) || isAdmin,
-    },
-    {
-      href: "/receipt/stamp-history",
-      label: "Receipt Stamp History",
-      active: pathname === "/receipt/stamp-history",
-      icon: "",
-      children: [],
-      visible: canSee("Receipt Stamp History"),
-    },
-    {
-      href: "/receipt/email",
-      label: "Receipt Blast",
-      active: pathname === "/receipt/email",
-      icon: "",
-      children: [],
-      visible: (canSee("Receipt Blast")) || isAdmin,
-    },
-    {
-      href: "/receipt/email-history",
-      label: "Receipt Blast History",
-      active: pathname === "/receipt/email-history",
-      icon: "",
-      children: [],
-      visible: isAdmin || canSee("Receipt Blast History"),
-    },
-    {
-      href: "/receipt/inquiry",
-      label: "Receipt Inquiry",
-      icon: "",
-      active: pathname === "/receipt/inquiry",
-      children: [],
-      visible: canSee("Receipt Inquiry"),
-    },
-  ];
-  const assetSubmenus: Submenu[] = [
-    {
-      href: "/assets/generate-qr",
-      label: "Generate QR",
-      active: pathname === "/assets/generate-qr",
-      icon: "",
-      children: [],
-      visible: canSee("Generate QR"),
-    },
-    {
-      href: "/assets/print-qr",
-      label: "Print QR",
-      active: pathname === "/assets/print-qr",
-      icon: "",
-      children: [],
-      visible: canSee("Print QR"),
-    },
-  ]
-
-  const filteredInvoiceSubmenus = invoiceSubmenus.filter(s => s.visible);
-  const filteredReceiptSubmenus = receiptSubmenus.filter(s => s.visible);
-  const filterredAssetSubmenus = assetSubmenus.filter(s => s.visible);
   return [
     {
       groupLabel: "Dashboard",
@@ -789,7 +608,7 @@ export function getHorizontalMenuList(
                 //   active: pathname === "/invoice/generate/proforma",
                 // },
               ],
-              visible: (canSee("Generate Invoive")) || isAdmin,
+              visible: (isMaker && hasInvoiceData) || isAdmin,
             },
             {
               href: "/invoice/list",
@@ -797,7 +616,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/list",
               icon: "",
               children: [],
-              visible: canSee("Invoive List"),
+              visible: isMaker && hasInvoiceData,
             },
             {
               href: "/invoice/approval",
@@ -805,7 +624,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/approval",
               icon: "",
               children: [],
-              visible: canSee("Invoive Approval"),
+              visible: isApprover,
             },
             {
               href: "/invoice/approval-history",
@@ -813,7 +632,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/approval-history",
               icon: "",
               children: [],
-              visible: canSee("Invoive Approval History"),
+              visible: isApprover,
             },
             {
               href: "/invoice/stamp",
@@ -821,7 +640,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/stamp",
               icon: "",
               children: [],
-              visible: canSee("Invoive Stamp"),
+              visible: isBlaster && hasInvoiceData,
             },
             {
               href: "/invoice/stamp-history",
@@ -829,7 +648,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/stamp-history",
               icon: "",
               children: [],
-              visible: isAdmin || canSee("Invoive Stamp History"),
+              visible: isAdmin || isBlaster,
             },
             {
               href: "/invoice/email",
@@ -837,7 +656,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/email",
               icon: "",
               children: [],
-              visible: canSee("Invoive Blast"),
+              visible: isBlaster && hasInvoiceData,
             },
             {
               href: "/invoice/email-history",
@@ -845,7 +664,7 @@ export function getHorizontalMenuList(
               active: pathname === "/invoice/email-history",
               icon: "",
               children: [],
-              visible: isAdmin || canSee("Invoive Blast History"),
+              visible: isAdmin || isBlaster,
             },
             {
               href: "/invoice/inquiry",
@@ -967,8 +786,25 @@ export function getHorizontalMenuList(
           label: "Assets",
           active: pathname.includes("/assets"),
           icon: "heroicons-outline:receipt-percent",
-          submenus: filterredAssetSubmenus,
-          visible: isAdmin || filterredAssetSubmenus.length > 0
+          submenus: [
+            {
+              href: "/assets/generate-qr",
+              label: "Generate QR",
+              active: pathname === "/assets/generate-qr",
+              icon: "",
+              children: [],
+              visible: true,
+            },
+            {
+              href: "/assets/print-qr",
+              label: "Print QR",
+              active: pathname === "/assets/print-qr",
+              icon: "",
+              children: [],
+              visible: true,
+            },
+          ].filter((submenu) => submenu.visible !== false),
+          visible:true,
         },
       ].filter((menu) => menu.visible !== false),
     },
@@ -1089,4 +925,3 @@ export function getHorizontalMenuList(
     // },
   ];
 }
-

@@ -123,7 +123,7 @@ export default function EditUser({
   // Watch selected modules to filter roles
   const selectedModules = watch("modules") || [];
   const allowedModuleIds = new Set(selectedModules.map((m) => m.value));
-  const filteredRoleOptions = roleOptions.filter((r) =>
+  const filteredRoleOptions = roleOptions?.filter((r) =>
     allowedModuleIds.has(r.module_id)
   );
 
@@ -139,6 +139,7 @@ export default function EditUser({
   }, [selectedModules]);
 
   const animatedComponents = makeAnimated();
+  console.log(userData)
 
   // Shared styles for expanding and scrollable multi-selects
   const dynamicStyles = {

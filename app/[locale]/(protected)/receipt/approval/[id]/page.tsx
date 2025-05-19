@@ -74,13 +74,16 @@ const ReactTablePage = () => {
         process_id: processId,
         approvalRemark: data.inputMessage,
         approvalStatus: actionType,
+        approvalLevel: dataHd?.data[0].progress_approval,
       };
-      setIsLoadingSubmit(true);
       const result = await submitReceiptApproval(dataPost);
       return result;
     },
+    onMutate: () => {
+      setIsLoadingSubmit(true);
+    },
     onSuccess: (result) => {
-      if (result.statusCode === 200) {
+      if (result.statusCode === 200 || result.statusCode === 201) {
         toast.success(result.message);
         router.push("/receipt/approval");
       } else {
@@ -92,6 +95,7 @@ const ReactTablePage = () => {
     },
     onSettled: () => {
       setIsLoadingSubmit(false);
+      setIsModalOpen(false);
     },
   });
 

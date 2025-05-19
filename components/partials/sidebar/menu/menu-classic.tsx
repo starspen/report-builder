@@ -73,7 +73,7 @@ export function MenuClassic({ session, menu }: { session: any; menu: any }) {
           <ul className=" h-full flex flex-col min-h-[calc(100vh-48px-36px-16px-32px)] lg:min-h-[calc(100vh-32px-40px-32px)] items-start space-y-1 px-4">
             {menuList?.map(({ groupLabel, menus }, index) => (
               <li className={cn("w-full", groupLabel ? "" : "")} key={index}>
-                {/* {((!collapsed || hovered) && groupLabel) ||
+                {((!collapsed || hovered) && groupLabel) ||
                 !collapsed === undefined ? (
                   <MenuLabel label={groupLabel} />
                 ) : collapsed &&
@@ -92,7 +92,7 @@ export function MenuClassic({ session, menu }: { session: any; menu: any }) {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                ) : null} */}
+                ) : null}
 
                 {menus.map(
                   ({ href, label, icon, active, id, submenus }, index) =>

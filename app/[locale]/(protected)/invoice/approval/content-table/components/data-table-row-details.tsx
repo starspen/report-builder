@@ -44,6 +44,22 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
     window.open(url + "EPBOIQ/" + formatInvoice + "/" + filename, "_blank");
   };
 
+  const handlePreviewFileReference = (
+    filename: string,
+    invoiceTipe: string
+  ) => {
+    const mode = process.env.NEXT_PUBLIC_ENV_MODE;
+    const formatInvoice = invoiceTipe.toUpperCase();
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
+    }
+    window.open(url + "EPBOIQ/" + formatInvoice + "/" + filename, "_blank");
+  };
+
   return (
     <>
       <Card>
@@ -55,7 +71,9 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                 <TableHead>Currency Cd</TableHead>
                 <TableHead>Doc Amt</TableHead>
                 <TableHead>Creator</TableHead>
-                <TableHead>File Receipt</TableHead>
+                <TableHead>File Invoice</TableHead>
+                <TableHead>File Reference</TableHead>
+                <TableHead>File Summary Reference</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -74,6 +92,40 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                     }}
                     title={`${data.filenames}`}
                     disabled={!data.filenames}
+                  >
+                    <File className="text-red-600 w-4 h-4" />
+                  </Button>
+                </TableCell>
+                <TableCell>
+                  <Button
+                    className="bg-transparent  ring-transparent hover:bg-transparent hover:ring-0 hover:ring-offset-0 hover:ring-transparent w-28 border-transparent"
+                    size="icon"
+                    onClick={(event) => {
+                      handlePreviewFileReference(
+                        data.filenames2,
+                        data.invoice_tipe
+                      );
+                      event.preventDefault();
+                    }}
+                    title={`${data.filenames2}`}
+                    disabled={!data.filenames2}
+                  >
+                    <File className="text-red-600 w-4 h-4" />
+                  </Button>
+                </TableCell>
+                <TableCell>
+                  <Button
+                    className="bg-transparent  ring-transparent hover:bg-transparent hover:ring-0 hover:ring-offset-0 hover:ring-transparent w-28 border-transparent"
+                    size="icon"
+                    onClick={(event) => {
+                      handlePreviewFileReference(
+                        data.filenames4,
+                        data.invoice_tipe
+                      );
+                      event.preventDefault();
+                    }}
+                    title={`${data.filenames4}`}
+                    disabled={!data.filenames4}
                   >
                     <File className="text-red-600 w-4 h-4" />
                   </Button>
@@ -100,7 +152,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.detail.map((item: any, index: number) => (
+              {data.detail?.map((item: any, index: number) => (
                 <TableRow key={index}>
                   <TableCell>{item.approval_level}</TableCell>
                   <TableCell>{item.approval_user}</TableCell>

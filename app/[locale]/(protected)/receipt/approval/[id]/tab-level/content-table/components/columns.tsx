@@ -85,7 +85,7 @@ export const columns: ColumnDef<Task>[] = [
   },
   {
     accessorKey: "approval_date",
-    header: "Approval Date",
+    header: "Approved Date/Cancelled Date",
     cell: ({ row }) => {
       const value = row.getValue("approval_date");
 
@@ -102,7 +102,7 @@ export const columns: ColumnDef<Task>[] = [
   },
   {
     accessorKey: "approval_remarks",
-    header: "Approval Remarks",
+    header: "Remarks",
     cell: ({ row }) => {
       const value = row.getValue("approval_remarks");
       if (

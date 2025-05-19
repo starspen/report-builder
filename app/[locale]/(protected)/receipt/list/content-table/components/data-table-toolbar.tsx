@@ -78,7 +78,7 @@ export function DataTableToolbar({
           if (response.statusCode === 200 || response.statusCode === 201) {
             toast.success("Success submitting email");
             queryClient.invalidateQueries({
-              queryKey: ["invoice-email"],
+              queryKey: ["receipt-list"],
             });
           } else {
             toast.error(response.message);

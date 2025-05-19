@@ -27,11 +27,17 @@ export const schema = z.object({
       })
     )
     .min(1, { message: "Required" }),
-  stampBlast: z.object({
-    value: z.string().min(1, { message: "Required" }),
-    label: z.string().min(1, { message: "Required" }),
-  }),
   approval: z
+    .array(
+      z.array(
+        z.object({
+          value: z.string(),
+          label: z.string(),
+        })
+      )
+    )
+    .min(1, { message: "Required" }),
+  stampBlast: z
     .array(
       z.object({
         value: z.string(),
@@ -74,6 +80,16 @@ export const FormAssign = ({
       label: item.name,
     }));
 
+  const usersBlast: OptionType[] = dataUser
+    ?.filter(
+      (item: any) =>
+        item.role === "maker and blaster" || item.role === "blaster"
+    )
+    .map((item: any) => ({
+      value: item.user_id,
+      label: item.name,
+    }));
+
   const styles = {
     multiValue: (base: any, state: any) => {
       return state.data.isFixed ? { ...base, opacity: "0.5" } : base;
@@ -100,7 +116,8 @@ export const FormAssign = ({
   const getDefaultValues = (
     dataAssign: any,
     users: OptionType[],
-    usersApproval: OptionType[]
+    usersApproval: OptionType[],
+    usersBlast: OptionType[]
   ) => {
     if (!Array.isArray(dataAssign) || dataAssign.length === 0) return {};
 
@@ -113,15 +130,21 @@ export const FormAssign = ({
       maker: details
         .filter((item: any) => item.job_task === "Maker")
         .map(mapUser(users)),
-      approval: details
-        .filter((item: any) => item.job_task.startsWith("Approval"))
-        .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
-        .map(mapUser(usersApproval)),
-      stampBlast: details.find((item: any) => item.job_task === "Stamp & Blast")
-        ? mapUser(users)(
-            details.find((item: any) => item.job_task === "Stamp & Blast")
-          )
-        : { value: "", label: "" },
+      // approval: details
+      //   .filter((item: any) => item.job_task.startsWith("Approval"))
+      //   .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
+      //   .map(mapUser(usersApproval)),
+      approval: Array.from({ length: dataAssign[0]?.approval_pic || 0 }).map(
+        (_, index) => {
+          const level = `Approval Lvl ${index + 1}`;
+          return details
+            .filter((item: any) => item.job_task === level)
+            .map(mapUser(usersApproval));
+        }
+      ),
+      stampBlast: details
+        .filter((item: any) => item.job_task === "Stamp & Blast")
+        .map(mapUser(usersBlast)),
     };
   };
 
@@ -150,7 +173,12 @@ export const FormAssign = ({
     setValue,
     watch,
   } = useForm<z.infer<typeof schema>>({
-    defaultValues: getDefaultValues(dataAssign, users, usersApproval),
+    defaultValues: getDefaultValues(
+      dataAssign,
+      users,
+      usersApproval,
+      usersBlast
+    ),
     resolver: zodResolver(schema),
   });
 
@@ -160,9 +188,11 @@ export const FormAssign = ({
       type_id: string;
       detail: { user_id: string; role: string }[];
     }) => {
-      setIsLoadingSubmit(true);
       const result = await insertAssignmentInvoice(data);
       return result;
+    },
+    onMutate: () => {
+      setIsLoadingSubmit(true);
     },
     onSuccess: (result) => {
       if (result.statusCode === 200 || result.statusCode === 201) {
@@ -185,12 +215,11 @@ export const FormAssign = ({
       type_id: data.typeId,
       detail: [
         ...data.maker.map(mapRole("Maker")),
-        ...data.approval.map((approval: OptionType, index: number) =>
-          mapRole(`Approval Lvl ${index + 1}`)(approval)
+        ...data.approval.flatMap(
+          (approvalGroup: OptionType[] | undefined, index: number) =>
+            (approvalGroup || []).map(mapRole(`Approval Lvl ${index + 1}`))
         ),
-        ...(data.stampBlast?.value
-          ? [mapRole("Stamp & Blast")(data.stampBlast)]
-          : []),
+        ...data.stampBlast.map(mapRole("Stamp & Blast")),
       ],
     };
   }
@@ -201,8 +230,11 @@ export const FormAssign = ({
     mutation.mutate(formattedData);
   }
 
-  const handleApprovalChange = (index: number, newValue: OptionType | null) => {
-    setValue(`approval.${index}`, newValue || { value: "", label: "" });
+  const handleApprovalChange = (
+    index: number,
+    newValue: OptionType[] | null
+  ) => {
+    setValue(`approval.${index}`, newValue || []);
   };
 
   const defaultMakers = dataAssign[0]?.detail
@@ -218,20 +250,35 @@ export const FormAssign = ({
     .map((item: any) => ({
       value: item.user_id,
       label:
-        users.find((user: any) => user.value === item.user_id)?.label || "",
-    }));
-
-  const defaultApprovals = dataAssign[0]?.detail
-    .filter((item: any) => item.job_task.startsWith("Approval"))
-    .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
-    .map((item: any) => ({
-      value: item.user_id,
-      label:
-        usersApproval.find((user: any) => user.value === item.user_id)?.label ||
+        usersBlast.find((user: any) => user.value === item.user_id)?.label ||
         "",
     }));
 
-  const dataApproval = watch();
+  // const defaultApprovals = dataAssign[0]?.detail
+  //   .filter((item: any) => item.job_task.startsWith("Approval"))
+  //   .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
+  //   .map((item: any) => ({
+  //     value: item.user_id,
+  //     label:
+  //       usersApproval.find((user: any) => user.value === item.user_id)?.label ||
+  //       "",
+  //   }));
+
+  const defaultApprovals = Array.from({
+    length: dataAssign[0]?.approval_pic || 0,
+  }).map((_, index) => {
+    const level = `Approval Lvl ${index + 1}`;
+    return dataAssign[0]?.detail
+      .filter((item: any) => item.job_task === level)
+      .map((item: any) => ({
+        value: item.user_id,
+        label:
+          usersApproval.find((user: any) => user.value === item.user_id)
+            ?.label || "",
+      }));
+  });
+
+  const dataApproval = watch() || {};
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mt-3 space-y-4">
@@ -359,6 +406,7 @@ export const FormAssign = ({
                 closeMenuOnSelect={false}
                 components={animatedComponents}
                 defaultValue={defaultApprovals[index]}
+                isMulti
                 options={
                   dataApproval.approval.length > 0
                     ? getFilteredUsers(dataApproval, index)
@@ -366,7 +414,7 @@ export const FormAssign = ({
                 }
                 styles={styles}
                 onChange={(newValue) =>
-                  handleApprovalChange(index, newValue as OptionType | null)
+                  handleApprovalChange(index, newValue as any)
                 }
                 className={cn("react-select", {
                   "border-destructive focus:border-destructive":
@@ -404,7 +452,8 @@ export const FormAssign = ({
               closeMenuOnSelect={false}
               components={animatedComponents}
               defaultValue={defaultStampBlast}
-              options={users}
+              isMulti
+              options={usersBlast}
               styles={styles}
               onChange={(newValue, actionMeta) => {
                 setValue("stampBlast", newValue as any);

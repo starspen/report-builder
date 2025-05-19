@@ -27,11 +27,17 @@ export const schema = z.object({
       })
     )
     .min(1, { message: "Required" }),
-  stampBlast: z.object({
-    value: z.string().min(1, { message: "Required" }),
-    label: z.string().min(1, { message: "Required" }),
-  }),
   approval: z
+    .array(
+      z.array(
+        z.object({
+          value: z.string(),
+          label: z.string(),
+        })
+      )
+    )
+    .min(1, { message: "Required" }),
+  stampBlast: z
     .array(
       z.object({
         value: z.string(),
@@ -58,23 +64,27 @@ export const FormAssign = ({
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const router = useRouter();
   const animatedComponents = makeAnimated();
-  const usersMaker: OptionType[] = dataUser
-  ?.filter((item: any) => item.role === "maker" || item.role === "maker and blaster")
-  .map((item: any) => ({
-    value: item.user_id,
-    label: item.name,
-  }));
-
-  const usersBlaster: OptionType[] = dataUser
-    ?.filter((item: any) => item.role === "blaster" || item.role === "maker and blaster")
+  const users: OptionType[] = dataUser
+    ?.filter(
+      (item: any) => item.role === "maker and blaster" || item.role === "maker"
+    )
     .map((item: any) => ({
       value: item.user_id,
       label: item.name,
     }));
 
-
   const usersApproval: OptionType[] = dataUser
     ?.filter((item: any) => item.role === "approver")
+    .map((item: any) => ({
+      value: item.user_id,
+      label: item.name,
+    }));
+
+  const usersBlast: OptionType[] = dataUser
+    ?.filter(
+      (item: any) =>
+        item.role === "maker and blaster" || item.role === "blaster"
+    )
     .map((item: any) => ({
       value: item.user_id,
       label: item.name,
@@ -105,9 +115,9 @@ export const FormAssign = ({
 
   const getDefaultValues = (
     dataAssign: any,
-    usersMaker: OptionType[],
-    usersBlaster: OptionType[],
-    usersApproval: OptionType[]
+    users: OptionType[],
+    usersApproval: OptionType[],
+    usersBlast: OptionType[]
   ) => {
     if (!Array.isArray(dataAssign) || dataAssign.length === 0) return {};
 
@@ -119,16 +129,22 @@ export const FormAssign = ({
       typeDescs: dataAssign[0]?.type_descs,
       maker: details
         .filter((item: any) => item.job_task === "Maker")
-        .map(mapUser(usersMaker)),
-      approval: details
-        .filter((item: any) => item.job_task.startsWith("Approval"))
-        .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
-        .map(mapUser(usersApproval)),
-      stampBlast: details.find((item: any) => item.job_task === "Stamp & Blast")
-        ? mapUser(usersBlaster)(
-            details.find((item: any) => item.job_task === "Stamp & Blast")
-          )
-        : { value: "", label: "" },
+        .map(mapUser(users)),
+      // approval: details
+      //   .filter((item: any) => item.job_task.startsWith("Approval"))
+      //   .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
+      //   .map(mapUser(usersApproval)),
+      approval: Array.from({ length: dataAssign[0]?.approval_pic || 0 }).map(
+        (_, index) => {
+          const level = `Approval Lvl ${index + 1}`;
+          return details
+            .filter((item: any) => item.job_task === level)
+            .map(mapUser(usersApproval));
+        }
+      ),
+      stampBlast: details
+        .filter((item: any) => item.job_task === "Stamp & Blast")
+        .map(mapUser(usersBlast)),
     };
   };
 
@@ -157,7 +173,12 @@ export const FormAssign = ({
     setValue,
     watch,
   } = useForm<z.infer<typeof schema>>({
-    defaultValues: getDefaultValues(dataAssign, usersMaker, usersBlaster, usersApproval),
+    defaultValues: getDefaultValues(
+      dataAssign,
+      users,
+      usersApproval,
+      usersBlast
+    ),
     resolver: zodResolver(schema),
   });
 
@@ -167,12 +188,14 @@ export const FormAssign = ({
       type_id: string;
       detail: { user_id: string; role: string }[];
     }) => {
-      setIsLoadingSubmit(true);
       const result = await insertAssignmentInvoice(data);
       return result;
     },
+    onMutate: () => {
+      setIsLoadingSubmit(true);
+    },
     onSuccess: (result) => {
-      if (result.statusCode === 201) {
+      if (result.statusCode === 200 || result.statusCode === 201) {
         toast.success(result.message);
         router.push("/master-data/assignment-receipt");
       } else {
@@ -192,12 +215,11 @@ export const FormAssign = ({
       type_id: data.typeId,
       detail: [
         ...data.maker.map(mapRole("Maker")),
-        ...data.approval.map((approval: OptionType, index: number) =>
-          mapRole(`Approval Lvl ${index + 1}`)(approval)
+        ...data.approval.flatMap(
+          (approvalGroup: OptionType[] | undefined, index: number) =>
+            (approvalGroup || []).map(mapRole(`Approval Lvl ${index + 1}`))
         ),
-        ...(data.stampBlast?.value
-          ? [mapRole("Stamp & Blast")(data.stampBlast)]
-          : []),
+        ...data.stampBlast.map(mapRole("Stamp & Blast")),
       ],
     };
   }
@@ -208,8 +230,11 @@ export const FormAssign = ({
     mutation.mutate(formattedData);
   }
 
-  const handleApprovalChange = (index: number, newValue: OptionType | null) => {
-    setValue(`approval.${index}`, newValue || { value: "", label: "" });
+  const handleApprovalChange = (
+    index: number,
+    newValue: OptionType[] | null
+  ) => {
+    setValue(`approval.${index}`, newValue || []);
   };
 
   const defaultMakers = dataAssign[0]?.detail
@@ -217,7 +242,7 @@ export const FormAssign = ({
     .map((item: any) => ({
       value: item.user_id,
       label:
-      usersMaker.find((user: any) => user.value === item.user_id)?.label || "",
+        users.find((user: any) => user.value === item.user_id)?.label || "",
     }));
 
   const defaultStampBlast = dataAssign[0]?.detail
@@ -225,18 +250,33 @@ export const FormAssign = ({
     .map((item: any) => ({
       value: item.user_id,
       label:
-        usersBlaster.find((user: any) => user.value === item.user_id)?.label || "",
-    }));
-
-  const defaultApprovals = dataAssign[0]?.detail
-    .filter((item: any) => item.job_task.startsWith("Approval"))
-    .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
-    .map((item: any) => ({
-      value: item.user_id,
-      label:
-        usersApproval.find((user: any) => user.value === item.user_id)?.label ||
+        usersBlast.find((user: any) => user.value === item.user_id)?.label ||
         "",
     }));
+
+  // const defaultApprovals = dataAssign[0]?.detail
+  //   .filter((item: any) => item.job_task.startsWith("Approval"))
+  //   .sort((a: any, b: any) => a.job_task.localeCompare(b.job_task))
+  //   .map((item: any) => ({
+  //     value: item.user_id,
+  //     label:
+  //       usersApproval.find((user: any) => user.value === item.user_id)?.label ||
+  //       "",
+  //   }));
+
+  const defaultApprovals = Array.from({
+    length: dataAssign[0]?.approval_pic || 0,
+  }).map((_, index) => {
+    const level = `Approval Lvl ${index + 1}`;
+    return dataAssign[0]?.detail
+      .filter((item: any) => item.job_task === level)
+      .map((item: any) => ({
+        value: item.user_id,
+        label:
+          usersApproval.find((user: any) => user.value === item.user_id)
+            ?.label || "",
+      }));
+  });
 
   const dataApproval = watch();
 
@@ -312,7 +352,7 @@ export const FormAssign = ({
               "text-destructive": errors.maker,
             })}
           >
-            Maker
+            Creator
           </Label>
           <div className="flex flex-col w-full">
             <Select
@@ -323,7 +363,7 @@ export const FormAssign = ({
               components={animatedComponents}
               defaultValue={defaultMakers}
               isMulti
-              options={usersMaker}
+              options={users}
               styles={styles}
               onChange={(newValue, actionMeta) => {
                 setValue("maker", newValue as any);
@@ -332,7 +372,7 @@ export const FormAssign = ({
                 "border-destructive focus:border-destructive": errors.maker,
               })}
               classNamePrefix="select"
-              placeholder="Choose Maker"
+              placeholder="Choose Creator"
             />
             {errors.maker && (
               <p
@@ -366,6 +406,7 @@ export const FormAssign = ({
                 closeMenuOnSelect={false}
                 components={animatedComponents}
                 defaultValue={defaultApprovals[index]}
+                isMulti
                 options={
                   dataApproval.approval.length > 0
                     ? getFilteredUsers(dataApproval, index)
@@ -373,7 +414,7 @@ export const FormAssign = ({
                 }
                 styles={styles}
                 onChange={(newValue) =>
-                  handleApprovalChange(index, newValue as OptionType | null)
+                  handleApprovalChange(index, newValue as any)
                 }
                 className={cn("react-select", {
                   "border-destructive focus:border-destructive":
@@ -401,7 +442,7 @@ export const FormAssign = ({
               "text-destructive": errors.stampBlast,
             })}
           >
-            Stamp & Blast Email
+            Creator & Broadcaster
           </Label>
           <div className="flex flex-col w-full">
             <Select
@@ -411,7 +452,8 @@ export const FormAssign = ({
               closeMenuOnSelect={false}
               components={animatedComponents}
               defaultValue={defaultStampBlast}
-              options={usersBlaster}
+              isMulti
+              options={users}
               styles={styles}
               onChange={(newValue, actionMeta) => {
                 setValue("stampBlast", newValue as any);
@@ -421,7 +463,7 @@ export const FormAssign = ({
                   errors.stampBlast,
               })}
               classNamePrefix="select"
-              placeholder="Choose Stamp & Blast Email"
+              placeholder="Choose Creator & Broadcaster"
             />
             {errors.stampBlast && (
               <p
