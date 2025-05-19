@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import TodoWrapper from "./todo-wrapper";
 
 export const metadata: Metadata = {
   title: "Todo",
