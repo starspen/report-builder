@@ -180,7 +180,7 @@ export const FormAdd = ({
                 {...register("userRole")}
                 id="userRole"
                 isClearable={false}
-                closeMenuOnSelect={false}
+                closeMenuOnSelect={true}
                 components={animatedComponents}
                 options={rolesOptions}
                 styles={styles}

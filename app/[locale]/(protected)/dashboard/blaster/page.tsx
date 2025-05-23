@@ -66,7 +66,7 @@ const DashboardPage = () => {
 
   return (
     <div>
-      <div className="grid grid-cols-12 items-center gap-5 mb-5">
+      <div className="grid grid-cols-12 items-center gap-5 my-4">
         <div className="col-span-12">
           <Card>
             <CardContent className="p-4">

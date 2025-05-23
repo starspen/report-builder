@@ -120,7 +120,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="grid grid-cols-12 items-center gap-5 mb-5">
+      <div className="grid grid-cols-12 items-center gap-5 my-4">
         {menu.data.hasInvoiceDataApprover && (
           <div className="col-span-12">
             <Card>

@@ -1,5 +1,5 @@
 "use client";
-import { getStampHistory, getUnsignEmeterai } from "@/action/emeterai-action";
+import { getStampHistoryX, getUnsignEmeterai } from "@/action/emeterai-action";
 import { useQuery } from "@tanstack/react-query";
 import FailedPageView from "./tab-failed/page-view";
 import PendingPageView from "./tab-success/page-view";

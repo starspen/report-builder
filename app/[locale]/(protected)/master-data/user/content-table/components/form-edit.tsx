@@ -82,7 +82,7 @@ export const FormEdit = ({
     watch,
   } = useForm<z.infer<typeof schema>>({
     defaultValues: {
-      userId: row.user_id,
+      userId: row.id,
       userEmail: row.email,
       userName: row.name,
       userRole: { value: row.role, label: row.role },
@@ -121,6 +121,7 @@ export const FormEdit = ({
     if (data.userRole.value === "approver") {
       payload.amt_range = data.range?.map((r) => ({ id: r.value }));
     }
+    console.log(payload)
     mutation.mutate(payload);
   }
 

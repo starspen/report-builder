@@ -502,6 +502,43 @@ export const resendReceiptEmail = async (docNo: string) => {
   }
 };
 
+export const regenerateReceiptEmail = async (
+  docNo: string,
+  processId: string
+) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const submitData = {
+      doc_no: docNo,
+      process_id: processId,
+    };
+
+    const response = await fetch(`${url}/api/mail/request-regenerate-receipt`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(submitData),
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200 || result.statusCode === 201) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
 export const stampReceipt = async (fileName: string, fileType: string) => {
   try {
     const session = await auth();

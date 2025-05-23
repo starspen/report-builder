@@ -46,7 +46,7 @@ export function getMenuList(
 
   const menuList: string[] = menu?.data?.menuList ?? [];
   const moduleList: string[] = menu?.data?.moduleList ?? [];
-  console.log(menuList)
+  // console.log(menuList)
   // helper to check visibility
   const canSee = (label: string) =>
     isAdmin || menuList.includes(label);
@@ -145,7 +145,7 @@ export function getMenuList(
       active: pathname.includes("/receipt/generate"),
       icon: "heroicons-outline:document-plus",
       children: [
-        { href: "/receipt/generate/schedule", label: "Receipt Schedule", active: pathname === "" },
+        { href: "/receipt/generate/schedule", label: "Receipt", active: pathname === "" },
       ],
       visible: canSee("Generate Receipt") || isAdmin,
     },
@@ -287,7 +287,7 @@ export function getMenuList(
             {
               href: "/master-data/assignment-invoice",
               label: "Assignment Invoice",
-              active: pathname === "/master-data/assignment-invoice",
+              active: pathname.includes("/master-data/assignment-invoice"),
               icon: "heroicons-outline:user-group",
               children: [],
             },
@@ -308,7 +308,7 @@ export function getMenuList(
             {
               href: "/master-data/assignment-receipt",
               label: "Assignment Receipt",
-              active: pathname === "/master-data/assignment-receipt",
+              active: pathname.includes("/master-data/assignment-receipt"),
               icon: "heroicons-outline:user-group",
               children: [],
             },
@@ -599,7 +599,7 @@ export function getHorizontalMenuList(
       active: pathname.includes("/receipt/generate"),
       icon: "heroicons-outline:document-plus",
       children: [
-        { href: "/receipt/generate/schedule", label: "Receipt Schedule", active: pathname === "" },
+        { href: "/receipt/generate/schedule", label: "Receipt", active: pathname === "" },
       ],
       visible: canSee("Generate Receipt") || isAdmin,
     },
@@ -733,7 +733,7 @@ export function getHorizontalMenuList(
             {
               href: "/master-data/assignment-invoice",
               label: "Assignment Invoice",
-              active: pathname === "/master-data/assignment-invoice",
+              active: pathname.includes("/master-data/assignment-invoice"),
               icon: "heroicons-outline:user-group",
               children: [],
             },
@@ -747,7 +747,7 @@ export function getHorizontalMenuList(
             {
               href: "/master-data/assignment-receipt",
               label: "Assignment Receipt",
-              active: pathname === "/master-data/assignment-receipt",
+              active: pathname.includes("/master-data/assignment-receipt"),
               icon: "heroicons-outline:user-group",
               children: [],
             },

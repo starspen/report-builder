@@ -32,6 +32,15 @@ export function DataTableToolbar({
     label: projectName,
   }));
 
+  const statusFilter = table.getColumn("status");
+  const statusSet = new Set(
+    table.getFilteredRowModel().rows.map((row) => row.original.status)
+  );
+  const status = Array.from(statusSet).map((status) => ({
+    value: status,
+    label: status,
+  }));
+
   return (
     <div className="flex flex-1 flex-wrap items-center gap-2">
       <Input
@@ -46,6 +55,14 @@ export function DataTableToolbar({
           column={projectNameFilter}
           title="Project"
           options={projectName}
+        />
+      )}
+
+      {statusFilter && (
+        <DataTableFacetedFilter
+          column={statusFilter}
+          title="Status"
+          options={status}
         />
       )}
 

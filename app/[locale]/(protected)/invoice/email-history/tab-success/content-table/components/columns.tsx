@@ -120,6 +120,30 @@ interface Task {
 
 
 export const columns: ColumnDef<DataProps>[] = [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        className="translate-y-0.5"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        className="translate-y-0.5"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   ...tableHeaders.map((header) => ({
     accessorKey: header.accessorKey,
     header: ({ column }: { column: Column<DataProps> }) => (
@@ -127,7 +151,7 @@ export const columns: ColumnDef<DataProps>[] = [
     ),
     cell: ({ row }: { row: Row<DataProps> }) => {
       const value = row.getValue(header.accessorKey);
-     
+
       if (header.accessorKey === "debtor_name") {
         return (
           <div className="font-medium text-card-foreground/80">
@@ -139,7 +163,7 @@ export const columns: ColumnDef<DataProps>[] = [
           </div>
         );
       }
-      if(header.accessorKey === "send_status"){
+      if (header.accessorKey === "send_status") {
         return (
           <Badge className={cn("rounded-full px-5 bg-success/20 text-success")}>
             Sent
@@ -150,7 +174,7 @@ export const columns: ColumnDef<DataProps>[] = [
         const value = row.getValue("send_date");
         return <span>{dayjs.utc(value as string).format("DD/MM/YYYY")}</span>;
       }
-      
+
       return <span>{String(value)}</span>;
     },
     enableSorting: true,
@@ -159,27 +183,27 @@ export const columns: ColumnDef<DataProps>[] = [
     },
   })),
   {
-        id: "details",
-        accessorKey: "action",
-        header: "Details",
-        enableHiding: false,
-        cell: ({ row }) => {
-          return row.getCanExpand() ? (
-            <button
-              onClick={row.getToggleExpandedHandler()}
-              style={{ cursor: "pointer" }}
-            >
-              {row.getIsExpanded() ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </button>
+    id: "details",
+    accessorKey: "action",
+    header: "Details",
+    enableHiding: false,
+    cell: ({ row }) => {
+      return row.getCanExpand() ? (
+        <button
+          onClick={row.getToggleExpandedHandler()}
+          style={{ cursor: "pointer" }}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronUp className="h-4 w-4" />
           ) : (
-            ""
-          );
-        },
-      },
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </button>
+      ) : (
+        ""
+      );
+    },
+  },
 
   // {
   //   id: "actions",

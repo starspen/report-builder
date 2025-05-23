@@ -36,7 +36,7 @@ export const schema = z.object({
         })
       )
     )
-    .min(1, { message: "Required" }),
+    .min(0, { message: "Required" }),
   stampBlast: z
     .array(
       z.object({
@@ -69,14 +69,14 @@ export const FormAssign = ({
       (item: any) => item.role === "maker and blaster" || item.role === "maker"
     )
     .map((item: any) => ({
-      value: item.user_id,
+      value: item.id,
       label: item.name,
     }));
 
   const usersApproval: OptionType[] = dataUser
     ?.filter((item: any) => item.role === "approver")
     .map((item: any) => ({
-      value: item.user_id,
+      value: item.id,
       label: item.name,
     }));
 
@@ -86,10 +86,12 @@ export const FormAssign = ({
         item.role === "maker and blaster" || item.role === "blaster"
     )
     .map((item: any) => ({
-      value: item.user_id,
+      value: item.id,
       label: item.name,
     }));
 
+  console.log(dataUser)
+  console.log(dataAssign)
   const styles = {
     multiValue: (base: any, state: any) => {
       return state.data.isFixed ? { ...base, opacity: "0.5" } : base;

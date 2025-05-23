@@ -153,12 +153,12 @@ export function DataTableToolbar({
           variant="outline"
           color="success"
           size="sm"
-          className="ltr:ml-2 rtl:mr-2  h-8 "
+          className="ltr:ml-2 rtl:mr-2 h-8 bg-success px-2 text-white hover:bg-success/90 lg:px-3"
           onClick={handleOpenModal}
           disabled={isLoading}
         >
           <Stamp className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-          Stamp
+          Stamp {table.getFilteredSelectedRowModel().rows.length} Files
         </Button>
       )}
 
@@ -210,12 +210,12 @@ export function DataTableToolbar({
           variant="outline"
           color="primary"
           size="sm"
-          className="ltr:ml-2 rtl:mr-2  h-8 "
+          className="ltr:ml-2 rtl:mr-2  h-8 bg-blue-500 px-2 text-white hover:bg-blue-500/80 lg:px-3"
           onClick={handleOpenModalNoStamp}
           disabled={isLoadingNoStamp}
         >
           <Ban className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-          No Stamp
+          No Stamp {table.getFilteredSelectedRowModel().rows.length} Files
         </Button>
         )}
 

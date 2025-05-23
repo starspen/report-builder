@@ -9,6 +9,7 @@ export type DataProps = {
   gen_date: string;
   doc_amt:string,
   currency_cd:string;
+  action: React.ReactNode
 };
 
 export const tableHeaders = [

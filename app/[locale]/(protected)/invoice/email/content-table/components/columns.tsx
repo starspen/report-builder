@@ -290,14 +290,13 @@ export const columns: ColumnDef<DataProps>[] = [
         },
       },
 
-  // {
-  //   id: "actions",
-  //   accessorKey: "action",
-  //   header: ({ column }) => (
-  //     <DataTableColumnHeader column={column} title="Action" />
-  //   ),
-  //   enableHiding: false,
-  //   // enableSorting: false,
-  //   cell: ({ row }) => <DataTableRowActions row={row} />,
-  // },
+  {
+    id: "cancel",
+    accessorKey: "action_cancel",
+    header: "Cancel",
+    enableHiding: false,
+    cell: ({ row }) => {
+      return <DataTableRowActions row={row} />;
+    },
+  },
 ];

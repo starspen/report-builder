@@ -1,5 +1,5 @@
 "use client";
-import { getStampHistory, getUnsignEmeterai } from "@/action/emeterai-action";
+import { getStampHistoryX, getUnsignEmeterai } from "@/action/emeterai-action";
 import { useQuery } from "@tanstack/react-query";
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
@@ -7,7 +7,7 @@ export default function HistoryPageView({ session }: { session: any }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["signedEmeterai"],
     queryFn: async () => {
-      const result = await getStampHistory();
+      const result = await getStampHistoryX();
       return result;
     },
     enabled: !!session?.user,

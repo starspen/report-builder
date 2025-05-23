@@ -159,17 +159,18 @@ export const FormAssign = ({
   const mutation = useMutation({
     // mutationFn: async (data: z.infer<typeof schema>) => {
     mutationFn: async (data) => {
-      setIsLoadingSubmit(true);
       const result = await updateTypeInvoice(data);
       return result;
     },
+    onMutate: () => {
+      setIsLoadingSubmit(true);
+    },
     onSuccess: (result) => {
-      if (result.statusCode === 200) {
+      if (result.statusCode === 200 || result.statusCode === 201) {
         toast.success(result.message);
         queryClient.invalidateQueries({
           queryKey: ["assignment-invoice"],
         });
-        setIsModalOpen(false);
       } else {
         toast.error(result.message);
       }
@@ -179,6 +180,7 @@ export const FormAssign = ({
     },
     onSettled: () => {
       setIsLoadingSubmit(false);
+      setIsModalOpen(false);
     },
   });
 
@@ -274,7 +276,7 @@ export const FormAssign = ({
                   "text-destructive": errors.maker,
                 })}
               >
-                Maker
+                Creator
               </Label>
               <div className="flex flex-col w-full">
                 <Select
@@ -368,7 +370,7 @@ export const FormAssign = ({
                   "text-destructive": errors.stampBlast,
                 })}
               >
-                Stamp & Blast Email
+                Creator & Broadcaster
               </Label>
               <div className="flex flex-col w-full">
                 <Select

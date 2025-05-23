@@ -1,5 +1,5 @@
 "use client";
-import { getStampHistory, getUnsignEmeterai } from "@/action/emeterai-action";
+import { getStampHistoryX, getUnsignEmeterai } from "@/action/emeterai-action";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,8 @@ import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PendingStampView from "./tab-success/content-table";
 import FailedPageView from "./tab-failed/content-table";
+import FailedPageViewX from "./tab-failed-x/page-view";
+import PendingPageViewX from "./tab-success-x/page-view";
 export default function StampPageHeader({ session }: { session: any }) {
   const [source, setSource] = useState("x");
 
@@ -46,11 +48,15 @@ export default function StampPageHeader({ session }: { session: any }) {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="success">
-            <PendingStampView session={session} source={source} />
+            {source === "pb" ? 
+            <PendingStampView session={session} source={source} /> 
+            : <PendingPageViewX session={session} source={source} />}
             {/* <PendingStampView/> */}
           </TabsContent>
           <TabsContent value="failed">
-            <FailedPageView session={session} source={source} />
+            {source === "pb" ? 
+            <FailedPageView session={session} source={source} /> 
+            : <FailedPageViewX session={session} source={source} />}
             {/* <FailedPageView/> */}
           </TabsContent>
         </Tabs>

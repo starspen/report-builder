@@ -36,7 +36,7 @@ export const schema = z.object({
         })
       )
     )
-    .min(1, { message: "Required" }),
+    .min(0, { message: "Required" }),
   stampBlast: z
     .array(
       z.object({
@@ -69,14 +69,14 @@ export const FormAssign = ({
       (item: any) => item.role === "maker and blaster" || item.role === "maker"
     )
     .map((item: any) => ({
-      value: item.user_id,
+      value: item.id,
       label: item.name,
     }));
 
   const usersApproval: OptionType[] = dataUser
     ?.filter((item: any) => item.role === "approver")
     .map((item: any) => ({
-      value: item.user_id,
+      value: item.id,
       label: item.name,
     }));
 
@@ -86,7 +86,7 @@ export const FormAssign = ({
         item.role === "maker and blaster" || item.role === "blaster"
     )
     .map((item: any) => ({
-      value: item.user_id,
+      value: item.id,
       label: item.name,
     }));
 
@@ -359,7 +359,7 @@ export const FormAssign = ({
               {...register("maker")}
               id="maker"
               isClearable={false}
-              closeMenuOnSelect={false}
+              closeMenuOnSelect={true}
               components={animatedComponents}
               defaultValue={defaultMakers}
               isMulti
@@ -403,7 +403,7 @@ export const FormAssign = ({
                 {...register(`approval.${index}`)}
                 id={`approval${index}`}
                 isClearable={false}
-                closeMenuOnSelect={false}
+                closeMenuOnSelect={true}
                 components={animatedComponents}
                 defaultValue={defaultApprovals[index]}
                 isMulti
@@ -449,7 +449,7 @@ export const FormAssign = ({
               {...register("stampBlast")}
               id="stampBlast"
               isClearable={false}
-              closeMenuOnSelect={false}
+              closeMenuOnSelect={true}
               components={animatedComponents}
               defaultValue={defaultStampBlast}
               isMulti

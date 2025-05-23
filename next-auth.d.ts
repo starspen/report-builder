@@ -15,6 +15,8 @@ declare module "next-auth" {
       image?: string;
       name?: string;
       email?: string;
+      roles? : string[];
+      modules? : string[];
       signInMethod?: string | null;
       accessToken?: string | null;
     };
@@ -25,6 +27,8 @@ declare module "next-auth" {
     div_cd?: string | null;
     dept_cd?: string | null;
     role?: string | null;
+    roles? : string[];
+    modules? : string[];
     password?: string | null;
     accessToken?: string | null;
   }

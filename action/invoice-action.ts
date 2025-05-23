@@ -20,7 +20,7 @@ export const getInvoiceSchedule = async (
     }
 
     const response = await fetch(`
-      ${url}/api/invoice/schedule/get?startDate=${startDate}&endDate=${endDate}
+      ${url}/api/invoice/schedule/get?startDate=${startDate}&endDate=${endDate}&auditUser=${auditUser}
       `,
       {
         method: "GET",
@@ -109,7 +109,7 @@ export const getInvoiceManual = async (startDate: string, endDate: string) => {
     }
 
     const response = await fetch(`
-      ${url}/api/invoice/manual/get?startDate=${startDate}&endDate=${endDate}
+      ${url}/api/invoice/manual/get?startDate=${startDate}&endDate=${endDate}&auditUser=${auditUser}
       `,
       {
         method: "GET",
@@ -289,6 +289,40 @@ export const getInvoiceList = async () => {
   }
 };
 
+export const cancelInvoice = async (docNo: string, processId: string) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const data = {
+      doc_no: docNo,
+      process_id: processId,
+    };
+
+    const response = await fetch(`${url}/api/invoice/blast-cancel`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200 || result.statusCode === 201) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error cancel data:", error);
+    return error;
+  }
+};
+
 export const submitInvoiceEmail = async (
   docNo: string,
   processId: string,
@@ -307,11 +341,11 @@ export const submitInvoiceEmail = async (
       process_id: processId,
       audit_user: auditUser,
       related_class: relatedClass || "DF",
-      doc_amt, 
-      type_cd: relatedClass || "DF", 
-      entity_cd, 
-      project_no, 
-      debtor_acct, 
+      doc_amt,
+      type_cd: relatedClass || "DF",
+      entity_cd,
+      project_no,
+      debtor_acct,
     };
 
     let url = "";
@@ -322,7 +356,7 @@ export const submitInvoiceEmail = async (
     }
 
     const response = await fetch(`${url}/api/invoice-submit`, {
-    // const response = await fetch(`${url}/api/invoice/submit`, {
+      // const response = await fetch(`${url}/api/invoice/submit`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -785,6 +819,43 @@ export const stampInvoice = async (fileName: string, fileType: string) => {
     const result = await response.json();
 
     if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+
+export const regenerateInvoiceEmail = async (
+  docNo: string,
+  processId: string
+) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const submitData = {
+      doc_no: docNo,
+      process_id: processId,
+    };
+
+    const response = await fetch(`${url}/api/mail/request-regenerate-invoice`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(submitData),
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200 || result.statusCode === 201) {
       return result;
     } else {
       return result;

@@ -1,5 +1,5 @@
 export type DataProps = {
-  user_id: string;
+  id: string;
   email: string;
   name: string;
   role: string;

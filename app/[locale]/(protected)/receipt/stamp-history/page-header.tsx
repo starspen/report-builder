@@ -3,8 +3,10 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ContentTable from "./content-table";
-export default function StampPageHeader({ session }: { session: any }) {
-  const [source, setSource] = useState("x");
+import HistoryPageViewX from "./content-table-x";
+import HistoryPageView from "./content-table"
+export default function StampPageHeader() {
+  const [source, setSource] = useState("pb");
 
   return (
     <>
@@ -16,21 +18,23 @@ export default function StampPageHeader({ session }: { session: any }) {
               "flex-1 text-sm font-normal px-3 py-1 transition-all duration-150 rounded cursor-pointer",
               {
                 "bg-default-900 text-primary-foreground dark:bg-default-300 dark:text-foreground ":
-                  source === "x",
+                  source === "pb",
               }
             )}
-            onClick={() => setSource("x")}> CRMX </span>
+            onClick={() => setSource("pb")}> PB </span>
           <span
             className={cn(
               "flex-1 text-sm font-normal px-3 py-1 transition-all duration-150 rounded cursor-pointer",
-              { "bg-default-900 text-primary-foreground dark:bg-default-300 dark:text-foreground ": source === "pb" }
+              { "bg-default-900 text-primary-foreground dark:bg-default-300 dark:text-foreground ": source === "x" }
             )}
-            onClick={() => setSource("pb")}> PB </span>
+            onClick={() => setSource("x")}> CRMX </span>
         </div>
       </CardHeader>
       <CardContent>
         {/* <ContentTable session={session} source={source}/> */}
-        <ContentTable/>
+        {source === "pb" ?
+          <HistoryPageView />
+          : <HistoryPageViewX />}
       </CardContent>
     </>
   );

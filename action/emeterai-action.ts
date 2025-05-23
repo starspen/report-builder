@@ -91,7 +91,7 @@ export const getFailedEmeterai = async (source:string) => {
   }
 };
 
-export const getStampHistory = async () => {
+export const getStampHistoryX = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {

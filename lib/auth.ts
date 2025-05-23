@@ -88,6 +88,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               name: result.data.name,
               role: result.data.role,
               image: result.data.pict,
+              roles: result.data.roles,
+              modules: result.data.modules,
               accessToken: result.data.access_token,
               refreshToken: result.data.refresh_token,
             };
@@ -168,6 +170,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.dept_cd = user.dept_cd || null;
         token.role = user.role;
         token.image = user.image || null;
+        token.roles = user.roles || null;
+        token.modules = user.modules || null;
         token.signInMethod = account?.provider || null;
         token.accessToken = user.accessToken || null;
         // user.id = user.id;
@@ -195,6 +199,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       session.user.div_cd = token.div_cd as string | undefined;
       session.user.dept_cd = token.dept_cd as string | undefined;
       session.user.role = token.role as string | undefined;
+      session.user.roles = token.roles as string[] | undefined;
+      session.user.modules = token.modules as string[] | undefined;
       session.user.emailVerified = new Date(token.emailVerified as string);
       session.user.signInMethod = token.signInMethod as string | undefined;
       session.user.image = token.image as string || '/default-avatar.png';

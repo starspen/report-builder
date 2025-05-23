@@ -96,8 +96,13 @@ export const FormEdit = ({
   });
 
   function onSubmit(data: z.infer<typeof schema>) {
-    mutation.mutate(data);
+    const payload = {
+      ...data,
+      approvalPic: data.status === "Y" ? data.approvalPic : "0",
+    };
+    mutation.mutate(payload);
   }
+
 
   return (
     <DialogContent>
@@ -105,7 +110,7 @@ export const FormEdit = ({
         <DialogTitle>Edit Type Invoice</DialogTitle>
       </DialogHeader>
       <DialogDescription className="pb-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-3 space-y-4">
+        <form id="edit-form" onSubmit={handleSubmit(onSubmit)} className="mt-3 space-y-4">
           <div className="space-y-4">
             <Input {...register("typeId")} type="hidden" id="typeId" readOnly />
             <div className="space-y-2">
@@ -246,13 +251,13 @@ export const FormEdit = ({
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
             {!isLoadingSubmit && (
               <DialogClose asChild>
-                <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                <Button variant="outline" onClick={() => setIsModalOpen(false)} type="button">
                   Close
                 </Button>
               </DialogClose>
             )}
 
-            <Button type="submit" disabled={isLoadingSubmit}>
+            <Button type="submit" disabled={isLoadingSubmit} form="edit-form">
               {isLoadingSubmit ? "Updating..." : "Update"}
             </Button>
           </div>

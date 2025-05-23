@@ -281,7 +281,7 @@ export const FormAssign = ({
                   {...register("maker")}
                   id="maker"
                   isClearable={false}
-                  closeMenuOnSelect={false}
+                  closeMenuOnSelect={true}
                   components={animatedComponents}
                   // defaultValue={[users[4], users[5]]}
                   isMulti
@@ -326,7 +326,7 @@ export const FormAssign = ({
                       {...register(`approval${index}`)}
                       id={`approval${index}`}
                       isClearable={false}
-                      closeMenuOnSelect={false}
+                      closeMenuOnSelect={true}
                       components={animatedComponents}
                       // defaultValue={[users[4], users[5]]}
                       // options={users}
@@ -375,7 +375,7 @@ export const FormAssign = ({
                   {...register("stampBlast")}
                   id="stampBlast"
                   isClearable={false}
-                  closeMenuOnSelect={false}
+                  closeMenuOnSelect={true}
                   components={animatedComponents}
                   // defaultValue={[users[4], users[5]]}
                   options={users}
