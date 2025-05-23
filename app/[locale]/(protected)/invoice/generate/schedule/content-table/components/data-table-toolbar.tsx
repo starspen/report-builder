@@ -87,7 +87,7 @@ export function DataTableToolbar({
         const project_no = rowData.project_no;
         const debtor_acct = rowData.debtor_acct;
         const trx_type = rowData.trx_type;
-        const related_class = rowData.related_class;
+        const related_class = rowData.related_class || 'DF';
         const entity_cd = rowData.entity_cd;
         const email_addr = rowData.email_addr;
         
