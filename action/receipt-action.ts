@@ -802,3 +802,31 @@ export const getReceiptInquiry = async () => {
     return error;
   }
 };
+
+export const deleteAdditionalFile = async (docNo: string, fileName: string) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/delete-extra-file/receipt?doc_no=${docNo}&file_name=${fileName}`,
+      {
+        method: "DELETE",
+      }
+    );
+    const result = await response.json();
+
+    if (result.statusCode === 200 || result.statusCode === 201) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    return error;
+  }
+};
