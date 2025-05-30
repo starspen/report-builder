@@ -16,6 +16,7 @@ import {
 import { useRouter } from "@/components/navigation";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
+import { getTypeByUser } from "@/action/dashboard-action";
 
 const DashboardPage = () => {
   const router = useRouter();
@@ -36,9 +37,15 @@ const DashboardPage = () => {
     },
   });
 
+    const { data: typeByUser, isLoading: isLoadingTypeByUser } = useQuery({
+    queryKey: ["get-type-by-user"],
+    queryFn: async () => await getTypeByUser(),
+  });
+
   if (
     isLoadingInvoiceList ||
-    isLoadingReceiptList
+    isLoadingReceiptList ||
+    isLoadingTypeByUser
   ) {
     return (
       <div className=" h-screen flex items-center flex-col space-y-2">
@@ -51,7 +58,7 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 mb-5">
       <div className="grid grid-cols-12 gap-5">
         <div className="col-span-12 lg:col-span-8 space-y-5">
             <Card>
@@ -111,6 +118,48 @@ const DashboardPage = () => {
                 </div>
               </CardContent>
             </Card>
+        </div>
+                <div className="col-span-12 lg:col-span-4 space-y-5">
+          <Card>
+            <CardHeader className="flex-row gap-3">
+              <CardTitle className="flex-1">Invoice Type</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* <span className="text-sm text-default-600">
+                This information is intended for users who can only create based
+                on the below types
+              </span>
+              <Separator className="my-4" /> */}
+              <ul className="divide-y divide-default-100 dark:divide-default-300">
+                {typeByUser.data.length === 0 ? (
+                  <p className="text-sm text-default-600 py-2.5 px-2">
+                    Currently you are not assigned any type. Please contact
+                    administrator if you believe this is an error.
+                  </p>
+                ) : (
+                  <>
+                    <li className="first:text-xs text-sm text-default-600 py-2.5 px-2">
+                      <div className="flex justify-between">
+                        <span>Description</span>
+                        <span>Approval Levels</span>
+                      </div>
+                    </li>
+                    {typeByUser.data.map((item: any, i: any) => (
+                      <li
+                        key={`type-${i}`}
+                        className="first:text-xs text-sm text-default-600 py-2.5 px-2"
+                      >
+                        <div className="flex justify-between">
+                          <span>{item.type_descs}</span>
+                          <span>{item.approval_pic}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </>
+                )}
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

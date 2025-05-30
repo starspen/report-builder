@@ -17,6 +17,7 @@ export interface Task {
   email: string;
   name: string;
   role: string;
+  roles: string[];
   created_at: string;
   action: React.ReactNode;
   amt_range: Array<any>;

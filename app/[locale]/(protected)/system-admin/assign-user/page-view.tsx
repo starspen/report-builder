@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import React, { Fragment } from "react";
 import { DataTable } from "./components/data-table";
 import { columns } from "./components/columns";
-import { data } from "./data";
 import { getMasterUserWithModules } from "@/action/master-user-action";
 
 

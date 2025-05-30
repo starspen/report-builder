@@ -17,11 +17,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateMasterUser } from "@/action/master-user-action";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getRoles, getRolesByModules, updateMasterUser } from "@/action/master-user-action";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
 import { Task } from "./columns";
+import { Loader2 } from "lucide-react";
 
 const schema = z.object({
   userId: z.string().optional(),
@@ -36,6 +37,7 @@ const schema = z.object({
       z.object({ value: z.string(), label: z.string() })
     )
     .optional(),
+  moduleName: z.string().optional(),
 });
 
 export const FormEdit = ({
@@ -60,13 +62,15 @@ export const FormEdit = ({
     option: (provided: any) => ({ ...provided, fontSize: "14px" }),
   };
 
-  const rolesOptions = [
-    { value: "administrator", label: "Administrator" },
-    { value: "maker and blaster", label: "Maker & Blaster" },
-    { value: "maker", label: "Maker" },
-    { value: "blaster", label: "Blaster" },
-    { value: "approver", label: "Approver" },
-  ];
+
+
+  // const rolesOptions = [
+  //   { value: "administrator", label: "Administrator" },
+  //   { value: "maker and blaster", label: "Maker & Blaster" },
+  //   { value: "maker", label: "Maker" },
+  //   { value: "blaster", label: "Blaster" },
+  //   { value: "approver", label: "Approver" },
+  // ];
 
   // build range options from `range` prop
   const rangeOptions = range.map((r) => ({
@@ -87,6 +91,7 @@ export const FormEdit = ({
       userName: row.name,
       userRole: { value: row.role, label: row.role },
       range: row.amt_range?.map((a) => ({ value: a.rowID, label: `${a.min}-${a.max}` })),
+      moduleName: 'Web Blast'
     },
     resolver: zodResolver(schema),
   });
@@ -115,7 +120,9 @@ export const FormEdit = ({
       userId: data.userId,
       userName: data.userName,
       userEmail: data.userEmail,
-      userRole: data.userRole.value,
+      userRole: data.userRole.label,
+      userRoleId: data.userRole.value,
+      moduleName: 'Web Blast'
     };
     // include amt_range for approver
     if (data.userRole.value === "approver") {
@@ -127,7 +134,28 @@ export const FormEdit = ({
 
   // show range selector only if role === approver
   const selectedRole = watch("userRole");
-
+  const { data, isLoading } = useQuery({
+    queryKey: ["role-list"],
+    queryFn: async () => {
+      const result = await getRolesByModules('Web%20Blast')
+      return result
+    }
+  })
+  if (isLoading) {
+    // return (
+    //   <div className=" h-screen flex items-center flex-col space-y-2">
+    //     <span className=" inline-flex gap-1  items-center">
+    //       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+    //       Loading...
+    //     </span>
+    //   </div>
+    // );
+    return null
+  }
+  const rolesOptions = data?.data.map((role: any) => ({
+    value: role.id, // or use `role.id` if unique ID is preferred
+    label: role.name
+  })) || [];
   return (
     <DialogContent>
       <DialogHeader>

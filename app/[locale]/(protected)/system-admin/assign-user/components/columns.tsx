@@ -63,7 +63,23 @@ export const columns: ColumnDef<DataProps>[] = [
     ),
     cell: ({ row }: { row: Row<DataProps> }) => {
       const value = row.getValue(header.accessorKey);
-      return <span>{(value as string) ?? "-"}</span>;
+      let display: string;
+
+      // Handle arrays of objects like roles or module
+      if (Array.isArray(value)) {
+        if (value.length > 0 && typeof value[0] === "object" && "name" in value[0]) {
+          display = value.map((item) => item.name).join(", ");
+        } else {
+          display = value.join(", ");
+        }
+      } 
+      else if (typeof value === "string") {
+          display = value;
+        } 
+      else {
+          display = "-";
+      }
+      return <span>{display}</span>;
     },
     enableSorting: true,
     filterFn: (row: Row<DataProps>, id: string, filterValues: unknown[]) => {

@@ -41,21 +41,7 @@ const schema = (existingEmails: string[]) =>
       role: z.enum(["user", "administrator"], {
         required_error: "Role is required",
       }),
-      division: z.string().nullable().optional(),
-      department: z.string().nullable().optional(),
     })
-    .refine(
-      (data) => {
-        if (data.role === "user") {
-          return data.division && data.department;
-        }
-        return !data.division && !data.department;
-      },
-      {
-        message: "Division and Department are required for user",
-        path: ["role"],
-      },
-    );
 
     const selectStyle = {
       control: (base: any) => ({
@@ -119,46 +105,6 @@ const AddNewUser = ({ existingEmails, setOpen }: { existingEmails: string[], set
 
   const selectedRole = watch("role");
 
-  useEffect(() => {
-    if (selectedRole === "administrator") {
-      setValue("division", null);
-      setValue("department", null);
-    }
-  }, [selectedRole, setValue]);
-
-  const {
-    data: divisions,
-    isLoading: isDivisionsLoading,
-    isError: isDivisionsError,
-  } = useQuery({
-    queryKey: ["divisions"],
-    queryFn: async () => (await getDivisions()).data,
-  });
-
-  const {
-    data: departments,
-    isLoading: isDepartmentsLoading,
-    isError: isDepartmentsError,
-  } = useQuery({
-    queryKey: ["departments"],
-    queryFn: async () => (await getDepartments()).data,
-  });
-
-  if (isDivisionsLoading || isDepartmentsLoading) return null;
-  if (isDivisionsError || isDepartmentsError) return null;
-
-  const divisionOptions = divisions.map(
-    ({ div_cd, descs }: { div_cd: string; descs: string }) => ({
-      value: div_cd,
-      label: descs,
-    }),
-  );
-  const departmentOptions = departments.map(
-    ({ dept_cd, descs }: { dept_cd: string; descs: string }) => ({
-      value: dept_cd,
-      label: descs,
-    }),
-  );
 
   async function onSubmit(data: any) {
     try {
@@ -243,53 +189,6 @@ const AddNewUser = ({ existingEmails, setOpen }: { existingEmails: string[], set
               </div>
             )}
           </div>
-
-          {selectedRole === "user" && (
-            <>
-              <div className="flex flex-col gap-2">
-                <Label>Division</Label>
-                <Select
-                  options={divisionOptions}
-                  onChange={(option: { value: string; label: string } | null) =>
-                    setValue("division", option?.value || null)
-                  }
-                  isClearable
-                  placeholder="Select Division..."
-                  styles={selectStyle}
-                />
-                {errors.division && (
-                  <div
-                    className={cn("text-xs", {
-                      "text-destructive": errors.division,
-                    })}
-                  >
-                    {errors.division.message as string}
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>Department</Label>
-                <Select
-                  options={departmentOptions}
-                  onChange={(option: { value: string; label: string } | null) =>
-                    setValue("department", option?.value || null)
-                  }
-                  isClearable
-                  placeholder="Select Department..."
-                  styles={selectStyle}
-                />
-                {errors.department && (
-                  <div
-                    className={cn("text-xs", {
-                      "text-destructive": errors.department,
-                    })}
-                  >
-                    {errors.department.message as string}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
         </div>
         <DialogFooter>
           <DialogClose asChild>

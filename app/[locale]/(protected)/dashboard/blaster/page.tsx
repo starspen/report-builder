@@ -1,7 +1,7 @@
 "use client";
 
 import { StatisticsBlock } from "@/components/blocks/statistics-block";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import {
   getInvoiceStampSuccess,
@@ -65,12 +65,17 @@ const DashboardPage = () => {
   }
 
   return (
-    <div>
-      <div className="grid grid-cols-12 items-center gap-5 my-4">
-        <div className="col-span-12">
+    <div className="space-y-5">
+      <div className="grid grid-cols-12 gap-5">
+        <div className="col-span-12 lg:col-span-8 space-y-5">
           <Card>
+            <CardHeader className="flex-row flex-wrap gap-2">
+              <CardTitle className="flex-1 whitespace-nowrap">
+                Blast Invoice
+              </CardTitle>
+            </CardHeader>
             <CardContent className="p-4">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+              <div className="grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-2 gap-3">
                 <StatisticsBlock
                   title="Total Ready Invoice Stamp"
                   total={invoiceStamp}
@@ -83,6 +88,17 @@ const DashboardPage = () => {
                   className="bg-primary/10 cursor-pointer"
                   onClick={() => router.push("/invoice/email")}
                 />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex-row flex-wrap gap-2">
+              <CardTitle className="flex-1 whitespace-nowrap">
+                Blast Receipt
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid xl:grid-cols-2 lg:grid-cols-2 grid-cols-2 gap-3">
                 <StatisticsBlock
                   title="Total Ready Receipt Stamp"
                   total={receiptStamp}
@@ -98,9 +114,12 @@ const DashboardPage = () => {
               </div>
             </CardContent>
           </Card>
+
         </div>
       </div>
     </div>
+
+    
   );
 };
 

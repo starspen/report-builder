@@ -18,10 +18,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { insertMasterUser } from "@/action/master-user-action";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getRolesByModules, insertMasterUser } from "@/action/master-user-action";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
+import { Loader2 } from "lucide-react";
 
 const schema = z.object({
   userName: z.string().min(2, { message: "This field is required." }),
@@ -30,6 +31,7 @@ const schema = z.object({
     value: z.string().min(1, { message: "This field is required." }),
     label: z.string().min(1, { message: "This field is required." }),
   }),
+  moduleName: z.string().optional()
 });
 export const FormAdd = ({
   setIsModalOpen,
@@ -57,19 +59,13 @@ export const FormAdd = ({
       fontSize: "14px",
     }),
   };
-  const rolesOptions: { value: string; label: string }[] = [
-    { value: "administrator", label: "Administrator" },
-    { value: "maker and blaster", label: "Maker and Blaster" },
-    { value: "maker", label: "Maker" },
-    { value: "blaster", label: "Blaster" },
-    { value: "approver", label: "Approver" },
-  ];
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     setValue,
+    reset
   } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
   });
@@ -86,6 +82,7 @@ export const FormAdd = ({
         queryClient.invalidateQueries({
           queryKey: ["master-user"],
         });
+        reset()
         setIsModalOpen(false);
       } else {
         toast.error(result.message);
@@ -100,8 +97,37 @@ export const FormAdd = ({
   });
 
   function onSubmit(data: z.infer<typeof schema>) {
-    mutation.mutate(data);
+    const payload: any = {
+      userName: data.userName,
+      userEmail: data.userEmail,
+      userRole: data.userRole.label,
+      userRoleId: data.userRole.value,
+      moduleName: 'Web Blast'
+    };
+    mutation.mutate(payload);
   }
+  const { data, isLoading: isLoadingRole } = useQuery({
+    queryKey: ["role-list"],
+    queryFn: async () => {
+      const result = await getRolesByModules('Web%20Blast')
+      return result
+    }
+  })
+  if (isLoading || isLoadingRole) {
+    // return (
+    //   <div className=" h-screen flex items-center flex-col space-y-2">
+    //     <span className=" inline-flex gap-1  items-center">
+    //       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+    //       Loading...
+    //     </span>
+    //   </div>
+    // );
+    null
+  }
+  const rolesOptions = data?.data.map((role: any) => ({
+    value: role.id, // or use `role.id` if unique ID is preferred
+    label: role.name
+  })) || [];
 
   return (
     <DialogContent>

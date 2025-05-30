@@ -32,10 +32,11 @@ import {
 import { labels } from "../data/data";
 import { taskSchema } from "../data/schema";
 import { cn } from "@/lib/utils";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState } from "react";
 import EditUser from "./edit-user";
+import { deleteMasterUser } from "@/action/master-user-action";
 
 interface DataTableRowActionsProps {
   row: Row<any>;
@@ -49,6 +50,14 @@ export function DataTableRowActions({
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn : async ({ userId } : { userId: string }) => {
+      const result = await deleteMasterUser(userId)
+      return result
+    }
+  })
+
   const handleDeleteUser = async () => {
     try {
       const userEmail = [row.original.email];

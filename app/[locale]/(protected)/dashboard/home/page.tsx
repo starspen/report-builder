@@ -38,8 +38,6 @@ const DashboardPage = async () => {
   return (
     <>
       <div className="space-y-5 my-4">
-        <div className="grid grid-cols-12 items-center gap-5">
-          <div className="col-span-12 space-y-5 lg:col-span-4">
             <Card className="relative border-none bg-primary/20 shadow-none">
               <CardHeader className="flex-row flex-wrap gap-2 lg:min-h-36">
                 <CardTitle
@@ -65,8 +63,6 @@ const DashboardPage = async () => {
                 />
               </CardContent>
             </Card>
-          </div>
-        </div>
       </div>
       {roles
         .filter((role) => role in dashboardMap)

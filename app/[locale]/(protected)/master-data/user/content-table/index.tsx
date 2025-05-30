@@ -3,7 +3,7 @@ import * as React from "react";
 import { Fragment } from "react";
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
-import { getMasterUser } from "@/action/master-user-action";
+import { getMasterWebBlastUser } from "@/action/master-user-action";
 import { useQuery } from "@tanstack/react-query";
 import { Task } from "./components/columns";
 import { Loader2 } from "lucide-react";
@@ -13,7 +13,7 @@ export default function AdvancedTable() {
   const { data, isLoading } = useQuery<{ data: Task[] }>({
     queryKey: ["master-user"],
     queryFn: async () => {
-      const result = await getMasterUser();
+      const result = await getMasterWebBlastUser();
 
       return result;
     },

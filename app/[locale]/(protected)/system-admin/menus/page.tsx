@@ -139,8 +139,8 @@ export default function ModulesPage() {
                 key={m.id}
                 onClick={() => { setSelectedModule(m); setSelectedRole(null); }}
                 className={`p-2 rounded cursor-pointer ${selectedModule?.id === m.id
-                  ? 'bg-blue-50 font-semibold'
-                  : 'hover:bg-gray-100'
+                  ? 'bg-default-100 font-semibold'
+                  : 'hover:bg-default-200'
                   }`}
               >
                 {m.name}
@@ -166,8 +166,8 @@ export default function ModulesPage() {
                     <li
                       key={r.id}
                       className={`flex justify-between items-center px-4 py-2 border rounded cursor-pointer ${selectedRole?.id === r.id
-                        ? 'bg-blue-50 font-semibold'
-                        : 'hover:bg-gray-100'
+                        ? 'bg-default-100 font-semibold'
+                        : 'hover:bg-default-200'
                         }`}
                       onClick={() => setSelectedRole(r)}
                     >
@@ -198,8 +198,8 @@ export default function ModulesPage() {
                       className={`flex justify-between items-center px-4 py-2 border rounded cursor-pointer ${!selectedRole
                           ? 'opacity-50 cursor-not-allowed'
                           : selectedMenus.includes(m.id)
-                            ? 'bg-blue-50 font-semibold'
-                            : 'hover:bg-gray-100'
+                            ? 'bg-default-100 font-semibold'
+                            : 'hover:bg-default-200'
                         }`}
                       onClick={() => selectedRole && toggleMenu(m.id)}
                     >

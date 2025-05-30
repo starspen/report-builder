@@ -402,19 +402,19 @@ const DashboardPage = () => {
               />
             </div> */}
             <div className="absolute -bottom-4 end-5">
-              <Image
+              {/* <Image
                 src="/images/svg/rabit.svg"
                 width={96}
                 height={96}
                 alt="Rabbit"
                 draggable={false}
                 className="w-full h-full object-cover"
-              />
+              /> */}
             </div>
           </UpgradeBlock>
         </div>
 
-        <div className="col-span-12">
+        <div className="col-span-12 md:col-span-8">
           <Card>
             <CardHeader>
               <CardTitle>Transaction e-meterai Summary</CardTitle>

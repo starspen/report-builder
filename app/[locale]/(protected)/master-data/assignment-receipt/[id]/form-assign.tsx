@@ -65,8 +65,10 @@ export const FormAssign = ({
   const router = useRouter();
   const animatedComponents = makeAnimated();
   const users: OptionType[] = dataUser
-    ?.filter(
-      (item: any) => item.role === "maker and blaster" || item.role === "maker"
+    ?.filter((item: any) =>
+      Array.isArray(item.roles) &&
+      (item.roles.includes("maker and blaster") ||
+        item.roles.includes("maker"))
     )
     .map((item: any) => ({
       value: item.id,
@@ -74,21 +76,25 @@ export const FormAssign = ({
     }));
 
   const usersApproval: OptionType[] = dataUser
-    ?.filter((item: any) => item.role === "approver")
+    ?.filter((item: any) =>
+      Array.isArray(item.roles) &&
+      (item.roles.includes("approver")
+      ))
     .map((item: any) => ({
       value: item.id,
       label: item.name,
     }));
 
   const usersBlast: OptionType[] = dataUser
-    ?.filter(
-      (item: any) =>
-        item.role === "maker and blaster" || item.role === "blaster"
+    ?.filter((item: any) =>
+      Array.isArray(item.roles) &&
+      (item.roles.includes("maker and blaster") ||
+        item.roles.includes("blaster"))
     )
     .map((item: any) => ({
       value: item.id,
       label: item.name,
-    }));
+    })) || [];
 
   const styles = {
     multiValue: (base: any, state: any) => {

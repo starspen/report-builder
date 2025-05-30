@@ -8,6 +8,8 @@ import AzureAd from "@/components/partials/azure-ad";
 import { msalInstance } from "@/lib/msal";
 import { redirect } from "@/components/navigation";
 import { auth } from "@/lib/auth";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const PROJECT_NAME = process.env.NEXT_PUBLIC_PROJECT_NAME;
 
@@ -25,11 +27,34 @@ const Login = async ({ params: { locale } }: { params: { locale: string } }) => 
         <div className="flex h-dvh w-full flex-wrap overflow-y-auto">
           <div className="relative flex-1">
             <div className="flex h-full flex-col bg-default-50">
-              <div className="mx-auto mb-3 flex h-full w-full max-w-[524px] flex-col justify-center p-7 text-2xl text-default-900 md:px-[42px] md:py-[44px]">
+              <div className="m-4 flex items-end justify-end">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    {PROJECT_NAME === "Btid" ? (
+                      <Button color="success" variant="ghost" size="sm">
+                        Login with credentials
+                      </Button>
+                    ) : (
+                      <Button color="warning" variant="ghost" size="sm" className="bg-[#EFBF04] text-white">
+                        Login with credentials
+                      </Button>
+                    )}
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Sign in with credentials</DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription className="pb-8">
+                      <LoginForm />
+                    </DialogDescription>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div className="mx-auto mb-4 flex h-full w-full max-w-[524px] flex-col justify-start p-8 py-44 text-2xl text-default-900 md:px-[42px] md:py-[176cpx]">
                 <div className="flex items-end justify-center text-center">
                   <Link href="/">
                     <Image
-                      src="/images/icon/logo-kkb-green.svg"
+                      src={PROJECT_NAME === "Btid" ? "/images/icon/logo-kkb-green.svg" : "/images/icon/gob-color.svg"}
                       alt=""
                       width={300}
                       height={300}
@@ -37,18 +62,18 @@ const Login = async ({ params: { locale } }: { params: { locale: string } }) => 
                     />
                   </Link>
                 </div>
-                <div className="text-left 2xl:mb-10">
-                  <h4 className="font-medium">Welcome Back</h4>
+                <div className="mb-10 text-left 2xl:mb-12">
+                  <h4 className="font-medium">Welcome to Asset Management</h4>
                   <div className="text-base text-default-500">
-                    Sign in to access your IFCA Asset Management dashboard
+                    Access your dashboard to manage company assets efficiently
                   </div>
                 </div>
-                <LoginForm />
+                {/* <LoginForm />
                 <div className="relative mt-4 border-b border-b-[#9AA2AF] border-opacity-[16%] pt-6">
                   <div className="absolute left-1/2 top-1/2 inline-block min-w-max -translate-x-1/2 transform bg-default-50 px-4 text-sm font-normal text-default-500 dark:bg-default-100">
                     Or
                   </div>
-                </div>
+                </div> */}
                 <div className="mx-auto mt-8 w-full">
                   <AzureAd />
                 </div>

@@ -50,6 +50,54 @@ export const getMasterUser = async () => {
     return error;
   }
 };
+export const getMasterWebBlastUser = async () => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/user/get/web-blast`, {
+      method: "GET",
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+export const getMasterAssetUser = async () => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/user/get/fixed-asset`, {
+      method: "GET",
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
 export const getMasterUserWithModules = async () => {
   try {
     let url = "";
@@ -60,6 +108,30 @@ export const getMasterUserWithModules = async () => {
     }
 
     const response = await fetch(`${url}/api/user/module/role`, {
+      method: "GET",
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return error;
+  }
+};
+export const getRolesByModules = async (moduleName: string) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(`${url}/api/role/get/${moduleName}`, {
       method: "GET",
     });
     const result = await response.json();
@@ -152,9 +224,12 @@ export const insertMasterUser = async (data: any) => {
   const dataInsert = {
     email: data.userEmail,
     name: data.userName,
-    role: data.userRole.value,
+    role: data.userRole,
+    role_id: data.userRoleId,
+    module_name: data.moduleName,
+    div_cd: data.div_cd,
+    dept_cd: data.dept_cd
   };
-
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -184,12 +259,17 @@ export const insertMasterUser = async (data: any) => {
 };
 
 export const updateMasterUser = async (data: any) => {
+  // console.log(JSON.stringify(data))
   const dataUpdate = {
     user_id: data.userId,
     email: data.userEmail,
     name: data.userName,
-    role: data.userRole.value,
-    amt_range: data.amt_range
+    role: data.userRole,
+    role_id: data.userRoleId,
+    amt_range: data.amt_range,
+    module_name: data.moduleName,
+    div_cd: data.div_cd,
+    dept_cd: data.dept_cd
   };
 
   // if (data.amt_range) {
