@@ -195,6 +195,7 @@ export default function EditUser({
     onSuccess: (result) => {
       if (result.statusCode === 200 || result.statusCode === 201) {
         toast.success(result.message);
+        queryClient.invalidateQueries({ queryKey: ["user-list"] });
         setOpen(false);
       } else {
         toast.error(result.message);

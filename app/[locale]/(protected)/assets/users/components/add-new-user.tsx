@@ -58,6 +58,7 @@ const schema = (existingEmails: string[]) =>
       }
     );
 
+   
 
 const selectStyle = {
   control: (base: any) => ({
@@ -113,12 +114,13 @@ const AddNewUser = ({ existingEmails, setOpen }: { existingEmails: string[], set
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     reset,
   } = useForm({
     resolver: zodResolver(schema(existingEmails)),
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const selectedRole = watch("role");
 
   useEffect(() => {
@@ -134,6 +136,7 @@ const AddNewUser = ({ existingEmails, setOpen }: { existingEmails: string[], set
       return result
     },
     onMutate: () => {
+      setIsSubmitting(true)
     },
     onSuccess: (result) => {
       if (result.statusCode === 201) {
@@ -148,8 +151,9 @@ const AddNewUser = ({ existingEmails, setOpen }: { existingEmails: string[], set
       toast.error(error.message)
     },
     onSettled: () => {
-      reset();
+      reset(); 
       setOpen(false);
+      setIsSubmitting(false)
     }
   })
 

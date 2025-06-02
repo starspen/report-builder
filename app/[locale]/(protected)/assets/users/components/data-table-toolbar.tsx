@@ -30,7 +30,8 @@ import { Table } from "@tanstack/react-table";
 import AddNewUser from "./add-new-user";
 import { toast } from "sonner";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteMasterUser } from "@/action/master-user-action";
 interface DataTableToolbarProps {
   table: Table<any>;
 }
@@ -52,22 +53,43 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
     .getRowModel()
     .rows.map((row) => row.original.email);
 
+  const mutation = useMutation({
+    mutationFn: async ({ userId }: { userId: string }) => {
+      const result = await deleteMasterUser(userId);
+      return result;
+    },
+    onMutate: () => {
+      setIsDeleting(true);
+    },
+    onSuccess: (result) => {
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        toast.success(result.message);
+        queryClient.invalidateQueries({
+          queryKey: ["asset-user"],
+        });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      setIsDeleting(false);
+      setOpen(false);
+    },
+  });
+
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteUsers = async () => {
-    setIsDeleting(true);
     try {
-      const userEmails = selectedRows.map((row) => row.email);
-      const response = await fetch("/api/user/delete", {
-        method: "DELETE",
-        body: JSON.stringify(userEmails),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete users");
+      const userIds = selectedRows.map((row) => row.id)
+      for (const userId of userIds) {
+        mutation.mutate({ userId });
       }
       table.resetRowSelection();
-      await queryClient.invalidateQueries({ queryKey: ["user-list"] });
+      await queryClient.invalidateQueries({ queryKey: ["asset-user"] });
       setOpenDeleteDialog(false);
       toast.success("Users deleted successfully");
     } catch (error) {

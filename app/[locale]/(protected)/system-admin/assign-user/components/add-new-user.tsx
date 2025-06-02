@@ -16,10 +16,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getDepartments, getDivisions } from "@/action/property-actions";
 import Select from "react-select";
 import { useEffect, useState } from "react";
+import { insertMasterUser } from "@/action/master-user-action";
 
 const UserRole = {
   user: "user",
@@ -27,107 +28,127 @@ const UserRole = {
 } as const;
 
 const schema = (existingEmails: string[]) =>
-  z
-    .object({
-      name: z
-        .string()
-        .min(3, { message: "Name must be at least 3 characters." }),
-      email: z
-        .string()
-        .email({ message: "Your email is invalid." })
-        .refine((email) => !existingEmails.includes(email), {
-          message: "Email already exists.",
-        }),
-      role: z.enum(["user", "administrator"], {
-        required_error: "Role is required",
+  z.object({
+    name: z.string().min(3, { message: "Name must be at least 3 characters." }),
+    email: z
+      .string()
+      .email({ message: "Your email is invalid." })
+      .refine((email) => !existingEmails.includes(email), {
+        message: "Email already exists.",
       }),
-    })
+    role: z.enum(["user", "administrator"], {
+      required_error: "Role is required",
+    }),
+  });
 
-    const selectStyle = {
-      control: (base: any) => ({
-        ...base,
-        minHeight: '36px',
-        height: '36px',
-        backgroundColor: 'hsl(var(--background))',
-        borderColor: 'hsl(var(--input))',
-      }),
-      valueContainer: (base: any) => ({
-        ...base,
-        padding: '0 12px',
-        height: '34px',
-      }),
-      input: (base: any) => ({
-        ...base,
-        margin: '0',
-        padding: '0',
-        color: 'hsl(var(--foreground))',
-      }),
-      indicatorsContainer: (base: any) => ({
-        ...base,
-        height: '34px',
-      }),
-      placeholder: (base: any) => ({
-        ...base,
-        fontSize: '14px',
-        color: 'hsl(var(--muted-foreground))',
-      }),
-      singleValue: (base: any) => ({
-        ...base,
-        fontSize: '14px',
-        color: 'hsl(var(--foreground))',
-      }),
-      option: (base: any, state: { isFocused: boolean }) => ({
-        ...base,
-        fontSize: '14px',
-        backgroundColor: state.isFocused ? 'hsl(var(--accent))' : 'hsl(var(--background))',
-        color: 'hsl(var(--foreground))',
-      }),
-      menu: (base: any) => ({
-        ...base,
-        zIndex: 50,
-        backgroundColor: 'hsl(var(--background))',
-        borderColor: 'hsl(var(--input))',
-      }),
-    };
+const selectStyle = {
+  control: (base: any) => ({
+    ...base,
+    minHeight: "36px",
+    height: "36px",
+    backgroundColor: "hsl(var(--background))",
+    borderColor: "hsl(var(--input))",
+  }),
+  valueContainer: (base: any) => ({
+    ...base,
+    padding: "0 12px",
+    height: "34px",
+  }),
+  input: (base: any) => ({
+    ...base,
+    margin: "0",
+    padding: "0",
+    color: "hsl(var(--foreground))",
+  }),
+  indicatorsContainer: (base: any) => ({
+    ...base,
+    height: "34px",
+  }),
+  placeholder: (base: any) => ({
+    ...base,
+    fontSize: "14px",
+    color: "hsl(var(--muted-foreground))",
+  }),
+  singleValue: (base: any) => ({
+    ...base,
+    fontSize: "14px",
+    color: "hsl(var(--foreground))",
+  }),
+  option: (base: any, state: { isFocused: boolean }) => ({
+    ...base,
+    fontSize: "14px",
+    backgroundColor: state.isFocused
+      ? "hsl(var(--accent))"
+      : "hsl(var(--background))",
+    color: "hsl(var(--foreground))",
+  }),
+  menu: (base: any) => ({
+    ...base,
+    zIndex: 50,
+    backgroundColor: "hsl(var(--background))",
+    borderColor: "hsl(var(--input))",
+  }),
+};
 
-const AddNewUser = ({ existingEmails, setOpen }: { existingEmails: string[], setOpen: (open: boolean) => void }) => {
+const AddNewUser = ({
+  existingEmails,
+  setOpen,
+}: {
+  existingEmails: string[];
+  setOpen: (open: boolean) => void;
+}) => {
   const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     reset,
   } = useForm({
     resolver: zodResolver(schema(existingEmails)),
   });
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const selectedRole = watch("role");
 
-
-  async function onSubmit(data: any) {
-    try {
-      const reqBody = {
-        div_cd: data.division,
-        dept_cd: data.department,
-        ...data,
-      };
-      const response = await fetch("/api/user/register", {
-        method: "POST",
-        body: JSON.stringify(reqBody),
-      });
-      const result = await response.json();
-      if (result.status === "success") {
-        await queryClient.invalidateQueries({ queryKey: ["user-list"] });
+  const mutation = useMutation({
+    mutationFn: async (data: any) => {
+      const result = await insertMasterUser(data);
+      return result;
+    },
+    onMutate: () => {
+      setIsSubmitting(true);
+    },
+    onSuccess: (result) => {
+      if (result.statusCode === 201) {
         toast.success(result.message);
-        reset();
-        setOpen(false);
+        queryClient.invalidateQueries({ queryKey: ["user-list"] });
       } else {
         toast.error(result.message);
       }
-    } catch (error) {
-      toast.error("Failed to add user");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      reset();
+      setOpen(false);
+      setIsSubmitting(false);
+    },
+  });
+
+  async function onSubmit(data: any) {
+    const reqBody = {
+      div_cd: data.division,
+      dept_cd: data.department,
+      userRole: data.role.label,
+      userRoleId: data.role.value,
+      userName: data.name,
+      userEmail: data.email,
+      // ...data,
+    };
+    if (reqBody) {
+      mutation.mutate(reqBody);
     }
   }
 
@@ -137,11 +158,17 @@ const AddNewUser = ({ existingEmails, setOpen }: { existingEmails: string[], set
         <DialogHeader>
           <DialogTitle className="text-xl">Add New User</DialogTitle>
         </DialogHeader>
-        <DialogDescription className="text-sm">Add a new user to the system.</DialogDescription>
+        <DialogDescription className="text-sm">
+          Add a new user to the system.
+        </DialogDescription>
         <div className="flex flex-col gap-4 pb-4">
           <div className="flex flex-col gap-2">
             <Label>Name</Label>
-            <Input {...register("name")} placeholder="John Doe" className="dark:text-white" />
+            <Input
+              {...register("name")}
+              placeholder="John Doe"
+              className="dark:text-white"
+            />
             {errors.name && (
               <div
                 className={cn("text-xs", {
@@ -154,9 +181,13 @@ const AddNewUser = ({ existingEmails, setOpen }: { existingEmails: string[], set
           </div>
           <div className="flex flex-col gap-2">
             <Label>Email</Label>
-            <Input {...register("email", {
-              setValueAs: (value) => value.toLowerCase(),
-            })} placeholder="john.doe@example.com" className="dark:text-white"/>
+            <Input
+              {...register("email", {
+                setValueAs: (value) => value.toLowerCase(),
+              })}
+              placeholder="john.doe@example.com"
+              className="dark:text-white"
+            />
             {errors.email && (
               <div
                 className={cn("text-xs", {
@@ -194,7 +225,7 @@ const AddNewUser = ({ existingEmails, setOpen }: { existingEmails: string[], set
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          
+
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Adding..." : "Add"}
           </Button>

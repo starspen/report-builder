@@ -86,18 +86,18 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
         className="h-8 min-w-[200px] max-w-sm"
       />
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button
             variant="soft"
             className="h-8 bg-primary/80 px-2 text-white hover:bg-primary/90 lg:px-3"
           >
             <PlusIcon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-            Add user
+            Add module
           </Button>
         </DialogTrigger>
         <AddNewModule existingEmails={existingEmails} setOpen={setOpen} />
-      </Dialog>
+      </Dialog> */}
 
       {selectedRows.length > 0 && (
         <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
@@ -107,17 +107,17 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
               className="h-8 bg-destructive/80 px-2 text-white hover:bg-destructive/90 lg:px-3"
             >
               <TrashIcon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-              Delete {table.getFilteredSelectedRowModel().rows.length} Users
+              Delete {table.getFilteredSelectedRowModel().rows.length} modules
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
                 Proceed to delete
-                {table.getFilteredSelectedRowModel().rows.length} users?
+                {table.getFilteredSelectedRowModel().rows.length} modules?
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This action will delete the selected users. Please confirm to
+                This action will delete the selected modules. Please confirm to
                 proceed.
               </AlertDialogDescription>
             </AlertDialogHeader>
