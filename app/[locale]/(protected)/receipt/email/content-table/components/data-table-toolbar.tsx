@@ -20,15 +20,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { sendReceiptEmail } from "@/action/receipt-action";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
+  setSelectionRows: () => void;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
+  setSelectionRows,
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -56,37 +58,48 @@ export function DataTableToolbar({
     }
   };
 
+  const mutation = useMutation({
+    mutationFn: async ({
+      docNo,
+      processId,
+    }: {
+      docNo: string;
+      processId: string;
+    }) => {
+      const result = await sendReceiptEmail(docNo, processId);
+      return result;
+    },
+    onMutate: () => {
+      setIsLoading(true);
+    },
+    onSuccess: (result) => {
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        toast.success("Success sending email");
+        queryClient.invalidateQueries({
+          queryKey: ["receipt-email"],
+        });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      setIsLoading(false);
+      setIsModalOpen(false);
+      setSelectionRows();
+    },
+  });
+
   const handleSendingReceiptEmail = async () => {
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
-
-        setIsLoading(true);
-        try {
-          const response = await sendReceiptEmail(docNo);
-          if (isLoading) {
-            toast.info("Sending email, please wait...");
-          }
-          if (response.statusCode === 200) {
-            toast.success("Success sending email");
-            queryClient.invalidateQueries({
-              queryKey: ["receipt-email"],
-            });
-          } else {
-            toast.error(response.message);
-          }
-        } catch (error) {
-          toast.error("Error occurred while sending email");
-        } finally {
-          queryClient.invalidateQueries({
-            queryKey: ["receipt-email"],
-          });
-          setIsLoading(false);
-        }
+        const { doc_no: docNo, process_id: processId } = rowData;
+        mutation.mutate({ docNo, processId });
       }
     }
-    setIsModalOpen(false);
   };
 
   return (

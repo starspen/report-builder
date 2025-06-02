@@ -656,8 +656,11 @@ export const uploadFakturPajak = async (data: any) => {
   }
 };
 
-export const sendInvoiceEmail = async (docNo: string) => {
+export const sendInvoiceEmail = async (docNo: string, processId: string) => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.name;
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -665,12 +668,15 @@ export const sendInvoiceEmail = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/mail/blast-email-inv/${docNo}`, {
-      method: "GET",
-    });
+    const response = await fetch(
+      `${url}/api/mail/blast-email-inv/${docNo}/${processId}/${auditUser}`,
+      {
+        method: "GET",
+      }
+    );
     const result = await response.json();
 
-    if (result.statusCode === 200) {
+    if (result.statusCode === 200 || result.statusCode === 201) {
       return result;
     } else {
       return result;
@@ -765,7 +771,11 @@ export const getInvoiceEmailHistoryFailed = async (
   }
 };
 
-export const resendInvoiceEmail = async (docNo: string, email: string) => {
+export const resendInvoiceEmail = async (
+  docNo: string,
+  processId: string,
+  email: string
+) => {
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -774,12 +784,15 @@ export const resendInvoiceEmail = async (docNo: string, email: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/mail/resend-inv?doc_no=${docNo}&email=${email}`, {
-      method: "GET",
-    });
+    const response = await fetch(
+      `${url}/api/mail/resend-inv?doc_no=${docNo}&process_id=${processId}&email=${email}`,
+      {
+        method: "GET",
+      }
+    );
     const result = await response.json();
 
-    if (result.statusCode === 200) {
+    if (result.statusCode === 200 || result.statusCode === 201) {
       return result;
     } else {
       return result;

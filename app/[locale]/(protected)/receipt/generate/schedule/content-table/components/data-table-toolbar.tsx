@@ -20,15 +20,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { generateReceiptSchedule } from "@/action/receipt-action";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
+  setSelectionRows: () => void;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
+  setSelectionRows,
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -55,6 +57,50 @@ export function DataTableToolbar({
     }
   };
 
+  const mutation = useMutation({
+    mutationFn: async ({
+      doc_no,
+      project_no,
+      entity_cd,
+      debtor_acct,
+      email_addr,
+    }: {
+      doc_no: string;
+      project_no: string;
+      entity_cd: string;
+      debtor_acct: string;
+      email_addr: string;
+    }) => {
+      const result = await generateReceiptSchedule(
+        doc_no,
+        project_no,
+        entity_cd,
+        debtor_acct,
+        email_addr
+      );
+      return result;
+    },
+    onMutate: () => {
+      setIsLoading(true);
+    },
+    onSuccess: (result) => {
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        toast.success("Success generating receipt");
+        queryClient.invalidateQueries({ queryKey: ["receipt-schedule"] });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      setIsLoading(false);
+      setIsModalOpen(false);
+      setSelectionRows();
+    },
+  });
+
   const handleGenerateReceiptSchedule = async () => {
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
@@ -64,33 +110,15 @@ export function DataTableToolbar({
         const entity_cd = rowData.entity_cd;
         const debtor_acct = rowData.debtor_acct;
         const email_addr = rowData.email_addr;
-
-        setIsLoading(true);
-        try {
-          const response = await generateReceiptSchedule(
-            doc_no,
-            project_no,
-            entity_cd,
-            debtor_acct,
-            email_addr
-          );
-          if (isLoading) {
-            toast.info("Generating receipt, please wait...");
-          }
-          if (response.statusCode === 200 || response.statusCode === 201) {
-            toast.success("Success generate receipt");
-            queryClient.invalidateQueries({ queryKey: ["receipt-schedule"] });
-          } else {
-            toast.error(response.message);
-          }
-        } catch (error) {
-          toast.error("Error occurred while generating receipt");
-        } finally {
-          setIsLoading(false);
-        }
+        mutation.mutate({
+          doc_no,
+          project_no,
+          entity_cd,
+          debtor_acct,
+          email_addr,
+        });
       }
     }
-    setIsModalOpen(false);
   };
 
   return (

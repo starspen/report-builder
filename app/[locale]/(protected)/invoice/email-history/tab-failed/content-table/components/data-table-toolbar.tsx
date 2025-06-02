@@ -20,15 +20,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { resendInvoiceEmail } from "@/action/invoice-action";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
+  setSelectionRows: () => void;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
+  setSelectionRows,
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -56,35 +58,54 @@ export function DataTableToolbar({
     }
   };
 
+  const mutation = useMutation({
+    mutationFn: async ({
+      docNo,
+      processId,
+      email,
+    }: {
+      docNo: string;
+      processId: string;
+      email: string;
+    }) => {
+      const result = await resendInvoiceEmail(docNo, processId, email);
+      return result;
+    },
+    onMutate: () => {
+      setIsLoading(true);
+    },
+    onSuccess: (result) => {
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        toast.success("Success resending email");
+        queryClient.invalidateQueries({
+          queryKey: ["invoice-email-history-failed"],
+        });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      setIsLoading(false);
+      setIsModalOpen(false);
+      setSelectionRows();
+    },
+  });
+
   const handleResendingInvoiceEmail = async () => {
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
-        const email = rowData.email_addr;
-
-        setIsLoading(true);
-        try {
-          const response = await resendInvoiceEmail(docNo, email);
-          if (isLoading) {
-            toast.info("Resending email, please wait...");
-          }
-          if (response.statusCode === 200) {
-            toast.success("Success resending email");
-            queryClient.invalidateQueries({
-              queryKey: ["invoice-email-history-failed"],
-            });
-          } else {
-            toast.error(response.message);
-          }
-        } catch (error) {
-          toast.error("Error occurred while resending email");
-        } finally {
-          setIsLoading(false);
-        }
+        const {
+          doc_no: docNo,
+          process_id: processId,
+          email_addr: email,
+        } = rowData;
+        mutation.mutate({ docNo, processId, email });
       }
     }
-    setIsModalOpen(false);
   };
 
   return (

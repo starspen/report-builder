@@ -370,8 +370,11 @@ export const getReceiptEmail = async () => {
   }
 };
 
-export const sendReceiptEmail = async (docNo: string) => {
+export const sendReceiptEmail = async (docNo: string, processId: string) => {
   try {
+    const session = await auth();
+    const auditUser = session?.user?.name;
+
     let url = "";
     if (mode === "sandbox") {
       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
@@ -379,12 +382,15 @@ export const sendReceiptEmail = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/mail/blast-email-or/${docNo}`, {
-      method: "GET",
-    });
+    const response = await fetch(
+      `${url}/api/mail/blast-email-or/${docNo}/${processId}/${auditUser}`,
+      {
+        method: "GET",
+      }
+    );
     const result = await response.json();
 
-    if (result.statusCode === 200) {
+    if (result.statusCode === 200 || result.statusCode === 201) {
       return result;
     } else {
       return result;
@@ -477,7 +483,11 @@ export const getReceiptEmailHistoryFailed = async (
   }
 };
 
-export const resendReceiptEmail = async (docNo: string) => {
+export const resendReceiptEmail = async (
+  docNo: string,
+  processId: string,
+  email: string
+) => {
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -486,12 +496,15 @@ export const resendReceiptEmail = async (docNo: string) => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/mail/blast-email-or/${docNo}`, {
-      method: "GET",
-    });
+    const response = await fetch(
+      `${url}/api/mail/resend-or?doc_no=${docNo}&process_id=${processId}&email=${email}`,
+      {
+        method: "GET",
+      }
+    );
     const result = await response.json();
 
-    if (result.statusCode === 200) {
+    if (result.statusCode === 200 || result.statusCode === 201) {
       return result;
     } else {
       return result;

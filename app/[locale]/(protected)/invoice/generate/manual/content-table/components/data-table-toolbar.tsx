@@ -20,15 +20,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { generateInvoiceManual } from "@/action/invoice-action";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
+  setSelectionRows: () => void;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
+  setSelectionRows
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -77,6 +79,58 @@ export function DataTableToolbar({
     }
   };
 
+  const mutation = useMutation({
+    mutationFn: async ({
+      doc_no,
+      project_no,
+      debtor_acct,
+      trx_type,
+      entity_cd,
+      email_addr,
+      related_class,
+    }: {
+      doc_no: string;
+      project_no: string;
+      debtor_acct: string;
+      trx_type: string;
+      entity_cd: string;
+      email_addr: string;
+      related_class: string;
+    }) => {
+      const result = await generateInvoiceManual(
+        doc_no,
+        project_no,
+        debtor_acct,
+        trx_type,
+        entity_cd,
+        email_addr,
+        related_class
+      );
+      return result;
+    },
+    onMutate: () => {
+      setIsLoading(true);
+    },
+    onSuccess: (result) => {
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        toast.success("Success generating invoice");
+        queryClient.invalidateQueries({
+          queryKey: ["invoice-manual"],
+        });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      setIsLoading(false);
+      setIsModalOpen(false);
+      setSelectionRows();
+    },
+  });
+
   const handleGenerateInvoiceManual = async () => {
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
@@ -87,36 +141,18 @@ export function DataTableToolbar({
         const trx_type = rowData.trx_type;
         const entity_cd = rowData.entity_cd;
         const email_addr = rowData.email_addr;
-        const related_class = rowData.related_class || 'DF';
-
-        setIsLoading(true);
-        try {
-          const response = await generateInvoiceManual(
-            doc_no,
-            project_no,
-            debtor_acct,
-            trx_type,
-            entity_cd,
-            email_addr,
-            related_class
-          );
-          if (isLoading) {
-            toast.info("Generating invoice, please wait...");
-          }
-          if (response.statusCode === 200 || response.statusCode === 201) {
-            toast.success("Success generate invoice");
-            queryClient.invalidateQueries({ queryKey: ["invoice-manual"] });
-          } else {
-            toast.error(response.message);
-          }
-        } catch (error) {
-          toast.error("Error occurred while generating invoice");
-        } finally {
-          setIsLoading(false);
-        }
+        const related_class = rowData.related_class || "DF";
+        mutation.mutate({
+          doc_no,
+          project_no,
+          debtor_acct,
+          trx_type,
+          entity_cd,
+          email_addr,
+          related_class,
+        });
       }
     }
-    setIsModalOpen(false);
   };
 
   return (
