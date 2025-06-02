@@ -58,10 +58,8 @@ export const FormUpload = ({
 
   const mutation = useMutation({
     mutationFn: async (data: z.infer<typeof schema>) => {
-      setIsLoading(true);
       const nameFile = data.fileFaktur.name;
-      const exFileName = nameFile.split("_");
-      const docNoInfo = exFileName[1].split(".")[0];
+      const docNoInfo = nameFile.substring(2).split(".")[0];
 
       const formData = new FormData();
       formData.append("file", data.fileFaktur);
@@ -70,13 +68,15 @@ export const FormUpload = ({
       const result = await uploadFakturPajak(formData);
       return result;
     },
+    onMutate: () => {
+      setIsLoading(true);
+    },
     onSuccess: (result) => {
-      if (result.statusCode === 201) {
+      if (result.statusCode === 200 || result.statusCode === 201) {
         toast.success(result.message);
         queryClient.invalidateQueries({
           queryKey: ["invoice-email"],
         });
-        setIsModalOpenUpload(false);
       } else {
         toast.error(result.message);
       }
@@ -86,6 +86,7 @@ export const FormUpload = ({
     },
     onSettled: () => {
       setIsLoading(false);
+      setIsModalOpenUpload(false);
     },
   });
 
@@ -113,7 +114,7 @@ export const FormUpload = ({
                 File
               </Label>
               <p className="text-xs text-gray-500">
-                Example FileName: FP_document number.pdf
+                Example FileName: FPdocument number.pdf
               </p>
               <Input
                 {...register("fileFaktur")}
@@ -136,10 +137,8 @@ export const FormUpload = ({
                   {String(errors.fileFaktur?.message)}
                 </p>
               )}
-              <p className="text-xs text-gray-500">Allowed file types: .pdf</p>
-              <p className="text-xs text-gray-500">
-                Size must be less than 5MB
-              </p>
+              <p className="text-xs text-red-500">Allowed file types: .pdf</p>
+              <p className="text-xs text-red-500">Size must be less than 5MB</p>
             </div>
           </div>
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">

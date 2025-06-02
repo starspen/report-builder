@@ -96,6 +96,18 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
     window.open(url + "EPBOIQ/FAKTUR/" + filename, "_blank");
   };
 
+  const handlePreviewFileAdditional = (filename: string) => {
+    const mode = process.env.NEXT_PUBLIC_ENV_MODE;
+
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_PUBLIC_FILE_UNSIGNED_PRODUCTION_URL}`;
+    }
+    window.open(url + "EPBOIQ/EXTRA/" + filename, "_blank");
+  };
+
   return (
     <>
       <Card>
@@ -110,6 +122,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                 <TableHead>File Invoice</TableHead>
                 <TableHead>File Reference</TableHead>
                 <TableHead>File Faktur Pajak</TableHead>
+                {data.filenames4 && <TableHead>File Additional</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -185,6 +198,22 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                   >
                     <File className="text-red-600 w-4 h-4" />
                   </Button>
+                  {data.filenames4 && (
+                    <TableCell>
+                      <Button
+                        className="bg-transparent  ring-transparent hover:bg-transparent hover:ring-0 hover:ring-offset-0 hover:ring-transparent w-28 border-transparent"
+                        size="icon"
+                        onClick={(event) => {
+                          handlePreviewFileAdditional(data.filenames4);
+                          event.preventDefault();
+                        }}
+                        title={`${data.filenames4}`}
+                        disabled={!data.filenames4}
+                      >
+                        <File className="text-red-600 w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableCell>
               </TableRow>
             </TableBody>
