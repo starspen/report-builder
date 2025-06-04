@@ -552,7 +552,7 @@ export const regenerateReceiptEmail = async (
   }
 };
 
-export const stampReceipt = async (fileName: string, fileType: string) => {
+export const stampReceipt = async (fileName: string, fileType: string, processId: string) => {
   try {
     const session = await auth();
     const auditUser = session?.user?.name;
@@ -562,6 +562,7 @@ export const stampReceipt = async (fileName: string, fileType: string) => {
       file_name: fileName,
       file_type: fileType,
       audit_user: auditUser,
+      process_id: processId
     };
 
     let url = "";
@@ -683,7 +684,7 @@ export const getReceiptStampFailed = async (source:string) => {
   }
 };
 
-export const restampReceipt = async (fileName: string, fileType: string) => {
+export const restampReceipt = async (fileName: string, fileType: string, processId: string) => {
   try {
     const session = await auth();
     const auditUser = session?.user?.name;
@@ -693,6 +694,7 @@ export const restampReceipt = async (fileName: string, fileType: string) => {
       file_name: fileName,
       file_type: fileType,
       audit_user: auditUser,
+      process_id: processId
     };
 
     let url = "";

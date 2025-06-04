@@ -803,7 +803,7 @@ export const resendInvoiceEmail = async (
   }
 };
 
-export const stampInvoice = async (fileName: string, fileType: string) => {
+export const stampInvoice = async (fileName: string, fileType: string, processId: string) => {
   try {
     const session = await auth();
     const auditUser = session?.user?.name;
@@ -813,6 +813,7 @@ export const stampInvoice = async (fileName: string, fileType: string) => {
       file_name: fileName,
       file_type: fileType,
       audit_user: auditUser,
+      process_id: processId
     };
 
     let url = "";
@@ -958,7 +959,7 @@ export const getInvoiceStampFailed = async () => {
   }
 };
 
-export const reStampInvoice = async (fileName: string, fileType: string) => {
+export const reStampInvoice = async (fileName: string, fileType: string, processId: string) => {
   try {
     const session = await auth();
     const auditUser = session?.user?.name;
@@ -968,6 +969,7 @@ export const reStampInvoice = async (fileName: string, fileType: string) => {
       file_name: fileName,
       file_type: fileType,
       audit_user: auditUser,
+      process_id: processId
     };
 
     let url = "";

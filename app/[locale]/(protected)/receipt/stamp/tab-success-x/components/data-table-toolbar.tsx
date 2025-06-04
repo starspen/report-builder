@@ -65,7 +65,7 @@ export function DataTableToolbar({ table, source }: DataTableToolbarProps) {
       if (rowData) {  
         setIsLoading(true);
         try {
-          const response = await stampInvoice(rowData.file_name, rowData.invoice_tipe);
+          const response = await stampInvoice(rowData.file_name, rowData.invoice_tipe, rowData.process_id);
           if (isLoading) {
             toast.info("Stamping, please wait...");
           }

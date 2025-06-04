@@ -20,15 +20,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { restampReceipt } from "@/action/receipt-action";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
+  setSelectionRows: () => void;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
+  setSelectionRows,
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -56,35 +58,55 @@ export function DataTableToolbar({
     }
   };
 
+  const mutation = useMutation({
+    mutationFn: async ({
+      fileName,
+      fileType,
+      processId,
+    }: {
+      fileName: string;
+      fileType: string;
+      processId: string;
+    }) => {
+      const result = await restampReceipt(fileName, fileType, processId);
+      return result;
+    },
+    onMutate: () => {
+      setIsLoading(true);
+    },
+    onSuccess: (result) => {
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        toast.success("Success restamping");
+        queryClient.invalidateQueries({
+          queryKey: ["receipt-stamp-failed"],
+        });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      setIsLoading(false);
+      setIsModalOpen(false);
+      setSelectionRows();
+    },
+  });
+
   const handleRestampReceipt = async () => {
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const fileName = rowData.filenames;
-        const fileType = rowData.invoice_tipe;
+        const {
+          filenames: fileName,
+          invoice_tipe: fileType,
+          process_id: processId,
+        } = rowData;
 
-        setIsLoading(true);
-        try {
-          const response = await restampReceipt(fileName, fileType);
-          if (isLoading) {
-            toast.info("Restamping, please wait...");
-          }
-          if (response.statusCode === 200) {
-            toast.success("Success restamping");
-            queryClient.invalidateQueries({
-              queryKey: ["receipt-stamp-failed"],
-            });
-          } else {
-            toast.error(response.message);
-          }
-        } catch (error) {
-          toast.error("Error occurred while restamping");
-        } finally {
-          setIsLoading(false);
-        }
+        mutation.mutate({ fileName, fileType, processId });
       }
     }
-    setIsModalOpen(false);
   };
 
   return (

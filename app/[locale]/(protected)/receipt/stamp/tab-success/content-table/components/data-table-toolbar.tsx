@@ -20,15 +20,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { stampReceipt, noStampReceipt } from "@/action/receipt-action";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
+  setSelectionRows: () => void;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
+  setSelectionRows,
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -66,68 +68,94 @@ export function DataTableToolbar({
     }
   };
 
+  const mutation = useMutation({
+    mutationFn: async ({
+      fileName,
+      fileType,
+      processId,
+    }: {
+      fileName: string;
+      fileType: string;
+      processId: string;
+    }) => {
+      const result = await stampReceipt(fileName, fileType, processId);
+      return result;
+    },
+    onMutate: () => {
+      setIsLoading(true);
+    },
+    onSuccess: (result) => {
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        toast.success("Success stamping");
+        queryClient.invalidateQueries({
+          queryKey: ["receipt-stamp-success"],
+        });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      setIsLoading(false);
+      setIsModalOpen(false);
+      setSelectionRows();
+    },
+  });
+
   const handleStampReceipt = async () => {
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const fileName = rowData.filenames;
-        const fileType = rowData.invoice_tipe;
+        const {
+          filenames: fileName,
+          invoice_tipe: fileType,
+          process_id: processId,
+        } = rowData;
 
-        setIsLoading(true);
-        try {
-          const response = await stampReceipt(fileName, fileType);
-          if (isLoading) {
-            toast.info("Stamping, please wait...");
-          }
-          if (response.statusCode === 200) {
-            toast.success("Success stamping");
-            queryClient.invalidateQueries({
-              queryKey: ["receipt-stamp-success"],
-            });
-          } else {
-            toast.error(response.message);
-          }
-        } catch (error) {
-          toast.error("Error occurred while stamping");
-        } finally {
-          queryClient.invalidateQueries({
-            queryKey: ["receipt-stamp-success"],
-          });
-          setIsLoading(false);
-        }
+        mutation.mutate({ fileName, fileType, processId });
       }
     }
-    setIsModalOpen(false);
   };
+
+  const mutationNoStamp = useMutation({
+    mutationFn: async ({ docNo }: { docNo: string }) => {
+      const result = await noStampReceipt(docNo);
+      return result;
+    },
+    onMutate: () => {
+      setIsLoadingNoStamp(true);
+    },
+    onSuccess: (result) => {
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        toast.success("Successfully processed");
+        queryClient.invalidateQueries({
+          queryKey: ["receipt-stamp-success"],
+        });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      setIsLoadingNoStamp(false);
+      setIsModalOpenNoStamp(false);
+      setSelectionRows();
+    },
+  });
 
   const handleNoStampReceipt = async () => {
     for (const rowId of Array.from(selectedRows)) {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
-        const docNo = rowData.doc_no;
+        const { doc_no: docNo } = rowData;
 
-        setIsLoadingNoStamp(true);
-        try {
-          const response = await noStampReceipt(docNo);
-          if (isLoadingNoStamp) {
-            toast.info("Processing, please wait...");
-          }
-          if (response.statusCode === 200) {
-            toast.success("Successfully processed");
-            queryClient.invalidateQueries({
-              queryKey: ["receipt-stamp-success"],
-            });
-          } else {
-            toast.error(response.message);
-          }
-        } catch (error) {
-          toast.error("Error occurred while processing");
-        } finally {
-          setIsLoadingNoStamp(false);
-        }
+        mutationNoStamp.mutate({ docNo });
       }
     }
-    setIsModalOpenNoStamp(false);
   };
 
   return (

@@ -68,11 +68,16 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
     getRowCanExpand: (row) => true,
   });
 
+  const resetRowSelection = () => {
+    setRowSelection({});
+  };
+
   return (
     <div className="space-y-4">
       <DataTableToolbar
         table={table}
         selectedRows={new Set(Object.keys(rowSelection))}
+        setSelectionRows={() => resetRowSelection()}
       />
       <div className="rounded-md border">
         <Table>
