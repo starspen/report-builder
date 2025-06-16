@@ -102,8 +102,52 @@ export interface Task {
 //   },
 // ];
 
-
 export const columns: ColumnDef<DataProps>[] = [
+    {
+    id: "select",
+    header: ({ table }) => {
+      // Dapatkan email user yang sedang login
+      const currentUserEmail = (table.options.meta as any)?.currentUserEmail;
+      
+      return (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => {
+            // Filter baris yang bisa diselect (email tidak sama dengan user login)
+            table.getRowModel().rows.forEach((row) => {
+              if (row.original.email !== currentUserEmail) {
+                row.toggleSelected(!!value);
+              }
+            });
+          }}
+          aria-label="Select all"
+          className="translate-y-0.5"
+        />
+      );
+    },
+    cell: ({ row, table }) => {
+      // Dapatkan email user yang sedang login dari props table.options.meta
+      const currentUserEmail = (table.options.meta as any)?.currentUserEmail;
+      // Dapatkan email dari row data
+      const rowEmail = row.original.email;
+      
+      return (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="translate-y-0.5"
+          // Nonaktifkan checkbox jika email sama
+          disabled={currentUserEmail === rowEmail}
+        />
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
   ...tableHeaders.map((header) => ({
     accessorKey: header.accessorKey,
     header: ({ column }: { column: Column<DataProps> }) => (
@@ -111,13 +155,34 @@ export const columns: ColumnDef<DataProps>[] = [
     ),
     cell: ({ row }: { row: Row<DataProps> }) => {
       const value = row.getValue(header.accessorKey);
-     
+
       if (header.accessorKey === "created_at") {
         const value = row.getValue("created_at");
-        return <span>{dayjs.utc(value as string).format("DD/MM/YYYY HH:mm")}</span>;
+        return (
+          <span>{dayjs.utc(value as string).format("DD/MM/YYYY HH:mm")}</span>
+        );
       }
 
-      
+      if (header.accessorKey === "role") {
+        const value = row.getValue("role") as string;
+        let descs = "";
+        if (value === "administrator") {
+          descs = "Administrator";
+        } else if (value === "maker") {
+          descs = "Creator";
+        } else if (value === "blaster") {
+          descs = "Broadcaster";
+        } else if (value === "maker and blaster") {
+          descs = "Creator and Broadcaster";
+        } else if (value === "approver") {
+          descs = "Reviewer";
+        } else {
+          descs = "-";
+        }
+
+        return <span>{descs}</span>;
+      }
+
       return <span>{String(value)}</span>;
     },
     enableSorting: true,
@@ -126,10 +191,9 @@ export const columns: ColumnDef<DataProps>[] = [
     },
   })),
 
-   {
+  {
     id: "actions",
-    accessorKey: "action",
-    header: "Actions",
+
     enableHiding: false,
     cell: ({ row }) => {
       return <DataTableRowActions row={row} />;

@@ -10,10 +10,12 @@ export const metadata: Metadata = {
 const Layout = async ({ children }: { children: React.ReactNode }) => {
   const session = await auth();
   const role = session?.user.role
+  const roles = session?.user.roles
+  const hasCustomerService = roles?.includes("Admin CS")
 
   console.log("gembel: ", role)
 
-  if (!session || role !== "administrator" ) {
+  if (!session || role !== "administrator" || hasCustomerService) {
     redirect("/");
   }
   return <>{children}</>;

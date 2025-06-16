@@ -112,6 +112,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
               <TableHead>Tax Invoice No</TableHead>
               <TableHead>Currency Cd</TableHead>
               <TableHead>Doc Amt</TableHead>
+              <TableHead>Broadcaster</TableHead>
               <TableHead>File Invoice</TableHead>
               <TableHead>File Reference</TableHead>
               <TableHead>File Faktur Pajak</TableHead>
@@ -124,6 +125,7 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
               <TableCell>{data.tax_invoice_no || "-"}</TableCell>
               <TableCell>{data.currency_cd}</TableCell>
               <TableCell>{rupiah(data.doc_amt)}</TableCell>
+              <TableCell>{data.audit_user}</TableCell>
               <TableCell>
                 {data.file_status_sign === "S" ? (
                   <Button

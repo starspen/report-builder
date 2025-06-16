@@ -30,7 +30,7 @@ interface DataTableToolbarProps {
 export function DataTableToolbar({
   table,
   selectedRows,
-  setSelectionRows
+  setSelectionRows,
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -80,15 +80,7 @@ export function DataTableToolbar({
   };
 
   const mutation = useMutation({
-    mutationFn: async ({
-      doc_no,
-      project_no,
-      debtor_acct,
-      trx_type,
-      entity_cd,
-      email_addr,
-      related_class,
-    }: {
+    mutationFn: async (payload: {
       doc_no: string;
       project_no: string;
       debtor_acct: string;
@@ -98,61 +90,108 @@ export function DataTableToolbar({
       related_class: string;
     }) => {
       const result = await generateInvoiceManual(
+        payload.doc_no,
+        payload.project_no,
+        payload.debtor_acct,
+        payload.trx_type,
+        payload.entity_cd,
+        payload.email_addr,
+        payload.related_class
+      );
+      return result;
+    },
+    // We’ll handle toasts and query invalidation manually after all calls finish.
+    onSuccess: () => {},
+    onError: () => {},
+  });
+
+  const handleGenerateInvoiceManual = async () => {
+    if (selectedRows.size === 0) {
+      toast.error("No rows selected.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    const allPromises = Array.from(selectedRows).map(async (rowId) => {
+      const row = table.getRow(String(rowId));
+      if (!row) throw new Error(`Row ${rowId} not found`);
+
+      const rowData = row.original as {
+        doc_no: string;
+        project_no: string;
+        debtor_acct: string;
+        trx_type: string;
+        entity_cd: string;
+        email_addr: string;
+        related_class?: string;
+      };
+
+      const {
         doc_no,
         project_no,
         debtor_acct,
         trx_type,
         entity_cd,
         email_addr,
-        related_class
-      );
-      return result;
-    },
-    onMutate: () => {
-      setIsLoading(true);
-    },
-    onSuccess: (result) => {
-      if (result.statusCode === 200 || result.statusCode === 201) {
-        toast.success("Success generating invoice");
-        queryClient.invalidateQueries({
-          queryKey: ["invoice-manual"],
-        });
-      } else {
-        toast.error(result.message);
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-    onSettled: () => {
-      setIsLoading(false);
-      setIsModalOpen(false);
-      setSelectionRows();
-    },
-  });
+        related_class = "DF",
+      } = rowData;
 
-  const handleGenerateInvoiceManual = async () => {
-    for (const rowId of Array.from(selectedRows)) {
-      const rowData = table.getRow(String(rowId))?.original;
-      if (rowData) {
-        const doc_no = rowData.doc_no;
-        const project_no = rowData.project_no;
-        const debtor_acct = rowData.debtor_acct;
-        const trx_type = rowData.trx_type;
-        const entity_cd = rowData.entity_cd;
-        const email_addr = rowData.email_addr;
-        const related_class = rowData.related_class || "DF";
-        mutation.mutate({
-          doc_no,
-          project_no,
-          debtor_acct,
-          trx_type,
-          entity_cd,
-          email_addr,
-          related_class,
-        });
+      return mutation.mutateAsync({
+        doc_no,
+        project_no,
+        debtor_acct,
+        trx_type,
+        entity_cd,
+        email_addr,
+        related_class,
+      });
+    });
+
+    const results = await Promise.allSettled(allPromises);
+
+    let successCount = 0;
+    let failCount = 0;
+    const failMessages: string[] = [];
+
+    results.forEach((res, idx) => {
+      if (res.status === "fulfilled") {
+        const apiResponse = res.value as {
+          statusCode: number;
+          message: string;
+        };
+        if (apiResponse.statusCode === 200 || apiResponse.statusCode === 201) {
+          // <— Use the API’s own message here
+          toast.success(apiResponse.message);
+          successCount += 1;
+        } else {
+          toast.error(apiResponse.message)
+          failCount += 1;
+          failMessages.push(
+            `Row ${Array.from(selectedRows)[idx]}: ${apiResponse.message}`
+          );
+        }
+      } else {
+        failCount += 1;
+        const err =
+          res.reason instanceof Error ? res.reason.message : String(res.reason);
+        failMessages.push(`Row ${Array.from(selectedRows)[idx]}: ${err}`);
       }
+    });
+
+    // Optionally: show a single summary if you still want that
+    if (successCount > 1) {
+      toast.success(`${successCount} invoices has been generated`);
     }
+    if (failCount > 0) {
+      toast.error(`${failCount} invoice(s) failed`);
+      console.error("Detail errors:", failMessages);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["invoice-manual"] });
+    setIsLoading(false);
+    setIsModalOpen(false);
+    setSelectionRows();
   };
 
   return (

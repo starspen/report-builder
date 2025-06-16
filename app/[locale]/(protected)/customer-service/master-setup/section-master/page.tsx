@@ -12,18 +12,9 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import SectionMasterView from "./page-view";
 
-const Entry = async () => {
-  const data = [
-    {
-      section_cd: "HS",
-      descs: "HOUSEKEEPING",
-    },
-    {
-      section_cd: "EG",
-      descs: "ENGINEERING",
-    },
-  ];
+const SectionMaster = async () => {
   const session = await auth();
+
   return (
     <div className="space-y-5">
       <Breadcrumb>
@@ -46,11 +37,11 @@ const Entry = async () => {
           <CardTitle>Section Master</CardTitle>
         </CardHeader>
         <CardContent>
-          <SectionMasterView />
+          <SectionMasterView session={session} />
         </CardContent>
       </Card>
     </div>
   );
 };
-
-export default Entry;
+  
+export default SectionMaster;

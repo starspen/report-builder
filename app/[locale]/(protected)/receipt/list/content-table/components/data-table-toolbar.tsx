@@ -19,16 +19,18 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { submitReceiptEmail } from "@/action/receipt-action";
 
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
+  setSelectionRows: () => void;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
+  setSelectionRows
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -56,41 +58,106 @@ export function DataTableToolbar({
     }
   };
 
-  const handleSubmitReceiptEmail = async () => {
-    for (const rowId of Array.from(selectedRows)) {
-      const rowData = table.getRow(String(rowId))?.original;
-      if (rowData) {
-        const docNo = rowData.doc_no;
-        const processId = rowData.process_id;
-        // const relatedClass = rowData.related_class;
-        const relatedClass = "OR";
+  const mutation = useMutation({
+    mutationFn: async (payload: {
+      docNo: string;
+      processId: string;
+      relatedClass: string;
+    }) => {
+      // This action calls your server‐side “submitInvoiceEmail” function
+      const result = await submitReceiptEmail(
+        payload.docNo,
+        payload.processId,
+        payload.relatedClass,
+      );
+      return result;
+    },
+    onSuccess: () => {
+    },
+    onError: () => {
+    },
+  });
 
-        setIsLoading(true);
-        try {
-          const response = await submitReceiptEmail(
-            docNo,
-            processId,
-            relatedClass
-          );
-          if (isLoading) {
-            toast.info("Submitting email, please wait...");
-          }
-          if (response.statusCode === 200 || response.statusCode === 201) {
-            toast.success("Success submitting email");
-            queryClient.invalidateQueries({
-              queryKey: ["receipt-list"],
-            });
-          } else {
-            toast.error(response.message);
-          }
-        } catch (error) {
-          toast.error("Error occurred while submitting data");
-        } finally {
-          setIsLoading(false);
-        }
-      }
+
+  const handleSubmitReceiptEmail = async () => {
+    if (selectedRows.size === 0) {
+      toast.error("No rows selected.");
+      return;
     }
+
+    setIsLoading(true);
+
+    const allPromises = Array.from(selectedRows).map(async (rowId) => {
+      const row = table.getRow(String(rowId));
+      if (!row) {
+        throw new Error(`Row ${rowId} not found in table.`);
+      }
+      const rowData = row.original as {
+        doc_no: string;
+        process_id: string;
+        related_class: string;
+      };
+
+      const {
+        doc_no: docNo,
+        process_id: processId,
+        related_class: relatedClass,
+      } = rowData;
+
+      return mutation.mutateAsync({
+        docNo,
+        processId,
+        relatedClass,
+      });
+    });
+
+    const results = await Promise.allSettled(allPromises);
+
+    let successCount = 0;
+    let failCount = 0;
+    const failMessages: string[] = [];
+
+    results.forEach((res, idx) => {
+      if (res.status === "fulfilled") {
+        const apiResponse = res.value as {
+          statusCode: number;
+          message: string;
+        };
+        if (
+          apiResponse?.statusCode === 200 ||
+          apiResponse?.statusCode === 201
+        ) {
+          toast.success(apiResponse.message)
+          successCount += 1;
+        } else {
+          toast.error(apiResponse.message)
+          failCount += 1;
+          failMessages.push(
+            `Row ${Array.from(selectedRows)[idx]}: ${apiResponse?.message || "Unknown error"
+            }`
+          );
+        }
+      } else {
+        failCount += 1;
+        const err =
+          res.reason instanceof Error ? res.reason.message : String(res.reason);
+        failMessages.push(`Row ${Array.from(selectedRows)[idx]}: ${err}`);
+      }
+    });
+
+    if (successCount > 0) {
+      toast.success(`Successfully submitted ${successCount} receipt(s).`);
+    }
+    if (failCount > 0) {
+      toast.error(`Failed to submit ${failCount} receipt(s).`);
+      console.error("Detail errors:", failMessages);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["receipt-list"] });
+
+    setIsLoading(false);
     setIsModalOpen(false);
+    setSelectionRows()
   };
 
   return (

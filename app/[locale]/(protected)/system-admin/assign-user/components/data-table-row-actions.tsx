@@ -52,23 +52,36 @@ export function DataTableRowActions({
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn : async ({ userId } : { userId: string }) => {
-      const result = await deleteMasterUser(userId)
-      return result
-    }
-  })
+    mutationFn: async ({ userId }: { userId: string }) => {
+      const result = await deleteMasterUser(userId);
+      return result;
+    },
+    // onMutate: () => {
+    //   setIsDeleting(true);
+    // },
+    onSuccess: (result) => {
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        toast.success(result.message);
+        queryClient.invalidateQueries({
+          queryKey: ["asset-user"],
+        });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+    //   setIsDeleting(false);
+      setOpenDeleteDialog(false);
+    },
+  });
 
   const handleDeleteUser = async () => {
     try {
-      const userEmail = [row.original.email];
-      const response = await fetch("/api/user/delete", {
-        method: "DELETE",
-        body: JSON.stringify(userEmail),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete users");
-      }
+      const userId = row.original.id;
+      mutation.mutate({ userId });
       await queryClient.invalidateQueries({ queryKey: ["user-list"] });
       toast.success("Users deleted successfully");
     } catch (error) {

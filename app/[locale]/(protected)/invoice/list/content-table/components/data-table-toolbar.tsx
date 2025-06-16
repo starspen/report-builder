@@ -25,10 +25,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
+  setSelectionRows: () => void;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
+  setSelectionRows
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -56,102 +58,127 @@ export function DataTableToolbar({
   };
 
   const mutation = useMutation({
-    mutationFn: async ({
-      docNo,
-      processId,
-      relatedClass,
-      doc_amt,
-      entity_cd,
-      project_no,
-      debtor_acct,
-    }: {
+    mutationFn: async (payload: {
       docNo: string;
       processId: string;
       relatedClass: string;
       doc_amt: string;
-      entity_cd:string;
+      entity_cd: string;
       project_no: string;
       debtor_acct: string;
     }) => {
+      // This action calls your server‐side “submitInvoiceEmail” function
       const result = await submitInvoiceEmail(
-        docNo, processId, relatedClass, doc_amt,
-        entity_cd, project_no, debtor_acct
+        payload.docNo,
+        payload.processId,
+        payload.relatedClass,
+        payload.doc_amt,
+        payload.entity_cd,
+        payload.project_no,
+        payload.debtor_acct
       );
       return result;
     },
-    onMutate: () => {
-      setIsLoading(true);
-    },
     onSuccess: () => {
-      toast.success("Success submitting email");
-      queryClient.invalidateQueries({
-        queryKey: ["invoice-list"],
-      });
     },
     onError: () => {
-      toast.error("Error occurred while submitting data");
-    },
-    onSettled: () => {
-      setIsLoading(false);
-      setIsModalOpen(false);
     },
   });
 
+
   const handleSubmitInvoiceEmail = async () => {
-    for (const rowId of Array.from(selectedRows)) {
-      const rowData = table.getRow(String(rowId))?.original;
-      if (rowData) {
-        console.log(rowData)
-        const {
-          doc_no: docNo,
-          process_id: processId,
-          related_class: relatedClass,
-          doc_amt: doc_amt,
-          entity_cd: entity_cd,
-          project_no: project_no,
-          debtor_acct: debtor_acct
-        } = rowData;
-        mutation.mutate({ docNo, processId, relatedClass, doc_amt, entity_cd, project_no, debtor_acct});
-      }
+    if (selectedRows.size === 0) {
+      toast.error("No rows selected.");
+      return;
     }
+
+    setIsLoading(true);
+
+    const allPromises = Array.from(selectedRows).map(async (rowId) => {
+      const row = table.getRow(String(rowId));
+      if (!row) {
+        throw new Error(`Row ${rowId} not found in table.`);
+      }
+      const rowData = row.original as {
+        doc_no: string;
+        process_id: string;
+        related_class: string;
+        doc_amt: string;
+        entity_cd: string;
+        project_no: string;
+        debtor_acct: string;
+      };
+
+      const {
+        doc_no: docNo,
+        process_id: processId,
+        related_class: relatedClass,
+        doc_amt,
+        entity_cd,
+        project_no,
+        debtor_acct,
+      } = rowData;
+
+      return mutation.mutateAsync({
+        docNo,
+        processId,
+        relatedClass,
+        doc_amt,
+        entity_cd,
+        project_no,
+        debtor_acct,
+      });
+    });
+
+    const results = await Promise.allSettled(allPromises);
+
+    let successCount = 0;
+    let failCount = 0;
+    const failMessages: string[] = [];
+
+    results.forEach((res, idx) => {
+      if (res.status === "fulfilled") {
+        successCount += 1;
+        const apiResponse = res.value as {
+          statusCode: number;
+          message: string;
+        };
+        if (
+          apiResponse?.statusCode === 200 ||
+          apiResponse?.statusCode === 201
+        ) {
+          toast.success(apiResponse.message)
+          successCount += 1;
+        } else {
+          toast.error(apiResponse.message)
+          failCount += 1;
+          failMessages.push(
+            `Row ${Array.from(selectedRows)[idx]}: ${apiResponse?.message || "Unknown error"
+            }`
+          );
+        }
+      } else {
+        failCount += 1;
+        const err =
+          res.reason instanceof Error ? res.reason.message : String(res.reason);
+        failMessages.push(`Row ${Array.from(selectedRows)[idx]}: ${err}`);
+      }
+    });
+
+    if (successCount > 0) {
+      toast.success(`Successfully submitted ${successCount} invoice(s).`);
+    }
+    if (failCount > 0) {
+      toast.error(`Failed to submit ${failCount} invoice(s).`);
+      console.error("Detail errors:", failMessages);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["invoice-list"] });
+
+    setIsLoading(false);
+    setIsModalOpen(false);
+    setSelectionRows()
   };
-
-  // const handleSubmitInvoiceEmail = async () => {
-  //   for (const rowId of Array.from(selectedRows)) {
-  //     const rowData = table.getRow(String(rowId))?.original;
-  //     if (rowData) {
-  //       const docNo = rowData.doc_no;
-  //       const processId = rowData.process_id;
-  //       const relatedClass = rowData.related_class;
-
-  //       setIsLoading(true);
-
-  //       try {
-  //         const response = await submitInvoiceEmail(
-  //           docNo,
-  //           processId,
-  //           relatedClass
-  //         );
-  //         if (isLoading) {
-  //           toast.info("Submitting email, please wait...");
-  //         }
-  //         if (response.statusCode === 200) {
-  //           toast.success("Success submitting email");
-  //           queryClient.invalidateQueries({
-  //             queryKey: ["invoice-email"],
-  //           });
-  //         } else {
-  //           toast.error(response.message);
-  //         }
-  //       } catch (error) {
-  //         toast.error("Error occurred while submitting data");
-  //       } finally {
-  //         setIsLoading(false);
-  //       }
-  //     }
-  //   }
-  //   setIsModalOpen(false);
-  // };
 
   return (
     <div className="flex flex-1 flex-wrap items-center gap-2">
@@ -171,20 +198,19 @@ export function DataTableToolbar({
       )}
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      {selectedRows.size > 0 && (
-        <Button
-          variant="outline"
-          color="primary"
-          size="sm"
-          className="ltr:ml-2 rtl:mr-2 h-8"
-          onClick={handleOpenModal}
-          disabled={isLoading}
-        >
-          <Send className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-          Submit
-        </Button>
-      )}
-
+        {selectedRows.size > 0 && (
+          <Button
+            variant="outline"
+            color="primary"
+            size="sm"
+            className="ltr:ml-2 rtl:mr-2 h-8"
+            onClick={handleOpenModal}
+            disabled={isLoading}
+          >
+            <Send className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+            Submit
+          </Button>
+        )}
 
         <AlertDialogContent>
           <AlertDialogHeader>

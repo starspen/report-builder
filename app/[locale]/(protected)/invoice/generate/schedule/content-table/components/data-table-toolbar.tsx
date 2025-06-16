@@ -110,31 +110,17 @@ export function DataTableToolbar({
       );
       return result;
     },
-    onMutate: () => {
-      setIsLoading(true);
-    },
-    onSuccess: (result) => {
-      if (result.statusCode === 200 || result.statusCode === 201) {
-        toast.success("Success generating invoice");
-        queryClient.invalidateQueries({
-          queryKey: ["invoice-schedule"],
-        });
-      } else {
-        toast.error(result.message);
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-    onSettled: () => {
-      setIsLoading(false);
-      setIsModalOpen(false);
-      setSelectionRows();
-    },
+    onSuccess: () => {},
+    onError: () => {},
   });
 
   const handleGenerateInvoiceSchedule = async () => {
-    for (const rowId of Array.from(selectedRows)) {
+    if (selectedRows.size === 0) {
+      toast.error("please select an invoice to be generated");
+      return;
+    }
+    setIsLoading(true);
+    const allPromises = Array.from(selectedRows).map(async (rowId) => {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
         const doc_no = rowData.doc_no;
@@ -144,7 +130,7 @@ export function DataTableToolbar({
         const related_class = rowData.related_class || "DF";
         const entity_cd = rowData.entity_cd;
         const email_addr = rowData.email_addr;
-        mutation.mutate({
+        return mutation.mutateAsync({
           doc_no,
           project_no,
           debtor_acct,
@@ -154,7 +140,57 @@ export function DataTableToolbar({
           email_addr,
         });
       }
+    });
+
+    // 2) Wait for all of them to settle (fulfilled or rejected):
+    const results = await Promise.allSettled(allPromises);
+
+    // 3) Tally up successes vs. failures:
+    let successCount = 0;
+    let failCount = 0;
+    const failMessages: string[] = [];
+
+    results.forEach((res, idx) => {
+      if (res.status === "fulfilled") {
+        // You can inspect res.value.statusCode if needed.
+        const apiResponse = res.value as {
+          statusCode: number;
+          message: string;
+        };
+        if (
+          apiResponse?.statusCode === 200 ||
+          apiResponse?.statusCode === 201
+        ) {
+          toast.success(apiResponse.message)
+          successCount += 1;
+        } else {
+          toast.error(apiResponse.message)
+          failCount += 1;
+          failMessages.push(
+            `Row ${Array.from(selectedRows)[idx]}: ${
+              apiResponse?.message || "Unknown error"
+            }`
+          );
+        }
+      } else {
+        failCount += 1;
+        const err =
+          res.reason instanceof Error ? res.reason.message : String(res.reason);
+        failMessages.push(`Row ${Array.from(selectedRows)[idx]}: ${err}`);
+      }
+    });
+    if (successCount > 0) {
+      toast.success(`${successCount} invoices has been generated`);
     }
+    if (failCount > 0) {
+      toast.error(`${failCount} invoice(s) failed`);
+      console.error("Detail errors:", failMessages);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["invoice-schedule"] });
+    setIsLoading(false);
+    setIsModalOpen(false);
+    setSelectionRows();
   };
 
   return (

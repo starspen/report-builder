@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, MoreHorizontal } from "lucide-react";
+import { Loader2, MoreHorizontal, SquarePen } from "lucide-react";
 import { Row } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Dialog } from "@/components/ui/dialog";
 import { Pencil, Trash2 } from "lucide-react";
@@ -45,7 +46,8 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
   const userId = row.original.user_id;
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async () => {
+    const userId = row.original.user_id;
     setIsLoading(true);
     const result = await deleteMasterUser(userId);
     if (result.statusCode === 200) {
@@ -71,62 +73,67 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   if (isLoadingRange) {
     return null
   }
-
+  
   return (
+    <>
+      <FormEdit open={isModalOpenEdit} setIsModalOpen={setIsModalOpenEdit} row={row.original} range={rangeData?.data || []}/>
 
-    <div className="flex items-center gap-1">
-      <Dialog open={isModalOpenEdit} onOpenChange={setIsModalOpenEdit}>
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
         <Button
+          variant="ghost"
           size="icon"
-          color="info"
-          onClick={() => setIsModalOpenEdit(true)}
+          className="h-7 w-7 border-default-200 text-default-400 ring-offset-transparent hover:ring-secondary disabled:pointer-events-none dark:border-default-300"
+          color="secondary"
         >
-          <Pencil className="w-4 h-4" />
+          <MoreHorizontal className="h-4 w-4" />
+          <span className="sr-only">Open menu</span>
         </Button>
-
-        {isModalOpenEdit && row.original && (
-          <FormEdit setIsModalOpen={setIsModalOpenEdit} row={row.original} range={rangeData?.data || []}/>
-        )}
-      </Dialog>
-
-      <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <Button
-          size="icon"
-          color="destructive"
-          onClick={() => setIsModalOpen(true)}
-          disabled={isLoading}
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
-
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to delete this data?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Please confirm if you want to delete. This action will delete this
-              data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            {!isLoading && (
-              <AlertDialogCancel onClick={() => setIsModalOpen(false)}>
-                Cancel
-              </AlertDialogCancel>
-            )}
-            <Button
-              className="relative"
-              onClick={() => {
-                handleDeleteUser(userId);
-              }}
-              disabled={isLoading}
-            >
-              {isLoading ? "Deleting..." : "Delete"}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+      </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[160px]">
+          <DropdownMenuItem
+            className="cursor-pointer rounded-none py-2 text-default-600 focus:bg-default focus:text-default-foreground"
+            onClick={() => setIsModalOpenEdit(true)}
+          >
+            <SquarePen className="me-1 h-3.5 w-3.5" />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <AlertDialog
+            open={isModalOpen}
+            onOpenChange={setIsModalOpen}
+          >
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem
+                className="text-destructive hover:cursor-pointer"
+                onSelect={(e) => e.preventDefault()}
+              >
+                Delete
+                <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Are you sure you want to delete this user?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <Button
+                  className="bg-destructive/80 dark:bg-destructive/90 dark:text-white"
+                  onClick={handleDeleteUser}
+                >
+                  Delete
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </DropdownMenuContent>
+    </DropdownMenu>
+    </>
   );
 }

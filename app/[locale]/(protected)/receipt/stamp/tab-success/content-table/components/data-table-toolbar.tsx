@@ -84,28 +84,11 @@ export function DataTableToolbar({
     onMutate: () => {
       setIsLoading(true);
     },
-    onSuccess: (result) => {
-      if (result.statusCode === 200 || result.statusCode === 201) {
-        toast.success("Success stamping");
-        queryClient.invalidateQueries({
-          queryKey: ["receipt-stamp-success"],
-        });
-      } else {
-        toast.error(result.message);
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-    onSettled: () => {
-      setIsLoading(false);
-      setIsModalOpen(false);
-      setSelectionRows();
-    },
   });
 
   const handleStampReceipt = async () => {
-    for (const rowId of Array.from(selectedRows)) {
+    setIsLoading(true)
+    const allPromises = Array.from(selectedRows).map(async (rowId) => {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
         const {
@@ -113,10 +96,58 @@ export function DataTableToolbar({
           invoice_tipe: fileType,
           process_id: processId,
         } = rowData;
-
-        mutation.mutate({ fileName, fileType, processId });
+        return mutation.mutateAsync({ fileName, fileType, processId });
       }
+    });
+
+    const results = await Promise.allSettled(allPromises);
+
+    // 3) Tally up successes vs. failures:
+    let successCount = 0;
+    let failCount = 0;
+    const failMessages: string[] = [];
+
+    results.forEach((res, idx) => {
+      if (res.status === "fulfilled") {
+        // You can inspect res.value.statusCode if needed.
+        const apiResponse = res.value as {
+          statusCode: number;
+          message: string;
+        };
+        if (
+          apiResponse?.statusCode === 200 ||
+          apiResponse?.statusCode === 201
+        ) {
+          toast.success(apiResponse?.message)
+          successCount += 1;
+        } else {
+          toast.error(apiResponse?.message)
+          failCount += 1;
+          failMessages.push(
+            `Row ${Array.from(selectedRows)[idx]}: ${
+              apiResponse?.message || "Unknown error"
+            }`
+          );
+        }
+      } else {
+        failCount += 1;
+        const err =
+          res.reason instanceof Error ? res.reason.message : String(res.reason);
+        failMessages.push(`Row ${Array.from(selectedRows)[idx]}: ${err}`);
+      }
+    });
+    if (successCount > 0) {
+      toast.success(`Successfully stamped ${successCount} receipt(s).`);
     }
+    if (failCount > 0) {
+      toast.error(`Failed to stamp ${failCount} receipt(s).`);
+      console.error("Detail errors:", failMessages);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["receipt-stamp-success"] });
+    setIsLoading(false);
+    setIsModalOpen(false);
+    setSelectionRows();
   };
 
   const mutationNoStamp = useMutation({
@@ -124,38 +155,67 @@ export function DataTableToolbar({
       const result = await noStampReceipt(docNo);
       return result;
     },
-    onMutate: () => {
-      setIsLoadingNoStamp(true);
-    },
-    onSuccess: (result) => {
-      if (result.statusCode === 200 || result.statusCode === 201) {
-        toast.success("Successfully processed");
-        queryClient.invalidateQueries({
-          queryKey: ["receipt-stamp-success"],
-        });
-      } else {
-        toast.error(result.message);
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-    onSettled: () => {
-      setIsLoadingNoStamp(false);
-      setIsModalOpenNoStamp(false);
-      setSelectionRows();
-    },
   });
 
   const handleNoStampReceipt = async () => {
-    for (const rowId of Array.from(selectedRows)) {
+    if (selectedRows.size === 0) {
+      toast.error("please select a receipt to be no stamped");
+      return;
+    }
+    setIsLoadingNoStamp(true);
+    const allPromises = Array.from(selectedRows).map(async (rowId) => {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
         const { doc_no: docNo } = rowData;
-
-        mutationNoStamp.mutate({ docNo });
+        return mutationNoStamp.mutateAsync({ docNo });
       }
+    });
+    const results = await Promise.allSettled(allPromises);
+
+    // 3) Tally up successes vs. failures:
+    let successCount = 0;
+    let failCount = 0;
+    const failMessages: string[] = [];
+
+    results.forEach((res, idx) => {
+      if (res.status === "fulfilled") {
+        // You can inspect res.value.statusCode if needed.
+        const apiResponse = res.value as {
+          statusCode: number;
+          message: string;
+        };
+        if (
+          apiResponse?.statusCode === 200 ||
+          apiResponse?.statusCode === 201
+        ) {
+          successCount += 1;
+        } else {
+          failCount += 1;
+          failMessages.push(
+            `Row ${Array.from(selectedRows)[idx]}: ${
+              apiResponse?.message || "Unknown error"
+            }`
+          );
+        }
+      } else {
+        failCount += 1;
+        const err =
+          res.reason instanceof Error ? res.reason.message : String(res.reason);
+        failMessages.push(`Row ${Array.from(selectedRows)[idx]}: ${err}`);
+      }
+    });
+    if (successCount > 0) {
+      toast.success(`Successfully no stamped ${successCount} receipt(s).`);
     }
+    if (failCount > 0) {
+      toast.error(`Failed to no stamp ${failCount} receipt(s).`);
+      console.error("Detail errors:", failMessages);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["receipt-stamp-success"] });
+    setIsLoadingNoStamp(false);
+    setIsModalOpen(false);
+    setSelectionRows();
   };
 
   return (

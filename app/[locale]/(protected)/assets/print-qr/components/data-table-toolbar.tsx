@@ -8,7 +8,7 @@ import { DataTableViewOptions } from "./data-table-view-options";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { Table } from "@tanstack/react-table";
 import { useRouter } from "@/components/navigation";
-import { isprinted, department, auditStatus } from "../data/data";
+import { isprinted, auditStatus } from "../data/data";
 import { locales } from "@/config";
 import * as XLSX from "xlsx";
 import { tableHeaders } from "../data";
@@ -63,13 +63,39 @@ export function DataTableToolbar({
   function downloadAsXLSX(data: any) {
     const worksheet = XLSX.utils.json_to_sheet(data);
 
+    // Mengkonversi URL menjadi hyperlink yang bisa diklik dengan format sederhana
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+    
+    for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
+      // Kolom untuk url_file_attachment, url_file_attachment2, url_file_attachment3
+      ['url_file_attachment', 'url_file_attachment2', 'url_file_attachment3'].forEach((colName, index) => {
+        // Cari indeks kolom berdasarkan header
+        const headers = data[0] ? Object.keys(data[0]) : [];
+        const colIndex = headers.indexOf(colName);
+        
+        if (colIndex !== -1) {
+          const cellAddress = XLSX.utils.encode_cell({ r: rowNum, c: colIndex });
+          const cell = worksheet[cellAddress];
+          
+          if (cell && cell.v && typeof cell.v === 'string' && cell.v.trim() !== '') {
+            const url = cell.v.trim();
+            // Set sebagai hyperlink sederhana - URL tetap normal tapi bisa diklik
+            cell.l = { Target: url, Tooltip: "Click to open image" };
+            cell.s = {
+              font: { color: { rgb: "0000FF" }, underline: true }
+            };
+          }
+        }
+      });
+    }
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
 
     const now = new Date();
     const formattedDate = `${String(now.getDate()).padStart(2, "0")}${String(now.getMonth() + 1).padStart(2, "0")}${now.getFullYear()}-${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
 
-    XLSX.writeFile(workbook, `print-qr-${formattedDate}.xlsx`);
+    XLSX.writeFile(workbook, `assets-qr-list-${formattedDate}.xlsx`);
   }
 
   return (
@@ -128,10 +154,20 @@ export function DataTableToolbar({
           downloadAsXLSX(
             table.getFilteredRowModel().rows.map((row) => {
               const original = row.original;
-              const filteredData: any = {};
+              const filteredData: any = {};              
               tableHeaders.forEach((header) => {
-                filteredData[header.accessorKey] = original[header.accessorKey];
+                // Skip kolom images karena ini hanya untuk tampilan tabel
+                if (header.accessorKey === "images") {
+                  return; // Skip kolom images
+                } else {
+                  filteredData[header.accessorKey] = original[header.accessorKey];
+                }
               });
+              
+              filteredData["url_file_attachment"] = original.url_file_attachment || "";
+              filteredData["url_file_attachment2"] = original.url_file_attachment2 || "";
+              filteredData["url_file_attachment3"] = original.url_file_attachment3 || "";
+
               return filteredData;
             }),
           )

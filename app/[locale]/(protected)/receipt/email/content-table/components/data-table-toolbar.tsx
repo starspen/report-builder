@@ -69,37 +69,64 @@ export function DataTableToolbar({
       const result = await sendReceiptEmail(docNo, processId);
       return result;
     },
-    onMutate: () => {
-      setIsLoading(true);
-    },
-    onSuccess: (result) => {
-      if (result.statusCode === 200 || result.statusCode === 201) {
-        toast.success("Success sending email");
-        queryClient.invalidateQueries({
-          queryKey: ["receipt-email"],
-        });
-      } else {
-        toast.error(result.message);
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-    onSettled: () => {
-      setIsLoading(false);
-      setIsModalOpen(false);
-      setSelectionRows();
-    },
   });
 
   const handleSendingReceiptEmail = async () => {
-    for (const rowId of Array.from(selectedRows)) {
+    setIsLoading(true);
+
+    const allPromises = Array.from(selectedRows).map(async (rowId) => {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
         const { doc_no: docNo, process_id: processId } = rowData;
-        mutation.mutate({ docNo, processId });
+        return mutation.mutateAsync({ docNo, processId });
       }
+    });
+
+    const results = await Promise.allSettled(allPromises);
+
+    let successCount = 0;
+    let failCount = 0;
+    const failMessages: string[] = [];
+
+    results.forEach((res, idx) => {
+      if (res.status === "fulfilled") {
+        const apiResponse = res.value as {
+          statusCode: number;
+          message: string;
+        };
+        if (apiResponse.statusCode === 200 || apiResponse.statusCode === 201) {
+          toast.success(apiResponse.message);
+          successCount += 1;
+        } else {
+          toast.error(apiResponse.message);
+          failCount += 1;
+          failMessages.push(
+            `Row ${Array.from(selectedRows)[idx]}: ${apiResponse.message}`
+          );
+        }
+      } else {
+        failCount += 1;
+        const err =
+          res.reason instanceof Error ? res.reason.message : String(res.reason);
+        failMessages.push(`Row ${Array.from(selectedRows)[idx]}: ${err}`);
+      }
+    });
+
+    // Optionally: show a single summary if you still want that
+    if (successCount > 1) {
+      toast.success(
+        `email for ${successCount} receipts has been processed, please check blast history for detail`
+      );
     }
+    if (failCount > 0) {
+      toast.error(`${failCount} invoice(s) failed`);
+      console.error("Detail errors:", failMessages);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["receipt-email"] });
+    setIsLoading(false);
+    setIsModalOpen(false);
+    setSelectionRows();
   };
 
   return (

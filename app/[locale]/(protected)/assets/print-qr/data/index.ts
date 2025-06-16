@@ -12,9 +12,17 @@ export type DataProps = {
   qr_url_attachment: string;
   isprint: string;
   audit_status: string;
+  // URL attachments untuk images
+  url_file_attachment: string;
+  url_file_attachment2: string;
+  url_file_attachment3: string;
 };
 
 export const tableHeaders = [
+  {
+    accessorKey: "images", // Kolom gabungan untuk carousel
+    header: "Images",
+  },
   {
     accessorKey: "entity_name",
     header: "Entity",

@@ -66,7 +66,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
     <div className="space-y-4">
       <DataTableToolbar
         table={table}
-        selectedRows={new Set(Object.keys(rowSelection))}
+        //selectedRows={new Set(Object.keys(rowSelection))}
       />
       <div className="rounded-md border">
         <Table>

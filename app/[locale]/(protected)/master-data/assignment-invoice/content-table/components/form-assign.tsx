@@ -274,7 +274,7 @@ export const FormAssign = ({
                   "text-destructive": errors.maker,
                 })}
               >
-                Maker
+                Creator
               </Label>
               <div className="flex flex-col w-full">
                 <Select
@@ -368,7 +368,7 @@ export const FormAssign = ({
                   "text-destructive": errors.stampBlast,
                 })}
               >
-                Stamp & Blast Email
+                Creator & Broadcaster
               </Label>
               <div className="flex flex-col w-full">
                 <Select

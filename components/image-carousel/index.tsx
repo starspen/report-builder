@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -41,8 +40,8 @@ const BasicCarousel = ({ images }: BasicCarouselProps) => {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="absolute left-2 top-32 -translate-y-1/2 opacity-5 hover:opacity-100" />
-      <CarouselNext className="absolute right-2 top-32 -translate-y-1/2 opacity-5 hover:opacity-100" />
+      <CarouselPrevious className="absolute left-2 top-32 -translate-y-1/2 opacity-60 hover:opacity-100" color="default"/>
+      <CarouselNext className="absolute right-2 top-32 -translate-y-1/2 opacity-60 hover:opacity-100" color="default"/>
     </Carousel>
   );
 };

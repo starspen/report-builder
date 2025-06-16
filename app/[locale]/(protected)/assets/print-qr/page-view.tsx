@@ -3,8 +3,19 @@ import { getWithQrData } from "@/action/generate-qr-action";
 import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "./components/data-table";
 import { columns } from "./components/columns";
-export default function PrintQrPageView({ session }: { session: any }) {
-  // Gunakan queryKey yang dinamis berdasarkan user role
+
+type Props = {
+  session: any;
+  startDate?: Date;
+  endDate?: Date;
+};
+
+export default function PrintQrPageView({
+  session,
+  startDate,
+  endDate,
+}: Props) {
+  // 1) fetch
   const { data, isLoading, isError } = useQuery({
     queryKey: [
       "with-qr-data",
@@ -12,65 +23,55 @@ export default function PrintQrPageView({ session }: { session: any }) {
       session?.user?.div_cd,
       session?.user?.dept_cd,
     ],
-    queryFn: async () => {
-      const result = await getWithQrData();
-      return result;
-    },
+    queryFn: () => getWithQrData(),
     enabled: !!session?.user,
   });
 
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error fetching data</div>;
-  if (!data || (Array.isArray(data) && data.length === 0)) {
+
+  const raw = data?.data;
+  if (!raw || (Array.isArray(raw) && raw.length === 0)) {
     return <div>{data?.message || "No data available"}</div>;
   }
 
-  // Transformasi Data Berdasarkan Role
-  const transformedData = data?.data?.map((item: any) => ({
+  // 2) normalize nulls
+  const transformed = raw.map((item: any) => ({
     ...item,
-    isprint: item.isprint === null ? "N" : item.isprint,
-    audit_status: item.audit_status === null ? "N" : item.audit_status,
+    isprint: item.isprint ?? "N",
+    audit_status: item.audit_status ?? "N",
   }));
 
-  // Data untuk Admin: Semua data tanpa filter
-  const adminData = transformedData;
+  // 3) role filter
+  const roleFiltered =
+    session.user.role === "administrator"
+      ? transformed
+      : transformed.filter((item: any) => item.dept_cd === session.user.dept_cd);
 
-  // Data untuk User Non-Admin: Filter berdasarkan div_cd dan dept_cd
-  const userFilteredData = Array.isArray(transformedData)
-    ? transformedData.filter(
-        (item: any) => 
-          item.dept_cd === session?.user?.dept_cd
-      )
-    : [];
+  // 4) date‐range filter (if both dates are set)
+  const dateFiltered = startDate && endDate
+    ? roleFiltered.filter((item: any) => {
+        const acq = new Date(item.purchase_date);
+        // include both endpoints
+        return acq >= startDate && acq <= endDate;
+      })
+    : roleFiltered;
 
-  // Pilih data sesuai role
-  const displayedData =
-    session?.user?.role === "administrator" ? adminData : userFilteredData;
+  // 5) prepare selects
+  const entity_name_db = Array.from(
+    new Set(dateFiltered.map((i: any) => i.entity_name))
+  ).map((v) => ({ value: v, label: v }));
 
-  // Unik untuk Entity Name dan Department
-  const entity_name_db = Array.isArray(displayedData)
-    ? Array.from(
-        new Set(displayedData.map((item: any) => item.entity_name)),
-      ).map((name) => ({
-        value: name,
-        label: name,
-      }))
-    : [];
+  const department_db = Array.from(
+    new Set(dateFiltered.map((i: any) => i.dept_descs))
+  ).map((v) => ({ value: v, label: v }));
 
-  const department_db = Array.isArray(displayedData)
-    ? Array.from(
-        new Set(displayedData.map((item: any) => item.dept_descs)),
-      ).map((name) => ({
-        value: name,
-        label: name,
-      }))
-    : [];
-
+  // 6) render
   return (
     <div>
-      {Array.isArray(displayedData) && displayedData.length > 0 ? (
+      {dateFiltered.length > 0 ? (
         <DataTable
-          data={displayedData}
+          data={dateFiltered}
           columns={columns}
           entity_name_db={entity_name_db}
           department_db={department_db}

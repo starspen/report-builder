@@ -2,6 +2,18 @@
   "Index": {
     "title": "Hello world!"
   },
+  "IFCADashboard": {
+    "total_assets": "Total Assets",
+    "asset_total_value": "Asset Total Value",
+    "highest_assets_value": "Highest Assets Value",
+    "lowest_assets_value": "Lowest Assets Value",
+    "from_last_weeks": "From Last Weeks",
+    "welcome_back": "Welcome back",
+    "asset_listing": "Asset Listing",
+    "total_assets_printed_qr": "Printed QR Assets",
+    "department_with_most_assets": "Most Asset Department",
+    "unprinted_assets": "Unprinted Assets"
+  },
   "AnalyticsDashboard": {
     "widget_title": "Upgrade your Dashcode",
     "widget_desc": "Pro plan for better results",
@@ -21,18 +33,6 @@
     "last_28_days": "Last 28 days",
     "last_months": "Last months",
     "last_year": "Last year"
-  },
-  "IFCADashboard": {
-    "total_assets": "Total Assets",
-    "asset_total_value": "Asset Total Value",
-    "highest_assets_value": "Highest Assets Value",
-    "lowest_assets_value": "Lowest Assets Value",
-    "from_last_weeks": "From Last Weeks",
-    "welcome_back": "Welcome back",
-    "asset_listing": "Asset Listing",
-    "total_assets_printed_qr": "Printed QR Assets",
-    "department_with_most_assets": "Most Asset Department",
-    "unprinted_assets": "Unprinted Assets"
   },
   "BankingDashboard": {
     "widget_title": "Good evening",
@@ -151,6 +151,14 @@
     "customer-service": "Customer Service",
     "cs-master-svspec": "CS Specification",
     "cs-master-section-master": "Section Master",
+    "cs-master-labour-master": "Labour Master",
+    "cs-master-category-group-master": "Category Group Master",
+    "cs-master-category-master": "Category Master",
+    "cs-master-cs-setup": "CS Setup",
+    "cs-master-complain-source": "Complain Source",
+    "cs-master-item-master": "Item Master",
+    "cs-master-feedback-setup": "Feedback Setup",
+    "cs-master-location": "Location",
     "welcome": "Welcome", 
     "dashboard": "Dashboard",
     "analytics": "Analytics",

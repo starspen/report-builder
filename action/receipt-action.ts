@@ -15,9 +15,10 @@ export const getReceiptSchedule = async (
     } else {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
-
+    const session = await auth();
+    const auditUser = session?.user?.email;
     const response = await fetch(`
-      ${url}/api/receipt/get?startDate=${startDate}&endDate=${endDate}
+      ${url}/api/receipt/get?startDate=${startDate}&endDate=${endDate}&auditUser=${auditUser}
       `,
       {
         method: "GET",
@@ -90,7 +91,7 @@ export const generateReceiptSchedule = async (
 export const getReceiptList = async () => {
   try {
     const session = await auth();
-    const auditUser = session?.user?.name;
+    const auditUser = session?.user?.email;
 
     let url = "";
     if (mode === "sandbox") {

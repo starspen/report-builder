@@ -11,10 +11,10 @@ import { DataProps } from "../data";
 import { tableHeaders } from "../data";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { DataTableColumnHeader } from "./data-table-column-header";
-import { statuses } from "../data/data";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import BasicCarousel from "@/components/image-carousel";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -51,6 +51,30 @@ export const columns: ColumnDef<DataProps>[] = [
     ),
     cell: ({ row }: { row: Row<DataProps> }) => {
       const value = row.getValue(header.accessorKey);
+
+      // Handler khusus untuk kolom images
+      if (header.accessorKey === "images") {
+        const images = [
+          row.original.url_file_attachment,
+          row.original.url_file_attachment2,
+          row.original.url_file_attachment3,
+        ].filter((url) => url !== null && url !== undefined && url !== "");
+        
+        if (images.length === 0) {
+          return <div className="flex items-center justify-center w-32 h-24 overflow-hidden rounded-md">
+            <span className="text-muted-foreground">Not Audited</span>
+          </div>;
+        }
+        
+        return (
+          <div className="flex items-center justify-center w-32 h-24 overflow-hidden rounded-md">
+            <div style={{ transform: 'scale(0.6)', transformOrigin: 'center' }}>
+              <BasicCarousel images={images} />
+            </div>
+          </div>
+        );
+      }
+
       // Format date for specific columns
       if (
         header.accessorKey === "acquire_date" ||
@@ -91,7 +115,7 @@ export const columns: ColumnDef<DataProps>[] = [
       }
       return <span>{String(value)}</span>;
     },
-    enableSorting: true,
+    enableSorting: header.accessorKey !== "images", // Disable sorting untuk kolom images
     filterFn: (row: Row<DataProps>, id: string, filterValues: unknown[]) => {
       return filterValues.includes(row.getValue(id));
     },

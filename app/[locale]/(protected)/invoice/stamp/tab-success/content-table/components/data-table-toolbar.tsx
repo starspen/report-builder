@@ -30,7 +30,7 @@ interface DataTableToolbarProps {
 export function DataTableToolbar({
   table,
   selectedRows,
-  setSelectionRows
+  setSelectionRows,
 }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -73,27 +73,8 @@ export function DataTableToolbar({
       const result = await stampInvoice(fileName, fileType, processId);
       return result;
     },
-    onMutate: () => {
-      setIsLoading(true);
-    },
-    onSuccess: (result) => {
-      if (result.statusCode === 200 || result.statusCode === 201) {
-        toast.success("Success stamping");
-        queryClient.invalidateQueries({
-          queryKey: ["invoice-stamp-success"],
-        });
-      } else {
-        toast.error(result.message);
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-    onSettled: () => {
-      setIsLoading(false);
-      setIsModalOpen(false);
-      setSelectionRows();
-    },
+    onSuccess: () => {},
+    onError: () => {},
   });
 
   const handleOpenModalNoStamp = async () => {
@@ -105,7 +86,8 @@ export function DataTableToolbar({
   };
 
   const handleStampInvoice = async () => {
-    for (const rowId of Array.from(selectedRows)) {
+    setIsLoading(true)
+    const allPromises = Array.from(selectedRows).map(async (rowId) => {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
         const {
@@ -113,9 +95,58 @@ export function DataTableToolbar({
           invoice_tipe: fileType,
           process_id: processId,
         } = rowData;
-        mutation.mutate({ fileName, fileType, processId });
+        return mutation.mutateAsync({ fileName, fileType, processId });
       }
+    });
+
+    const results = await Promise.allSettled(allPromises);
+
+    // 3) Tally up successes vs. failures:
+    let successCount = 0;
+    let failCount = 0;
+    const failMessages: string[] = [];
+
+    results.forEach((res, idx) => {
+      if (res.status === "fulfilled") {
+        // You can inspect res.value.statusCode if needed.
+        const apiResponse = res.value as {
+          statusCode: number;
+          message: string;
+        };
+        if (
+          apiResponse?.statusCode === 200 ||
+          apiResponse?.statusCode === 201
+        ) {
+          toast.success(apiResponse?.message)
+          successCount += 1;
+        } else {
+          toast.error(apiResponse?.message)
+          failCount += 1;
+          failMessages.push(
+            `Row ${Array.from(selectedRows)[idx]}: ${
+              apiResponse?.message || "Unknown error"
+            }`
+          );
+        }
+      } else {
+        failCount += 1;
+        const err =
+          res.reason instanceof Error ? res.reason.message : String(res.reason);
+        failMessages.push(`Row ${Array.from(selectedRows)[idx]}: ${err}`);
+      }
+    });
+    if (successCount > 0) {
+      toast.success(`Successfully stamped ${successCount} invoice(s).`);
     }
+    if (failCount > 0) {
+      toast.error(`Failed to stamp ${failCount} invoice(s).`);
+      console.error("Detail errors:", failMessages);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["invoice-stamp-success"] });
+    setIsLoading(false);
+    setIsModalOpen(false);
+    setSelectionRows();
   };
 
   const mutationNoStamp = useMutation({
@@ -123,37 +154,69 @@ export function DataTableToolbar({
       const result = await noStampInvoice(docNo);
       return result;
     },
-    onMutate: () => {
-      setIsLoadingNoStamp(true);
-    },
-    onSuccess: (result) => {
-      if (result.statusCode === 200 || result.statusCode === 201) {
-        toast.success("Successfully processed");
-        queryClient.invalidateQueries({
-          queryKey: ["invoice-stamp-success"],
-        });
-      } else {
-        toast.error(result.message);
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-    onSettled: () => {
-      setIsLoadingNoStamp(false);
-      setIsModalOpenNoStamp(false);
-      setSelectionRows();
-    },
+    onSuccess: () => {},
+    onError: () => {},
   });
 
   const handleNoStampInvoice = async () => {
-    for (const rowId of Array.from(selectedRows)) {
+    if (selectedRows.size === 0) {
+      toast.error("please select an invoice to be no stamped");
+      return;
+    }
+    setIsLoadingNoStamp(true);
+    const allPromises = Array.from(selectedRows).map(async (rowId) => {
       const rowData = table.getRow(String(rowId))?.original;
       if (rowData) {
         const { doc_no: docNo } = rowData;
-        mutationNoStamp.mutate({ docNo });
+        return mutationNoStamp.mutateAsync({ docNo });
       }
+    });
+    const results = await Promise.allSettled(allPromises);
+
+    // 3) Tally up successes vs. failures:
+    let successCount = 0;
+    let failCount = 0;
+    const failMessages: string[] = [];
+
+    results.forEach((res, idx) => {
+      if (res.status === "fulfilled") {
+        // You can inspect res.value.statusCode if needed.
+        const apiResponse = res.value as {
+          statusCode: number;
+          message: string;
+        };
+        if (
+          apiResponse?.statusCode === 200 ||
+          apiResponse?.statusCode === 201
+        ) {
+          successCount += 1;
+        } else {
+          failCount += 1;
+          failMessages.push(
+            `Row ${Array.from(selectedRows)[idx]}: ${
+              apiResponse?.message || "Unknown error"
+            }`
+          );
+        }
+      } else {
+        failCount += 1;
+        const err =
+          res.reason instanceof Error ? res.reason.message : String(res.reason);
+        failMessages.push(`Row ${Array.from(selectedRows)[idx]}: ${err}`);
+      }
+    });
+    if (successCount > 0) {
+      toast.success(`Successfully no stamped ${successCount} invoice(s).`);
     }
+    if (failCount > 0) {
+      toast.error(`Failed to no stamp ${failCount} invoice(s).`);
+      console.error("Detail errors:", failMessages);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["invoice-stamp-success"] });
+    setIsLoadingNoStamp(false);
+    setIsModalOpen(false);
+    setSelectionRows();
   };
 
   return (
@@ -174,19 +237,19 @@ export function DataTableToolbar({
       )}
 
       <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      {selectedRows.size > 0 && (
-        <Button
-          variant="outline"
-          color="success"
-          size="sm"
-          className="ltr:ml-2 rtl:mr-2  h-8 "
-          onClick={handleOpenModal}
-          disabled={isLoading}
-        >
-          <Stamp className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-          Stamp
-        </Button>
-      )}
+        {selectedRows.size > 0 && (
+          <Button
+            variant="outline"
+            color="success"
+            size="sm"
+            className="ltr:ml-2 rtl:mr-2  h-8 "
+            onClick={handleOpenModal}
+            disabled={isLoading}
+          >
+            <Stamp className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+            Stamp
+          </Button>
+        )}
 
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -232,17 +295,17 @@ export function DataTableToolbar({
         onOpenChange={setIsModalOpenNoStamp}
       >
         {selectedRows.size > 0 && (
-        <Button
-          variant="outline"
-          color="primary"
-          size="sm"
-          className="ltr:ml-2 rtl:mr-2  h-8 "
-          onClick={handleOpenModalNoStamp}
-          disabled={isLoadingNoStamp}
-        >
-          <Ban className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-          No Stamp
-        </Button>
+          <Button
+            variant="outline"
+            color="primary"
+            size="sm"
+            className="ltr:ml-2 rtl:mr-2  h-8 "
+            onClick={handleOpenModalNoStamp}
+            disabled={isLoadingNoStamp}
+          >
+            <Ban className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+            No Stamp
+          </Button>
         )}
 
         <AlertDialogContent>

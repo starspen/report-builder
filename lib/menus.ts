@@ -279,6 +279,74 @@ export function getMenuList(
           icon: "heroicons:arrow-trending-up",
           children: [],
         },
+        {
+          href: "/customer-service/master-setup/labour-master",
+          label: t("cs-master-labour-master"),
+          active: pathname.includes(
+            "/customer-service/master-setup/labour-master"
+          ),
+          icon: "heroicons:arrow-trending-up",
+          children: [],
+        },
+        {
+          href: "/customer-service/master-setup/category-group-master",
+          label: t("cs-master-category-group-master"),
+          active: pathname.includes(
+            "/customer-service/master-setup/category-group-master"
+          ),
+          icon: "heroicons:arrow-trending-up",
+          children: [],
+        },
+        {
+          href: "/customer-service/master-setup/category-master",
+          label: t("cs-master-category-master"),
+          active: pathname.includes(
+            "/customer-service/master-setup/category-master"
+          ),
+          icon: "heroicons:arrow-trending-up",
+          children: [],
+        },
+        {
+          href: "/customer-service/master-setup/cs-setup",
+          label: t("cs-master-cs-setup"),
+          active: pathname.includes("/customer-service/master-setup/cs-setup"),
+          icon: "heroicons:arrow-trending-up",
+          children: [],
+        },
+        {
+          href: "/customer-service/master-setup/complain-source",
+          label: t("cs-master-complain-source"),
+          active: pathname.includes(
+            "/customer-service/master-setup/complain-source"
+          ),
+          icon: "heroicons:arrow-trending-up",
+          children: [],
+        },
+        {
+          href: "/customer-service/master-setup/item-master",
+          label: t("cs-master-item-master"),
+          active: pathname.includes(
+            "/customer-service/master-setup/item-master"
+          ),
+          icon: "heroicons:arrow-trending-up",
+          children: [],
+        },
+        {
+          href: "/customer-service/master-setup/feedback-setup",
+          label: t("cs-master-feedback-setup"),
+          active: pathname.includes(
+            "/customer-service/master-setup/feedback-setup"
+          ),
+          icon: "heroicons:arrow-trending-up",
+          children: [],
+        },
+        {
+          href: "/customer-service/master-setup/location",
+          label: t("cs-master-location"),
+          active: pathname.includes("/customer-service/master-setup/location"),
+          icon: "heroicons:arrow-trending-up",
+          children: [],
+        },
       ],
     },
     {
@@ -442,7 +510,7 @@ export function getMenuList(
           active: pathname.includes("/customer-service"),
           icon: "heroicons:user-group",
           submenus: filterredCsSubmenus,
-          visible: hasModule("Customer Service")
+          visible: hasModule("Customer Service"),
         },
       ].filter((menu) => menu.visible !== false),
     },

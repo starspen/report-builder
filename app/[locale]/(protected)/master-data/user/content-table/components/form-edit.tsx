@@ -41,10 +41,12 @@ const schema = z.object({
 });
 
 export const FormEdit = ({
+  open,
   setIsModalOpen,
   row,
   range,
 }: {
+  open: boolean;
   setIsModalOpen: (value: boolean) => void;
   row: Task;
   range: Task[]; // list of amt_range objects
@@ -157,6 +159,7 @@ export const FormEdit = ({
     label: role.name
   })) || [];
   return (
+    <Dialog open={open} onOpenChange={setIsModalOpen}>
     <DialogContent>
       <DialogHeader>
         <DialogTitle>Edit User</DialogTitle>
@@ -224,5 +227,6 @@ export const FormEdit = ({
         </form>
       </DialogDescription>
     </DialogContent>
+    </Dialog>
   );
 };

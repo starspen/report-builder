@@ -121,11 +121,10 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="grid grid-cols-12 items-center gap-5 my-4">
-        {menu.data.hasInvoiceDataApprover && (
           <div className="col-span-12">
             <Card>
               <CardHeader>
-                <CardTitle>Statistic Invoice</CardTitle>
+                <CardTitle>Invoice Approval</CardTitle>
               </CardHeader>
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-4 ">
@@ -190,13 +189,10 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-        )}
-
-        {menu.data.hasOrDataApprover && (
           <div className="col-span-12">
             <Card>
               <CardHeader>
-                <CardTitle>Statistic Receipt</CardTitle>
+                <CardTitle>Receipt Approval</CardTitle>
               </CardHeader>
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-4 ">
@@ -261,9 +257,8 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-        )}
 
-        {!menu.data.hasInvoiceDataApprover && !menu.data.hasOrDataApprover && (
+        {/* {!menu.data.hasInvoiceDataApprover && !menu.data.hasOrDataApprover && (
           <div className="col-span-12 text-center">
             <Image
               src="/images/all-img/no-task.svg"
@@ -278,7 +273,7 @@ export default function DashboardPage() {
               }
             </p>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

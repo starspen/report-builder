@@ -11,7 +11,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { labels } from "../data/data";
 import { DataProps } from "../data";
 import { useRouter } from "@/components/navigation";
 import { Link } from "@/components/navigation";
