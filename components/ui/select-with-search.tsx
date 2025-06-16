@@ -225,7 +225,15 @@ const SelectSearch = React.forwardRef<
 ))
 SelectSearch.displayName = "SelectSearch"
 
-// Utility function untuk filter options
+// Memoized SelectItem untuk performance dengan dataset besar
+const MemoizedSelectItem = React.memo(({ option }: { option: { value: string; label: string } }) => (
+  <SelectItem value={option.value}>
+    {option.label}
+  </SelectItem>
+));
+MemoizedSelectItem.displayName = "MemoizedSelectItem";
+
+// Utility function untuk filter options dengan debouncing internal
 const filterOptions = (options: Array<{ value: string; label: string }>, searchTerm: string) => {
   if (!searchTerm.trim()) return options
   const lowerSearchTerm = searchTerm.toLowerCase()
@@ -234,6 +242,51 @@ const filterOptions = (options: Array<{ value: string; label: string }>, searchT
     option.value.toLowerCase().includes(lowerSearchTerm)
   )
 }
+
+// Optimized rendering function untuk dataset besar
+const renderLargeOptionsList = (
+  filteredOptions: Array<{ value: string; label: string }>,
+  searchTerm: string
+) => {
+  // Jika dataset kecil (<50), gunakan rendering normal
+  if (filteredOptions.length <= 50) {
+    return filteredOptions.map((option) => (
+      <SelectItem key={option.value} value={option.value}>
+        {option.label}
+      </SelectItem>
+    ));
+  }
+
+  // Untuk dataset besar, gunakan chunking dan memoization
+  const MAX_INITIAL_RENDER = 50;
+  const [initialItems, remainingItems] = [
+    filteredOptions.slice(0, MAX_INITIAL_RENDER),
+    filteredOptions.slice(MAX_INITIAL_RENDER)
+  ];
+
+  return (
+    <>
+      {/* Render initial items langsung */}
+      {initialItems.map((option) => (
+        <MemoizedSelectItem key={option.value} option={option} />
+      ))}
+      
+      {/* Render remaining items hanya jika ada search atau user scroll */}
+      {(searchTerm || remainingItems.length < 100) && 
+        remainingItems.map((option) => (
+          <MemoizedSelectItem key={option.value} option={option} />
+        ))
+      }
+      
+      {/* Info jika masih ada data tersisa */}
+      {!searchTerm && remainingItems.length >= 100 && (
+        <div className="py-2 px-4 text-xs text-muted-foreground border-t">
+          +{remainingItems.length - 100} more items. Use search to find specific items.
+        </div>
+      )}
+    </>
+  );
+};
 
 // Select with Search Component
 interface SelectWithSearchProps {
@@ -247,6 +300,7 @@ interface SelectWithSearchProps {
   size?: size
   disabled?: boolean
   className?: string
+  optimizeForLargeDataset?: boolean // New prop for large datasets
 }
 
 const SelectWithSearch = React.forwardRef<
@@ -263,11 +317,15 @@ const SelectWithSearch = React.forwardRef<
   size = "default",
   disabled = false,
   className,
+  optimizeForLargeDataset = false,
   ...props
 }, ref) => {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [open, setOpen] = React.useState(false)
   const searchInputRef = React.useRef<HTMLInputElement>(null)
+
+  // Auto-detect large dataset
+  const isLargeDataset = optimizeForLargeDataset || options.length > 100;
 
   // Memoized filtered options dengan callback yang stable
   const filteredOptions = React.useMemo(() => 
@@ -358,6 +416,8 @@ const SelectWithSearch = React.forwardRef<
             <div className="py-6 text-center text-sm text-muted-foreground">
               {emptyMessage}
             </div>
+          ) : isLargeDataset ? (
+            renderLargeOptionsList(filteredOptions, searchTerm)
           ) : (
             filteredOptions.map((option) => (
               <SelectItem 

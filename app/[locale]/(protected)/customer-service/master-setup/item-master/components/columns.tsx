@@ -7,7 +7,7 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { rupiahFormatWithScale } from "@/lib/cuurency-formating";
+import { rupiahFormatWithScale } from "@/lib/currency-formating";
 
 export const csItemMasterColumns: ColumnDef<CSItemMasterDataProps>[] = [
   ...csItemMasterHeaders.map((header) => ({

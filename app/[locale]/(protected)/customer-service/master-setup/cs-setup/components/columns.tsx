@@ -4,7 +4,7 @@
 import { ColumnDef, Row, Column } from "@tanstack/react-table";
 import { csSetupHeaders, CSSetupDataProps } from "../data";
 import { DataTableColumnHeader } from "./data-table-column-header";
-import { rupiahFormatWithScale } from "@/lib/cuurency-formating";
+import { rupiahFormatWithScale } from "@/lib/currency-formating";
 import { Badge } from "@/components/ui/badge";
 
 export const csSetupColumns: ColumnDef<CSSetupDataProps>[] = [
