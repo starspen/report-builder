@@ -1988,34 +1988,39 @@ export const validateLocationData = (
  * @returns Promise dengan data location
  * @throws Error jika gagal mengambil data
  */
-export const getCSMasterLocation = async (): Promise<CSMasterLocationResponse> => {
-  try {
-    const response = await fetch(
-      `${process.env.CS_API_URL}/customer-service/cs-master/location-setup`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          accept: "*/*",
+export const getCSMasterLocation =
+  async (): Promise<CSMasterLocationResponse> => {
+    try {
+      const response = await fetch(
+        `${process.env.CS_API_URL}/customer-service/cs-master/location-setup`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "*/*",
+          },
+          cache: "no-store",
         },
-        cache: "no-store",
-      },
-    );
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(
+          data.message || `HTTP error! status: ${response.status}`,
+        );
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error fetching CS Master Location:", error);
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil data location",
+      );
     }
-
-    return data;
-  } catch (error) {
-    console.error("Error fetching CS Master Location:", error);
-    throw new Error(
-      error instanceof Error ? error.message : "Gagal mengambil data location",
-    );
-  }
-};
+  };
 
 /**
  * Mengambil data location berdasarkan kode
@@ -2198,3 +2203,657 @@ export const deleteCSMasterLocation = async (
   }
 };
 
+// ------------------------------------------------------------
+// ROOM
+// ------------------------------------------------------------
+
+export interface CSMasterRoomResponse {
+  statusCode: number;
+  message: string;
+  data: CSMasterRoom[];
+}
+
+export interface CSMasterRoom {
+  entity_cd: string;
+  project_no: string;
+  room_cd: string;
+  descs: string;
+  audit_user: string;
+  audit_date: string;
+  rowID: string;
+}
+
+export interface CSMasterRoomSingleResponse {
+  statusCode: number;
+  message: string;
+  data: CSMasterRoom;
+}
+
+export interface CSMasterRoomCreateRequest {
+  entity_cd: string;
+  project_no: string;
+  room_cd: string;
+  descs: string;
+  audit_user: string;
+}
+
+export interface CSMasterRoomUpdateRequest {
+  entity_cd: string;
+  project_no: string;
+  room_cd: string;
+  descs: string;
+  audit_user: string;
+}
+
+/**
+ * Validasi data room sebelum dikirim ke API
+ * @param data - Data room yang akan divalidasi
+ * @returns Array berisi pesan error jika ada
+ */
+export const validateRoomData = (
+  data: CSMasterRoomCreateRequest | CSMasterRoomUpdateRequest,
+): string[] => {
+  const errors: string[] = [];
+
+  if (!data.entity_cd || data.entity_cd.trim() === "") {
+    errors.push("Entity Code tidak boleh kosong");
+  }
+
+  if (!data.project_no || data.project_no.trim() === "") {
+    errors.push("Project No tidak boleh kosong");
+  }
+
+  if (!data.room_cd || data.room_cd.trim() === "") {
+    errors.push("Room Code tidak boleh kosong");
+  }
+
+  if (!data.descs || data.descs.trim() === "") {
+    errors.push("Description tidak boleh kosong");
+  }
+
+  if (!data.audit_user || data.audit_user.trim() === "") {
+    errors.push("Audit User tidak boleh kosong");
+  }
+
+  return errors;
+};
+
+/**
+ * Mengambil semua data room
+ * @returns Promise dengan data room
+ * @throws Error jika gagal mengambil data
+ */
+export const getCSMasterRoom = async (): Promise<CSMasterRoomResponse> => {
+  try {
+    const response = await fetch(
+      `${process.env.CS_API_URL}/customer-service/cs-master/room-setup`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching CS Master Room:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal mengambil data room",
+    );
+  }
+};
+
+/**
+ * Mengambil data room berdasarkan room code
+ * @param roomCd - Room code yang akan dicari
+ * @returns Promise dengan data room
+ * @throws Error jika gagal mengambil data
+ */
+export const getCSMasterByRoomCd = async (
+  roomCd: string,
+): Promise<CSMasterRoomResponse> => {
+  if (!roomCd || roomCd.trim() === "") {
+    throw new Error("Room Code tidak boleh kosong");
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.CS_API_URL}/customer-service/cs-master/room-setup/${roomCd}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching CS Master Room by code:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal mengambil data room",
+    );
+  }
+};
+
+/**
+ * Membuat data room baru
+ * @param roomData - Data room yang akan dibuat
+ * @returns Promise dengan data room yang baru dibuat
+ * @throws Error jika gagal membuat data
+ */
+export const createCSMasterRoom = async (
+  roomData: CSMasterRoomCreateRequest,
+): Promise<CSMasterRoomSingleResponse> => {
+  // Validasi data sebelum dikirim
+  const validationErrors = validateRoomData(roomData);
+  if (validationErrors.length > 0) {
+    throw new Error(validationErrors.join(", "));
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.CS_API_URL}/customer-service/cs-master/room-setup`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+        body: JSON.stringify({
+          entity_cd: roomData.entity_cd,
+          project_no: roomData.project_no,
+          room_cd: roomData.room_cd.toUpperCase().trim(),
+          descs: roomData.descs.trim(),
+          audit_user: roomData.audit_user.trim(),
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error creating CS Master Room:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal membuat room baru",
+    );
+  }
+};
+
+/**
+ * Mengupdate data room
+ * @param id - ID room yang akan diupdate
+ * @param roomData - Data room yang akan diupdate
+ * @returns Promise dengan data room yang diupdate
+ * @throws Error jika gagal mengupdate data
+ */
+export const updateCSMasterRoom = async (
+  id: number,
+  roomData: CSMasterRoomUpdateRequest,
+): Promise<CSMasterRoomSingleResponse> => {
+  if (!id || id <= 0) {
+    throw new Error("ID room tidak valid");
+  }
+
+  // Validasi data sebelum dikirim
+  const validationErrors = validateRoomData(roomData);
+  if (validationErrors.length > 0) {
+    throw new Error(validationErrors.join(", "));
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.CS_API_URL}/customer-service/cs-master/room-setup/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+        body: JSON.stringify({
+          entity_cd: roomData.entity_cd,
+          project_no: roomData.project_no,
+          room_cd: roomData.room_cd.toUpperCase().trim(),
+          descs: roomData.descs.trim(),
+          audit_user: roomData.audit_user.trim(),
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error updating CS Master Room:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal mengupdate room",
+    );
+  }
+};
+
+/**
+ * Menghapus data room
+ * @param id - ID room yang akan dihapus
+ * @returns Promise dengan data room yang dihapus
+ * @throws Error jika gagal menghapus data
+ */
+export const deleteCSMasterRoom = async (
+  id: number,
+): Promise<CSMasterRoomSingleResponse> => {
+  if (!id || id <= 0) {
+    throw new Error("ID room tidak valid");
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.CS_API_URL}/customer-service/cs-master/room-setup/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error deleting CS Master Room:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal menghapus room",
+    );
+  }
+};
+
+// ------------------------------------------------------------
+// SV SPEC
+// ------------------------------------------------------------
+
+export interface CSMasterSvspecResponse {
+  statusCode: number;
+  message: string;
+  data: CSMasterSvspec[];
+}
+
+export interface CSMasterSvspec {
+  entity_cd: string;
+  project_no: string;
+  prefix: string;
+  report_seq_no: string;
+  by_project: string;
+  endorsed_by: string;
+  approved_by: string;
+  audit_user: string;
+  audit_date: string;
+  trx_type: string;
+  markup: string;
+  link: string;
+  age1: string;
+  age2: string;
+  age3: string;
+  age4: string;
+  age5: string;
+  age6: string;
+  rowID: string;
+  complain_seq_no: string;
+  tenant_prefix: string;
+  building_prefix: string;
+  approve_seq: string;
+  complain_source: string;
+  seq_no_ticket: string;
+  visitor_acct: string;
+}
+
+export interface CSMasterSvspecSingleResponse {
+  statusCode: number;
+  message: string;
+  data: CSMasterSvspec;
+}
+
+export interface CSMasterSvspecCreateRequest {
+  entity_cd: string;
+  project_no: string;
+  prefix: string;
+  tenant_prefix?: string;
+  building_prefix?: string;
+  report_seq_no: string;
+  by_project?: string; // Menjadi optional dengan default "Y"
+  link?: string;
+  trx_type?: string;
+  complain_source?: string;
+  age1?: string;
+  age2?: string;
+  age3?: string;
+  age4?: string;
+  age5?: string;
+  age6?: string;
+  audit_user: string;
+}
+
+export interface CSMasterSvspecUpdateRequest {
+  entity_cd: string;
+  project_no: string;
+  prefix: string;
+  tenant_prefix?: string;
+  building_prefix?: string;
+  report_seq_no: string;
+  by_project?: string; // Menjadi optional dengan default "Y"
+  link?: string;
+  trx_type?: string;
+  complain_source?: string;
+  age1?: string;
+  age2?: string;
+  age3?: string;
+  age4?: string;
+  age5?: string;
+  age6?: string;
+  audit_user: string;
+}
+
+/**
+ * Validasi data svspec sebelum dikirim ke API
+ * @param data - Data svspec yang akan divalidasi
+ * @returns Array berisi pesan error jika ada
+ */
+export const validateSvspecData = (
+  data: CSMasterSvspecCreateRequest | CSMasterSvspecUpdateRequest,
+): string[] => {
+  const errors: string[] = [];
+
+  if (!data.entity_cd || data.entity_cd.trim() === "") {
+    errors.push("Entity Code harus diisi");
+  }
+
+  if (!data.project_no || data.project_no.trim() === "") {
+    errors.push("Project No harus diisi");
+  }
+
+  if (!data.prefix || data.prefix.trim() === "") {
+    errors.push("Prefix harus diisi");
+  }
+
+  if (!data.report_seq_no || data.report_seq_no.trim() === "") {
+    errors.push("Report Sequence No harus diisi");
+  }
+
+  // by_project tidak perlu divalidasi karena ada default value
+
+  if (!data.audit_user || data.audit_user.trim() === "") {
+    errors.push("Audit User harus diisi");
+  }
+
+  return errors;
+};
+
+/**
+ * Mengambil semua data svspec
+ * @returns Promise dengan data svspec
+ * @throws Error jika gagal mengambil data
+ */
+export const getCSMasterSvspec = async (): Promise<CSMasterSvspecResponse> => {
+  try {
+    const response = await fetch(
+      `${process.env.CS_API_URL}/customer-service/cs-master/spec`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+        cache: "no-store",
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching CS Master Svspec:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal mengambil data svspec",
+    );
+  }
+};
+
+/**
+ * Mengambil data svspec berdasarkan rowID
+ * @param rowID - RowID svspec yang akan dicari
+ * @returns Promise dengan data svspec
+ * @throws Error jika gagal mengambil data
+ */
+export const getCSMasterSvspecById = async (
+  rowID: string,
+): Promise<CSMasterSvspecResponse> => {
+  if (!rowID || rowID.trim() === "") {
+    throw new Error("RowID svspec tidak boleh kosong");
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.CS_API_URL}/customer-service/cs-master/spec/${rowID}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+        cache: "no-store",
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching CS Master Svspec by ID:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal mengambil data svspec",
+    );
+  }
+};
+
+/**
+ * Membuat data svspec baru
+ * @param svspecData - Data svspec yang akan dibuat
+ * @returns Promise dengan data svspec yang baru dibuat
+ * @throws Error jika gagal membuat data
+ */
+export const createCSMasterSvspec = async (
+  svspecData: CSMasterSvspecCreateRequest,
+): Promise<CSMasterSvspecSingleResponse> => {
+  // Validasi data sebelum dikirim
+  const validationErrors = validateSvspecData(svspecData);
+  if (validationErrors.length > 0) {
+    throw new Error(validationErrors.join(", "));
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.CS_API_URL}/customer-service/cs-master/spec`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+        body: JSON.stringify({
+          entity_cd: svspecData.entity_cd.trim(),
+          project_no: svspecData.project_no.trim(),
+          prefix: svspecData.prefix.trim(),
+          tenant_prefix: svspecData.tenant_prefix?.trim() || null,
+          building_prefix: svspecData.building_prefix?.trim() || null,
+          report_seq_no: svspecData.report_seq_no.trim(),
+          by_project: svspecData.by_project?.trim() || "Y", // Default "Y"
+          link: svspecData.link?.trim() || null,
+          trx_type: svspecData.trx_type?.trim() || null,
+          complain_source: svspecData.complain_source?.trim() || null,
+          age1: svspecData.age1?.trim() || null,
+          age2: svspecData.age2?.trim() || null,
+          age3: svspecData.age3?.trim() || null,
+          age4: svspecData.age4?.trim() || null,
+          age5: svspecData.age5?.trim() || null,
+          age6: svspecData.age6?.trim() || null,
+          audit_user: svspecData.audit_user.trim(),
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error creating CS Master Svspec:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal membuat svspec baru",
+    );
+  }
+};
+
+/**
+ * Mengupdate data svspec
+ * @param rowID - RowID svspec yang akan diupdate
+ * @param svspecData - Data svspec yang akan diupdate
+ * @returns Promise dengan data svspec yang diupdate
+ * @throws Error jika gagal mengupdate data
+ */
+export const updateCSMasterSvspec = async (
+  rowID: string,
+  svspecData: CSMasterSvspecUpdateRequest,
+): Promise<CSMasterSvspecSingleResponse> => {
+  if (!rowID || rowID.trim() === "") {
+    throw new Error("RowID svspec tidak valid");
+  }
+
+  // Validasi data sebelum dikirim
+  const validationErrors = validateSvspecData(svspecData);
+  if (validationErrors.length > 0) {
+    throw new Error(validationErrors.join(", "));
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.CS_API_URL}/customer-service/cs-master/spec/${rowID}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+        body: JSON.stringify({
+          entity_cd: svspecData.entity_cd.trim(),
+          project_no: svspecData.project_no.trim(),
+          prefix: svspecData.prefix.trim(),
+          tenant_prefix: svspecData.tenant_prefix?.trim() || "",
+          building_prefix: svspecData.building_prefix?.trim() || "",
+          report_seq_no: svspecData.report_seq_no.trim(),
+          by_project: svspecData.by_project?.trim() || "Y", // Default "Y"
+          link: svspecData.link?.trim() || "",
+          trx_type: svspecData.trx_type?.trim() || "",
+          complain_source: svspecData.complain_source?.trim() || "",
+          age1: svspecData.age1?.trim() || "",
+          age2: svspecData.age2?.trim() || "",
+          age3: svspecData.age3?.trim() || "",
+          age4: svspecData.age4?.trim() || "",
+          age5: svspecData.age5?.trim() || "",
+          age6: svspecData.age6?.trim() || "",
+          audit_user: svspecData.audit_user.trim(),
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error updating CS Master Svspec:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal mengupdate svspec",
+    );
+  }
+};
+
+/**
+ * Menghapus data svspec
+ * @param rowID - RowID svspec yang akan dihapus
+ * @returns Promise dengan data svspec yang dihapus
+ * @throws Error jika gagal menghapus data
+ */
+export const deleteCSMasterSvspec = async (
+  rowID: string,
+): Promise<CSMasterSvspecSingleResponse> => {
+  if (!rowID || rowID.trim() === "") {
+    throw new Error("RowID svspec tidak valid");
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.CS_API_URL}/customer-service/cs-master/spec/${rowID}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error deleting CS Master Svspec:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal menghapus svspec",
+    );
+  }
+};

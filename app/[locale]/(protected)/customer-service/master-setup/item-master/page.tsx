@@ -19,13 +19,13 @@ const ItemMaster = async () => {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <Link href="/dashboard">
+            <Link href="/dashboard/home">
               <Icon icon="heroicons:home" className="h-5 w-5" />
             </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <Link href="/dashboard">Master Setup</Link>
+            <Link href="/dashboard/home">Master Setup</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>Item Master</BreadcrumbItem>

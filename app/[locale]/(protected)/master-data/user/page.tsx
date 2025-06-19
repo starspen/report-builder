@@ -18,7 +18,7 @@ const ReactTablePage = () => {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <Link href="/dashboard/home">Master Data</Link>
+              <Link href="/dashboard/home">Web Blast</Link>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>User</BreadcrumbItem>
@@ -26,7 +26,7 @@ const ReactTablePage = () => {
         </Breadcrumb>
         <Card>
           <CardHeader>
-            <CardTitle>Master Data User</CardTitle>
+            <CardTitle>Web Blast User</CardTitle>
           </CardHeader>
           <CardContent>
             <ContentTable />

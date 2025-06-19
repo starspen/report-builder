@@ -1,9 +1,16 @@
 "use client";
+
 import { PlusIcon, TrashIcon, X } from "lucide-react";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Table } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "./data-table-view-options";
+import { DataTableFacetedFilter } from "./data-table-faceted-filter";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,129 +33,176 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { Table } from "@tanstack/react-table";
 import AddNewUser from "./add-new-user";
-import { toast } from "sonner";
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteMasterUser } from "@/action/master-user-action";
+
 interface DataTableToolbarProps {
   table: Table<any>;
 }
+
 export function DataTableToolbar({ table }: DataTableToolbarProps) {
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const isFiltered = table.getState().columnFilters.length > 0;
-  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    table.setGlobalFilter(value);
-  };
 
-  const selectedRows = table
-    .getFilteredSelectedRowModel()
-    .rows.map((row) => row.original);
-
-  const existingEmails = table
-    .getRowModel()
-    .rows.map((row) => row.original.email);
-
+  // --- state for add & delete dialogs
+  const [openAdd, setOpenAdd] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const mutation = useMutation({
+  // --- global text search
+  const globalFilter = table.getState().globalFilter as string;
+  const handleGlobalChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    table.setGlobalFilter(e.target.value);
+
+  // --- selected rows
+  const selectedRows = table
+    .getFilteredSelectedRowModel()
+    .rows.map((r) => r.original);
+
+  // --- DELETE mutation
+  const deleteMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
-      const result = await deleteMasterUser(userId);
-      return result;
+      return deleteMasterUser(userId);
     },
-    onMutate: () => {
-      setIsDeleting(true);
+    onMutate: () => setIsDeleting(true),
+    onSuccess: (res) => {
+      toast.success(res.message);
+      queryClient.invalidateQueries({ queryKey: ["user-list"] });
     },
-    onSuccess: (result) => {
-      if (result.statusCode === 200 || result.statusCode === 201) {
-        toast.success(result.message);
-        queryClient.invalidateQueries({
-          queryKey: ["asset-user"],
-        });
-      } else {
-        toast.error(result.message);
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
+    onError: (err: any) => toast.error(err.message),
     onSettled: () => {
       setIsDeleting(false);
-      setOpen(false);
+      setOpenDelete(false);
     },
   });
 
-  const handleDeleteUsers = async () => {
+  const handleDelete = async () => {
     try {
-      const userIds = selectedRows.map((row) => row.id)
-      for (const userId of userIds) {
-        mutation.mutate({ userId });
+      const ids = selectedRows.map((u) => u.id as string);
+      for (const id of ids) {
+        deleteMutation.mutate({ userId: id });
       }
       table.resetRowSelection();
       await queryClient.invalidateQueries({ queryKey: ["user-list"] });
-      setOpenDeleteDialog(false);
       toast.success("Users deleted successfully");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete users");
-    } finally {
-      setIsDeleting(false);
     }
   };
 
+  // --- build faceted filter options
+
+  // MODULE filter (flatten module[].name, plus "Unassigned" if array is empty)
+  const moduleColumn = table.getColumn("module");
+  const moduleNames = new Set<string>();
+  table.getFilteredRowModel().rows.forEach(({ original }) => {
+    const mods: { name: string }[] = original.module || [];
+    if (mods.length === 0) {
+      moduleNames.add("Unassigned");
+    } else {
+      mods.forEach((m) => moduleNames.add(m.name));
+    }
+  });
+  const moduleOptions = Array.from(moduleNames).map((name) => ({
+    value: name,
+    label: name,
+  }));
+
+  // ROLE filter (flatten roles[].name)
+  const roleColumn = table.getColumn("roles");
+  const roleNames = new Set<string>();
+  table.getFilteredRowModel().rows.forEach(({ original }) => {
+    const roles: { name: string }[] = original.roles || [];
+    if (roles.length === 0) {
+      roleNames.add("Unassigned");
+    } else {
+      roles.forEach((r) => roleNames.add(r.name));
+    }
+  });
+  const roleOptions = Array.from(roleNames).map((name) => ({
+    value: name,
+    label: name,
+  }));
+
+  const isFiltered = table.getState().columnFilters.length > 0;
+
   return (
-    <div className="flex flex-1 flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
+      {/* 1) Global search */}
       <Input
         placeholder="Search User..."
-        value={(table.getState().globalFilter as string) || ""}
-        onChange={handleFilterChange}
+        value={globalFilter ?? ""}
+        onChange={handleGlobalChange}
         className="h-8 min-w-[200px] max-w-sm"
       />
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* 2) Module faceted filter */}
+      {moduleColumn && (
+        <DataTableFacetedFilter
+          column={moduleColumn}
+          title="Module"
+          options={moduleOptions}
+        />
+      )}
+
+      {/* 3) Role faceted filter */}
+      {roleColumn && (
+        <DataTableFacetedFilter
+          column={roleColumn}
+          title="Role"
+          options={roleOptions}
+        />
+      )}
+
+      {/* 4) Reset filters button */}
+      {isFiltered && (
+        <Button
+          variant="outline"
+          onClick={() => table.resetColumnFilters()}
+          className="h-8 px-2 lg:px-3"
+        >
+          Reset <X className="h-4 w-4 ltr:ml-2 rtl:mr-2" />
+        </Button>
+      )}
+
+      {/* 5) Add user dialog */}
+      <Dialog open={openAdd} onOpenChange={setOpenAdd}>
         <DialogTrigger asChild>
-          <Button
-            variant="soft"
-            className="h-8 bg-primary/80 px-2 text-white hover:bg-primary/90 lg:px-3"
-          >
-            <PlusIcon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-            Add user
+          <Button className="h-8 bg-primary/80 text-white hover:bg-primary/90 px-3">
+            <PlusIcon className="h-4 w-4" /> Add User
           </Button>
         </DialogTrigger>
-        <AddNewUser existingEmails={existingEmails} setOpen={setOpen} />
+        <AddNewUser
+          existingEmails={table.getRowModel().rows.map((r) => r.original.email)}
+          setOpen={setOpenAdd}
+        />
       </Dialog>
 
+      {/* 6) Delete selected */}
       {selectedRows.length > 0 && (
-        <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+        <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
           <AlertDialogTrigger asChild>
-            <Button
-              variant="soft"
-              className="h-8 bg-destructive/80 px-2 text-white hover:bg-destructive/90 lg:px-3"
-            >
+            <Button className="h-8 bg-destructive/80 text-white hover:bg-destructive/90 px-3">
               <TrashIcon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-              Delete {table.getFilteredSelectedRowModel().rows.length} Users
+              Delete {selectedRows.length} Users
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                Proceed to delete
-                {table.getFilteredSelectedRowModel().rows.length} users?
+                Delete {selectedRows.length} user
+                {selectedRows.length > 1 ? "s" : ""}?
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This action will delete the selected users. Please confirm to
-                proceed.
+                This will permanently remove the selected user
+                {selectedRows.length > 1 ? "s" : ""}.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <Button
-                className="bg-destructive/80 dark:bg-destructive/90 dark:text-white"
-                onClick={handleDeleteUsers}
+                onClick={handleDelete}
                 disabled={isDeleting}
+                className="bg-destructive/80 text-white hover:bg-destructive/90"
               >
                 Delete
               </Button>
@@ -157,16 +211,7 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
         </AlertDialog>
       )}
 
-      {isFiltered && (
-        <Button
-          variant="outline"
-          onClick={() => table.resetColumnFilters()}
-          className="h-8 px-2 lg:px-3"
-        >
-          Reset
-          <X className="h-4 w-4 ltr:ml-2 rtl:mr-2" />
-        </Button>
-      )}
+      {/* 7) View options */}
       <DataTableViewOptions table={table} />
     </div>
   );

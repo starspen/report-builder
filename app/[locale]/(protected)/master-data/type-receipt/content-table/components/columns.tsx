@@ -93,8 +93,6 @@ export interface Task {
 //   },
 // ];
 
-
-
 export const columns: ColumnDef<DataProps>[] = [
   ...tableHeaders.map((header) => ({
     accessorKey: header.accessorKey,
@@ -102,14 +100,21 @@ export const columns: ColumnDef<DataProps>[] = [
       <DataTableColumnHeader column={column} title={header.header} />
     ),
     cell: ({ row }: { row: Row<DataProps> }) => {
-      const value = row.getValue(header.accessorKey);
-     
+      const value = row.getValue<string | number>(header.accessorKey);
+
       if (header.accessorKey === "created_at") {
         const value = row.getValue("created_at");
-        return <span>{dayjs.utc(value as string).format("DD/MM/YYYY HH:mm")}</span>;
+        return (
+          <span>{dayjs.utc(value as string).format("DD/MM/YYYY HH:mm")}</span>
+        );
       }
 
-      
+      if (header.accessorKey === "approval_pic") {
+        const pic = value;
+        const display =
+          pic === undefined || pic === null || pic === '0' ? "-" : pic;
+        return <span>{display}</span>;
+      }
       return <span>{String(value)}</span>;
     },
     enableSorting: true,
@@ -118,7 +123,7 @@ export const columns: ColumnDef<DataProps>[] = [
     },
   })),
 
-   {
+  {
     id: "actions",
     accessorKey: "action",
     header: "Actions",

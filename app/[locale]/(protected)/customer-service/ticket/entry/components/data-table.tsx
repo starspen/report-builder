@@ -31,7 +31,6 @@ import {
 
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
-import Image from "next/image";
 import { DataTableExpanded } from "./data-table-expanded";
 
 interface TicketDataTableProps<TData> {

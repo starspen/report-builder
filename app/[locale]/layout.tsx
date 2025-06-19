@@ -15,6 +15,7 @@ import DirectionProvider from "@/providers/direction-provider";
 import AuthProvider from "@/providers/auth.provider";
 import SessionChecker from "@/components/sessionChecker";
 import AutoSignIn from "@/components/autoSignIn";
+import MsalProvider from "@/providers/msal.provider";
 
 export const metadata: Metadata = {
   title: "IFCA Software",
@@ -34,6 +35,7 @@ export default async function RootLayout({
     <html lang={locale} dir={direction}>
       <body className={`${inter.className} ifca-app`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
+          <MsalProvider>
           <AuthProvider>
             <ThemeProvider attribute="class" defaultTheme="light">
               <MountedProvider>
@@ -47,6 +49,7 @@ export default async function RootLayout({
               <SonnerToaster />
             </ThemeProvider>
           </AuthProvider>
+          </MsalProvider>
         </NextIntlClientProvider>
       </body>
     </html>

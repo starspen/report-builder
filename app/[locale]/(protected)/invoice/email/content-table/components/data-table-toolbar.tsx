@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { X, Send, Upload } from "lucide-react";
+import { X, Send, Upload, Check } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { sendInvoiceEmail } from "@/action/invoice-action";
+import { completeInvoiceEmail, sendInvoiceEmail } from "@/action/invoice-action";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "@/components/ui/dialog";
@@ -38,6 +38,7 @@ export function DataTableToolbar({
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpenUpload, setIsModalOpenUpload] = useState(false);
+  const [isModalOpenComplete, setIsModalOpenComplete] = useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -130,6 +131,58 @@ export function DataTableToolbar({
     setSelectionRows();
   };
 
+  const handleOpenModalComplete = async () => {
+    if (selectedRows.size > 0) {
+      setIsModalOpenComplete(true);
+    } else {
+      toast.error("Please select at least one row");
+    }
+  };
+
+  const mutationComplete = useMutation({
+    mutationFn: async ({
+      docNo,
+      processId,
+    }: {
+      docNo: string;
+      processId: string;
+    }) => {
+      const result = await completeInvoiceEmail(docNo, processId);
+      return result;
+    },
+    onMutate: () => {
+      setIsLoading(true);
+    },
+    onSuccess: (result) => {
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        toast.success("Success completing email");
+        queryClient.invalidateQueries({
+          queryKey: ["invoice-email"],
+        });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      setIsLoading(false);
+      setIsModalOpenComplete(false);
+      setSelectionRows();
+    },
+  });
+
+  const handleCompleteInvoiceEmail = async () => {
+    for (const rowId of Array.from(selectedRows)) {
+      const rowData = table.getRow(String(rowId))?.original;
+      if (rowData) {
+        const { doc_no: docNo, process_id: processId } = rowData;
+        mutationComplete.mutate({ docNo, processId });
+      }
+    }
+  };
+
   return (
     <div className="flex flex-1 flex-wrap items-center gap-2">
       <Input
@@ -198,6 +251,61 @@ export function DataTableToolbar({
             >
               {isLoading ? (
                 "Sending..."
+              ) : (
+                <>
+                  Proceed
+                  <Badge
+                    color="warning"
+                    className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2"
+                  >
+                    {selectedRows.size}
+                  </Badge>
+                </>
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={isModalOpenComplete}
+        onOpenChange={setIsModalOpenComplete}
+      >
+        <Button
+          variant="outline"
+          color="primary"
+          size="sm"
+          className="ltr:ml-2 rtl:mr-2  h-8 "
+          onClick={handleOpenModalComplete}
+          disabled={isLoading}
+        >
+          <Check className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+          Completed
+        </Button>
+
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to complete the selected data?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Please confirm if you want to proceed. This action will complete
+              the selected data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {!isLoading && (
+              <AlertDialogCancel onClick={() => setIsModalOpenComplete(false)}>
+                Cancel
+              </AlertDialogCancel>
+            )}
+            <Button
+              className="relative"
+              onClick={handleCompleteInvoiceEmail}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                "Completing..."
               ) : (
                 <>
                   Proceed

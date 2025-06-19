@@ -15,7 +15,7 @@ const config: DocsThemeConfig = {
   banner: {
     key: "1.0-release",
     text: (
-      <a href="/dashboard" target="_blank">
+      <a href="/dashboard/home" target="_blank">
         🎉 Dashcode
       </a>
     ),

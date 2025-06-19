@@ -9,8 +9,10 @@ import {
 import { Link } from "@/components/navigation";
 import { Icon } from "@/components/ui/icon";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { auth } from "@/lib/auth";
 
-export default function Svspec() {
+export default async function Svspec() {
+  const session = await auth();
   return (
     <div className="space-y-5">
       <Breadcrumb>
@@ -33,7 +35,7 @@ export default function Svspec() {
           <CardTitle>Customer Service Specification Setup</CardTitle>
         </CardHeader>
         <CardContent>
-          <SvspecView />
+          <SvspecView session={session} />
         </CardContent>
       </Card>
     </div>

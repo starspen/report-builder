@@ -73,7 +73,11 @@ export const columns: ColumnDef<Task>[] = [
   {
     accessorKey: "approval_pic",
     header: "Approval PIC",
-    cell: ({ row }) => <span>{row.getValue("approval_pic")}</span>,
+    cell: ({ row }) => {
+      const pic = row.getValue<string | number>("approval_pic");
+      const display = pic === undefined || pic === null || pic === '0' ? "-" : pic;
+      return <span>{display}</span>;
+    },
   },
   {
     id: "actions",

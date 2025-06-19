@@ -54,7 +54,7 @@ const ProfileInfo = async () => {
                 {session?.user?.name}
               </div>
               <Link
-                href="/dashboard"
+                href="/dashboard/home"
                 className="text-xs text-default-600 hover:text-primary"
               >
                 {session?.user?.email}

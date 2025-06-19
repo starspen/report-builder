@@ -6,11 +6,30 @@ import ContentTableFailed from "./tab-failed/content-table";
 import StampPageHeader from "./page-header";
 import { auth } from "@/lib/auth";
 
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Link } from "@/components/navigation";
+import { Icon } from "@/components/ui/icon";
+
 const ReactTablePage = async () => {
   const session = await auth()
   return (
     <div>
       <div className="space-y-6">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <Link href="/dashboard/home">
+                <Icon icon="heroicons:home" className="h-5 w-5" />
+              </Link>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <Link href="/dashboard/home">Official Receipt</Link>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>Receipt Stamp</BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         {/* <Card>
           <CardHeader>
             <CardTitle>Receipt Stamp</CardTitle>

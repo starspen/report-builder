@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import RecentAssetsTable from "./recent-assets-table";
 
-const DashboardPage = async () => {
+const DashboardBtid = async () => {
   // const t = useTranslations("IFCADashboard");
   const session = await auth();
 
@@ -21,4 +21,4 @@ const DashboardPage = async () => {
   );
 };
 
-export default DashboardPage;
+export default DashboardBtid;

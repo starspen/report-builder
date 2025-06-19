@@ -12,14 +12,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ImageInput from "@/components/imageInput";
 import { useRouter } from "@/components/navigation";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
+import {
+  getCFStaffMaster,
+  getEntityMaster,
+  getProjectMaster,
+} from "@/action/ifca-master-action";
+import { useQuery } from "@tanstack/react-query";
+import { SelectWithSearch } from "@/components/ui/select-with-search";
+import { getCSMasterComplainSource } from "@/action/customer-service-master";
 
 const ticketFormSchema = z.object({
   entity: z.string().min(1, { message: "Entity must be selected" }),
@@ -31,7 +39,9 @@ const ticketFormSchema = z.object({
   requestBy: z.string().min(1, { message: "Request By must be filled" }),
   contactNo: z.string().min(1, { message: "Contact No must be filled" }),
   requestType: z.enum(["unit", "public_area"]),
-  categoryGroup: z.string().min(1, { message: "Category Group must be selected" }),
+  categoryGroup: z
+    .string()
+    .min(1, { message: "Category Group must be selected" }),
   category: z.string().min(1, { message: "Category must be selected" }),
   location: z.string().min(1, { message: "Location must be selected" }),
   floor: z.string().min(1, { message: "Floor must be selected" }),
@@ -40,11 +50,14 @@ const ticketFormSchema = z.object({
   workRequest: z
     .string()
     .min(10, { message: "Work Request must be at least 10 characters" }),
-  images: z.array(z.instanceof(File)).min(1, {
-    message: "At least 1 image is required",
-  }).max(5, {
-    message: "Max 5 images",
-  }),
+  images: z
+    .array(z.instanceof(File))
+    .min(1, {
+      message: "At least 1 image is required",
+    })
+    .max(5, {
+      message: "Max 5 images",
+    }),
 });
 
 type TicketFormValues = z.infer<typeof ticketFormSchema>;
@@ -54,12 +67,50 @@ export default function NewTicketForm({ session }: { session: any }) {
   const [images, setImages] = useState<File[]>([]);
   const [showFullForm, setShowFullForm] = useState(false);
 
+  const { data: entityData, isLoading: isLoadingEntityData } = useQuery({
+    queryKey: ["ifca-master-entity"],
+    queryFn: async () => {
+      const result = await getEntityMaster();
+      return result;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: projectData, isLoading: isLoadingProjectData } = useQuery({
+    queryKey: ["ifca-master-project"],
+    queryFn: async () => {
+      const result = await getProjectMaster();
+      return result;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: complainSource, isLoading: isLoadingComplainSource } = useQuery(
+    {
+      queryKey: ["cs-master-complain-source"],
+      queryFn: async () => {
+        const result = await getCSMasterComplainSource();
+        return result;
+      },
+      staleTime: 5 * 60 * 1000,
+    },
+  );
+
+  const { data: staffData, isLoading: isLoadingStaffData } = useQuery({
+    queryKey: ["ifca-master-staff"],
+    queryFn: async () => {
+      const result = await getCFStaffMaster();
+      return result;
+    },
+  });
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitted },
+    formState: { errors },
     setValue,
     watch,
+    control,
     trigger,
   } = useForm<TicketFormValues>({
     resolver: zodResolver(ticketFormSchema),
@@ -86,40 +137,28 @@ export default function NewTicketForm({ session }: { session: any }) {
 
   const entity = watch("entity");
   const project = watch("project");
+  const requestFor = watch("requestFor");
+  const colleagueId = watch("colleagueId");
 
-  // Menampilkan form lengkap hanya jika entity dan project sudah dipilih
-  React.useEffect(() => {
+  useEffect(() => {
     if (entity && project) {
       setShowFullForm(true);
+    } else {
+      setShowFullForm(false);
     }
   }, [entity, project]);
 
-  // Tambahkan useEffect untuk memicu validasi ulang saat form disubmit
   useEffect(() => {
-    if (isSubmitted) {
-      // Memicu validasi ulang untuk semua field saat form disubmit
-      trigger();
+    if (entity) {
+      setValue("project", "");
     }
-  }, [isSubmitted, trigger]);
+  }, [entity, setValue]);
 
   const onSubmit = async (data: TicketFormValues) => {
-    // Memicu validasi manual untuk semua field
-    const isValid = await trigger();
-
-    if (!isValid) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
     console.log(data);
     console.log("Images:", images);
 
-    // Handle form submission logic here
-
-    // Show success message
     toast.success("Ticket created successfully");
-
-    // Redirect back to ticket list
     router.push("/customer-service/ticket/entry");
   };
 
@@ -127,75 +166,113 @@ export default function NewTicketForm({ session }: { session: any }) {
     router.push("/customer-service/ticket/entry");
   };
 
+  const entityOptions = useMemo(() => {
+    if (!entityData?.data) return [];
+    return entityData.data.map((entity) => ({
+      value: entity.entity_cd,
+      label: entity.entity_name,
+    }));
+  }, [entityData?.data]);
+
+  const projectOptions = useMemo(() => {
+    if (!projectData?.data || !entity) return [];
+
+    const filteredProjects = projectData.data.filter(
+      (project) => project.entity_cd.trim() === entity.trim(),
+    );
+
+    return filteredProjects.map((project) => ({
+      value: project.project_no,
+      label: `${project.project_no} - ${project.descs}`,
+    }));
+  }, [projectData?.data, entity]);
+
+  const complainSourceOptions = useMemo(() => {
+    if (!complainSource?.data) return [];
+    return complainSource.data.map((source) => ({
+      value: source.complain_source,
+      label: source.descs,
+    }));
+  }, [complainSource?.data]);
+
+  const staffOptions = useMemo(() => {
+    if (!staffData?.data) return [];
+    return staffData.data.map((staff) => ({
+      value: staff.staff_id,
+      label: staff.staff_id,
+    }));
+  }, [staffData?.data]);
+
+  const isProjectDisabled =
+    isLoadingProjectData || isLoadingEntityData || !entity;
+
+  useEffect(() => {
+    if (requestFor === "myself") {
+      setValue("contactPerson", session?.user?.name || "");
+      setValue("colleagueId", "");
+    } else if (requestFor === "colleague" && colleagueId) {
+      const selectedStaff = staffOptions.find(
+        (staff) => staff.value === colleagueId,
+      );
+      setValue("contactPerson", selectedStaff?.label || "");
+    }
+  }, [requestFor, colleagueId, session?.user?.name, setValue, staffOptions]);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       {/* Phase 1: Entity dan Project */}
       <div className="space-y-4">
-        <h2 className="text-lg font-medium border-b pb-2">Entity & Project</h2>
+        <h2 className="border-b pb-2 text-lg font-medium">Entity & Project</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="entity"
-              className={cn("", {
-                "text-destructive": errors.entity,
-              })}
-            >
-              Entity
+            <Label className={cn({ "text-destructive": errors.entity })}>
+              Entity <span className="text-destructive">*</span>
             </Label>
-            <Select
-              onValueChange={(value) => {
-                setValue("entity", value);
-                trigger("entity");
-              }}
-            >
-              <SelectTrigger
-                className={cn({
-                  "border-destructive": errors.entity,
-                })}
-              >
-                <SelectValue placeholder="Select Entity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="entity1">Entity 1</SelectItem>
-                <SelectItem value="entity2">Entity 2</SelectItem>
-                <SelectItem value="entity3">Entity 3</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="entity"
+              control={control}
+              render={({ field }) => (
+                <SelectWithSearch
+                  options={entityOptions}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  placeholder="Choose a Entity"
+                  searchPlaceholder="Search entity..."
+                  emptyMessage="Entity not found"
+                  disabled={isLoadingEntityData}
+                />
+              )}
+            />
             {errors.entity && (
-              <p className="text-xs text-destructive">{errors.entity.message}</p>
+              <p className="text-xs text-destructive">
+                {errors.entity.message}
+              </p>
             )}
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="project"
-              className={cn("", {
-                "text-destructive": errors.project,
-              })}
-            >
-              Project
+            <Label className={cn({ "text-destructive": errors.project })}>
+              Project <span className="text-destructive">*</span>
             </Label>
-            <Select
-              onValueChange={(value) => {
-                setValue("project", value);
-                trigger("project");
-              }}
-            >
-              <SelectTrigger
-                className={cn({
-                  "border-destructive": errors.project,
-                })}
-              >
-                <SelectValue placeholder="Select Project" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="project1">Project 1</SelectItem>
-                <SelectItem value="project2">Project 2</SelectItem>
-                <SelectItem value="project3">Project 3</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="project"
+              control={control}
+              render={({ field }) => (
+                <SelectWithSearch
+                  options={projectOptions}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  placeholder="Choose a Project"
+                  searchPlaceholder="Search project..."
+                  emptyMessage="Project not found"
+                  disabled={isProjectDisabled}
+                />
+              )}
+            />
             {errors.project && (
-              <p className="text-xs text-destructive">{errors.project.message}</p>
+              <p className="text-xs text-destructive">
+                {errors.project.message}
+              </p>
             )}
           </div>
         </div>
@@ -205,7 +282,9 @@ export default function NewTicketForm({ session }: { session: any }) {
         <>
           {/* Phase 2: Source, Request For, Contact Person, Request By, Contact No */}
           <div className="space-y-4">
-            <h2 className="text-lg font-medium border-b pb-2">Request Information</h2>
+            <h2 className="border-b pb-2 text-lg font-medium">
+              Request Information
+            </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="flex flex-col gap-2">
                 <Label
@@ -214,28 +293,23 @@ export default function NewTicketForm({ session }: { session: any }) {
                     "text-destructive": errors.source,
                   })}
                 >
-                  Source
+                  Complain Source
                 </Label>
-                <Select
-                  onValueChange={(value) => {
-                    setValue("source", value);
-                    trigger("source");
-                  }}
-                >
-                  <SelectTrigger
-                    className={cn({
-                      "border-destructive": errors.source,
-                    })}
-                  >
-                    <SelectValue placeholder="Select Source" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mobile">Mobile</SelectItem>
-                    <SelectItem value="web_cs">Web CS</SelectItem>
-                    <SelectItem value="phone">Phone</SelectItem>
-                    <SelectItem value="lobby">Lobby</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="source"
+                  control={control}
+                  render={({ field }) => (
+                    <SelectWithSearch
+                      options={complainSourceOptions}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Choose a Complain Source"
+                      searchPlaceholder="Search complain source..."
+                      emptyMessage="Complain source not found"
+                      disabled={isLoadingComplainSource}
+                    />
+                  )}
+                />
                 {errors.source && (
                   <p className="text-xs text-destructive">
                     {errors.source.message}
@@ -249,11 +323,6 @@ export default function NewTicketForm({ session }: { session: any }) {
                   defaultValue="myself"
                   onValueChange={(value) => {
                     setValue("requestFor", value as "myself" | "colleague");
-                    if (value === "myself") {
-                      setValue("contactPerson", session?.user?.name || "");
-                    } else {
-                      setValue("contactPerson", "");
-                    }
                     trigger("requestFor");
                   }}
                   className="flex gap-4"
@@ -275,43 +344,30 @@ export default function NewTicketForm({ session }: { session: any }) {
                   {...register("contactPerson")}
                   disabled
                   placeholder="Auto-filled"
-                  defaultValue={
-                    watch("requestFor") === "myself" ? session?.user?.name : ""
-                  }
                 />
               </div>
             </div>
 
             {/* Colleague Selection - hanya muncul jika Request For = colleague */}
-            {watch("requestFor") === "colleague" && (
+            {requestFor === "colleague" && (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="flex flex-col gap-2">
                   <Label>Colleague</Label>
-                  <Select
-                    onValueChange={(value) => {
-                      setValue("colleagueId", value);
-                      // Mengisi Contact Person berdasarkan colleague yang dipilih
-                      if (value === "staff1") setValue("contactPerson", "Fardi");
-                      else if (value === "staff2")
-                        setValue("contactPerson", "Zakaria");
-                      else if (value === "staff3")
-                        setValue("contactPerson", "Daniel");
-                      trigger("colleagueId");
-                    }}
-                  >
-                    <SelectTrigger
-                      className={cn({
-                        "border-destructive": errors.colleagueId,
-                      })}
-                    >
-                      <SelectValue placeholder="Select Colleague" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="staff1">Fardi</SelectItem>
-                      <SelectItem value="staff2">Zakaria</SelectItem>
-                      <SelectItem value="staff3">Daniel</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="colleagueId"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectWithSearch
+                        options={staffOptions}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Choose a Colleague"
+                        searchPlaceholder="Search colleague..."
+                        emptyMessage="Colleague not found"
+                        disabled={isLoadingStaffData}
+                      />
+                    )}
+                  />
                 </div>
                 <div className="col-span-2"></div>
               </div>
@@ -319,8 +375,8 @@ export default function NewTicketForm({ session }: { session: any }) {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="requestBy">Request By</Label>
-                <Input {...register("requestBy")} placeholder="Request By" />
+                <Label htmlFor="requestBy">PIC Name</Label>
+                <Input {...register("requestBy")} placeholder="PIC Name" />
                 {errors.requestBy && (
                   <p className="text-xs text-destructive">
                     {errors.requestBy.message}
@@ -328,8 +384,8 @@ export default function NewTicketForm({ session }: { session: any }) {
                 )}
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="contactNo">Contact No</Label>
-                <Input {...register("contactNo")} placeholder="Contact No" />
+                <Label htmlFor="contactNo">PIC Contact No</Label>
+                <Input {...register("contactNo")} placeholder="PIC Contact No" />
                 {errors.contactNo && (
                   <p className="text-xs text-destructive">
                     {errors.contactNo.message}
@@ -341,7 +397,9 @@ export default function NewTicketForm({ session }: { session: any }) {
 
           {/* Phase 3: Request Type dan sisanya */}
           <div className="space-y-4">
-            <h2 className="text-lg font-medium border-b pb-2">Location and Category Details</h2>
+            <h2 className="border-b pb-2 text-lg font-medium">
+              Location and Category Details
+            </h2>
             <div className="flex flex-col gap-2">
               <Label>Request Type</Label>
               <RadioGroup
@@ -353,12 +411,12 @@ export default function NewTicketForm({ session }: { session: any }) {
                 className="flex gap-4"
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="unit" id="r-unit" />
-                  <Label htmlFor="r-unit">Unit</Label>
+                  <RadioGroupItem value="unit" id="r-complaint" />
+                  <Label htmlFor="r-complaint">Complaint</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="public_area" id="r-public" />
-                  <Label htmlFor="r-public">Public Area</Label>
+                  <RadioGroupItem value="public_area" id="r-request" />
+                  <Label htmlFor="r-request">Request</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -520,7 +578,9 @@ export default function NewTicketForm({ session }: { session: any }) {
                   </SelectContent>
                 </Select>
                 {errors.lot && (
-                  <p className="text-xs text-destructive">{errors.lot.message}</p>
+                  <p className="text-xs text-destructive">
+                    {errors.lot.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -528,7 +588,9 @@ export default function NewTicketForm({ session }: { session: any }) {
 
           {/* Phase 4: Work Request dan Images */}
           <div className="space-y-4">
-              <h2 className="text-lg font-medium border-b pb-2">Work Request and Images</h2>
+            <h2 className="border-b pb-2 text-lg font-medium">
+              Work Request and Images
+            </h2>
             <div className="flex flex-col gap-2">
               <Label>Work Request</Label>
               <Textarea

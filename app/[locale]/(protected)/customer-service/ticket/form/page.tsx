@@ -14,13 +14,13 @@ const Entry = async () => {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <Link href="/dashboard">
+            <Link href="/dashboard/home">
               <Icon icon="heroicons:home" className="h-5 w-5" />
             </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <Link href="/dashboard">Customer Service</Link>
+            <Link href="/dashboard/home">Customer Service</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>Service Request Form </BreadcrumbItem>

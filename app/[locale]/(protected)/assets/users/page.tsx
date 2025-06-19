@@ -17,13 +17,13 @@ const UsersPage = async () => {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <Link href="/dashboard">
+            <Link href="/dashboard/home">
               <Icon icon="heroicons:home" className="h-5 w-5" />
             </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <Link href="/dashboard">System Admin</Link>
+            <Link href="/dashboard/home">Assets</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>User List</BreadcrumbItem>

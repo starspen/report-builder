@@ -14,7 +14,7 @@ const DetailsPage = ({ params }: { params: { slug: string[] } }) => {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <Link href="/dashboard">
+            <Link href="/dashboard/home">
               <Icon icon="heroicons:home" className="h-5 w-5" />
             </Link>
           </BreadcrumbItem>

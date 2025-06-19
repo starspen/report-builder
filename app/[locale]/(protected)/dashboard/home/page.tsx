@@ -2,7 +2,8 @@ import DashboardAdmin from "../admin/page";
 import DashboardMaker from "../maker/page";
 import DashboardMakerAndBlaster from "../maker-and-blaster/page";
 import DashboardUserApproval from "../user-approval/page";
-import DashboardBtid from "../../btid-folder/page";
+import DashboardBtid from "../btid-folder/page";
+import DashboardSuperAdmin from "../super-admin/page";
 import NotFound from "@/app/[locale]/not-found";
 import { auth } from "@/lib/auth";
 import React from "react";
@@ -10,12 +11,74 @@ import { Loader2 } from "lucide-react";
 import DashboardBlaster from "../blaster/page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
+import { getUserRole } from "@/action/master-user-action";
 
 const DashboardPage = async () => {
   const session = await auth();
-  const roles = session?.user?.roles;
 
-  // Define desired render order
+  if (!session?.user) {
+    return (
+      <div className="h-screen flex items-center flex-col space-y-2">
+        <span className="inline-flex gap-1 items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
+      </div>
+    );
+  }
+
+  const user_id = session.user.id;
+  const role = session.user.role
+
+  if (role === 'administrator') {
+    return (
+      <>
+        <div className="space-y-8 my-4 w-full">
+          {/* Welcome Card */}
+          <Card className="relative border-none bg-primary/20 shadow-none w-full">
+            <CardHeader className="flex-row flex-wrap gap-2 lg:min-h-36">
+              <CardTitle
+                className="flex-1 whitespace-normal font-semibold text-default-800"
+                style={{ maxWidth: "80%" }}
+              >
+                Welcome back,
+                <p className="mt-2 font-bold text-default-800 lg:mt-4">
+                  {session.user.name}
+                </p>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <Image
+                src="/images/all-img/admin-1.png"
+                alt="images"
+                draggable="false"
+                className="absolute bottom-0 right-0 h-28 w-28 object-contain lg:h-40 lg:w-40"
+                width={200}
+                height={100}
+                priority
+              />
+            </CardContent>
+          </Card>
+          <DashboardSuperAdmin />
+        </div>
+      </>
+
+    );
+  }
+
+  const result = await getUserRole(user_id);
+  const roles: string[] = result.data;
+
+  if (!roles) {
+    return (
+      <div className="h-screen flex items-center flex-col space-y-2">
+        <span className="inline-flex gap-1 items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
+      </div>
+    );
+  }
   const roleOrder = [
     "Web blast Admin",
     "Asset Admin",
@@ -35,17 +98,6 @@ const DashboardPage = async () => {
     broadcaster: <DashboardBlaster />,
     approver: <DashboardUserApproval />,
   };
-
-  if (!session || !roles) {
-    return (
-      <div className="h-screen flex items-center flex-col space-y-2">
-        <span className="inline-flex gap-1 items-center">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Loading...
-        </span>
-      </div>
-    );
-  }
 
   return (
     <>

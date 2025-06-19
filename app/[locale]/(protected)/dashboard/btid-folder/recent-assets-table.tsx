@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { getWithQrData } from "@/action/generate-qr-action";
+import { Loader2 } from "lucide-react";
 export default function RecentAssetsTable({ session }: { session: any }) {
   const t = useTranslations("IFCADashboard");
 
@@ -18,7 +19,15 @@ export default function RecentAssetsTable({ session }: { session: any }) {
     enabled: !!session?.user,
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading)
+    return (
+      <div className=" h-screen flex items-center flex-col space-y-2">
+        <span className=" inline-flex gap-1  items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
+      </div>
+    );
 
   if (isError) return <div>Error fetching data</div>;
 
@@ -36,7 +45,7 @@ export default function RecentAssetsTable({ session }: { session: any }) {
   const totalAssets = userData?.length;
 
   const totalAssetsPrintedQr = userData?.filter(
-    (item: any) => item.isprint === "Y",
+    (item: any) => item.isprint === "Y"
   ).length;
 
   return (

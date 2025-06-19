@@ -32,13 +32,13 @@ export function DataTableToolbar({
     label: projectName,
   }));
 
-  const statusFilter = table.getColumn("status");
-  const statusSet = new Set(
+  const statusInquiryFilter = table.getColumn("status");
+  const statusInquirySet = new Set(
     table.getFilteredRowModel().rows.map((row) => row.original.status)
   );
-  const status = Array.from(statusSet).map((status) => ({
-    value: status,
-    label: status,
+  const statusInquiry = Array.from(statusInquirySet).map((statusInquiry) => ({
+    value: statusInquiry,
+    label: statusInquiry,
   }));
 
   return (
@@ -58,11 +58,11 @@ export function DataTableToolbar({
         />
       )}
 
-      {statusFilter && (
+      {statusInquiryFilter && (
         <DataTableFacetedFilter
-          column={statusFilter}
+          column={statusInquiryFilter}
           title="Status"
-          options={status}
+          options={statusInquiry}
         />
       )}
 

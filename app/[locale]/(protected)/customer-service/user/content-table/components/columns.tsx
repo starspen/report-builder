@@ -1,0 +1,202 @@
+"use client";
+
+import { Checkbox } from "@/components/ui/checkbox";
+import { DataTableColumnHeader } from "./data-table-column-header";
+import { DataTableRowActions } from "./data-table-row-actions";
+import { Column, ColumnDef, Row } from "@tanstack/react-table";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { DataProps, tableHeaders } from "../data";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+dayjs.extend(utc);
+
+export interface Task {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  roles: string[];
+  created_at: string;
+  action: React.ReactNode;
+  amt_range: Array<any>;
+  rowID: any;
+  min: any;
+  max: any;
+}
+
+// export const columns: ColumnDef<Task>[] = [
+//   // {
+//   //   id: "select",
+//   //   header: ({ table }) => (
+//   //     <Checkbox
+//   //       checked={
+//   //         table.getIsAllPageRowsSelected() ||
+//   //         (table.getIsSomePageRowsSelected() && "indeterminate")
+//   //       }
+//   //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+//   //       aria-label="Select all"
+//   //       className="translate-y-0.5"
+//   //     />
+//   //   ),
+//   //   cell: ({ row, table }) => (
+//   //     <Checkbox
+//   //       checked={row.getIsSelected()}
+//   //       // onCheckedChange={(value) => row.toggleSelected(!!value)}
+//   //       onCheckedChange={(value) => {
+//   //         // Menonaktifkan pemilihan multiple
+//   //         table.toggleAllRowsSelected(false);
+//   //         row.toggleSelected(!!value);
+//   //       }}
+//   //       aria-label="Select row"
+//   //       className="translate-y-0.5"
+//   //     />
+//   //   ),
+//   //   enableSorting: false,
+//   //   enableHiding: false,
+//   // },
+//   {
+//     accessorKey: "email",
+//     header: "Email",
+//     cell: ({ row }) => <span>{row.getValue("email")}</span>,
+//   },
+//   {
+//     accessorKey: "name",
+//     header: "Name",
+//     cell: ({ row }) => {
+//       return (
+//         <div className="font-medium text-card-foreground/80">
+//           <div className="flex gap-3 items-center">
+//             <span className="text-sm text-default-600 whitespace-nowrap">
+//               {row.getValue("name")}
+//             </span>
+//           </div>
+//         </div>
+//       );
+//     },
+//   },
+//   {
+//     accessorKey: "role",
+//     header: "Role",
+//     cell: ({ row }) => <span>{row.getValue("role")}</span>,
+//   },
+//   {
+//     accessorKey: "created_at",
+//     header: "Created At",
+//     cell: ({ row }) => {
+//       const value = row.getValue("created_at");
+//       return (
+//         <span>{dayjs.utc(value as string).format("DD/MM/YYYY HH:mm")}</span>
+//       );
+//     },
+//   },
+//   {
+//     id: "actions",
+//     accessorKey: "action",
+//     header: "Actions",
+//     enableHiding: false,
+//     cell: ({ row }) => {
+//       return <DataTableRowActions row={row} />;
+//     },
+//   },
+// ];
+
+export const columns: ColumnDef<DataProps>[] = [
+    {
+    id: "select",
+    header: ({ table }) => {
+      // Dapatkan email user yang sedang login
+      const currentUserEmail = (table.options.meta as any)?.currentUserEmail;
+      
+      return (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => {
+            // Filter baris yang bisa diselect (email tidak sama dengan user login)
+            table.getRowModel().rows.forEach((row) => {
+              if (row.original.email !== currentUserEmail) {
+                row.toggleSelected(!!value);
+              }
+            });
+          }}
+          aria-label="Select all"
+          className="translate-y-0.5"
+        />
+      );
+    },
+    cell: ({ row, table }) => {
+      // Dapatkan email user yang sedang login dari props table.options.meta
+      const currentUserEmail = (table.options.meta as any)?.currentUserEmail;
+      // Dapatkan email dari row data
+      const rowEmail = row.original.email;
+      
+      return (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="translate-y-0.5"
+          // Nonaktifkan checkbox jika email sama
+          disabled={currentUserEmail === rowEmail}
+        />
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  ...tableHeaders.map((header) => ({
+    accessorKey: header.accessorKey,
+    header: ({ column }: { column: Column<DataProps> }) => (
+      <DataTableColumnHeader column={column} title={header.header} />
+    ),
+    cell: ({ row }: { row: Row<DataProps> }) => {
+      const value = row.getValue(header.accessorKey);
+
+      if (header.accessorKey === "created_at") {
+        const value = row.getValue("created_at");
+        return (
+          <span>{dayjs.utc(value as string).format("DD/MM/YYYY HH:mm")}</span>
+        );
+      }
+
+      if (header.accessorKey === "role") {
+        const value = row.getValue("role") as string;
+        let descs = "";
+        if (value === "administrator") {
+          descs = "Administrator";
+        } else if (value === "maker") {
+          descs = "Creator";
+        } else if (value === "blaster") {
+          descs = "Broadcaster";
+        } else if (value === "maker and blaster") {
+          descs = "Creator and Broadcaster";
+        } else if (value === "approver") {
+          descs = "Reviewer";
+        } else {
+          descs = "-";
+        }
+
+        return <span>{descs}</span>;
+      }
+
+      return <span>{String(value)}</span>;
+    },
+    enableSorting: true,
+    filterFn: (row: Row<DataProps>, id: string, filterValues: unknown[]) => {
+      return filterValues.includes(row.getValue(id));
+    },
+  })),
+
+  {
+    id: "actions",
+
+    enableHiding: false,
+    cell: ({ row }) => {
+      return <DataTableRowActions row={row} />;
+    },
+  },
+];

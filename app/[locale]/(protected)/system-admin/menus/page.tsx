@@ -150,13 +150,13 @@ export default function ModulesPage() {
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <Link href="/dashboard">
+            <Link href="/dashboard/home">
               <Icon icon="heroicons:home" className="h-5 w-5" />
             </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <Link href="/dashboard">System Admin</Link>
+            <Link href="/dashboard/home">System Admin</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>Menus</BreadcrumbItem>

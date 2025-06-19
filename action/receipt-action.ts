@@ -794,7 +794,7 @@ export const downloadReceiptStampHistory = async (
   }
 };
 
-export const getReceiptInquiry = async () => {
+export const getReceiptInquiry = async (startDate: string, endDate: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
@@ -803,12 +803,15 @@ export const getReceiptInquiry = async () => {
       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`${url}/api/receipt-inqueries`, {
-      method: "GET",
-    });
+    const response = await fetch(
+      `${url}/api/receipt-inqueries?start_date=${startDate}&end_date=${endDate}`,
+      {
+        method: "GET",
+      }
+    );
     const result = await response.json();
 
-    if (result.statusCode === 200) {
+    if (result.statusCode === 200 || result.statusCode === 201) {
       return result;
     } else {
       return result;
@@ -843,6 +846,74 @@ export const deleteAdditionalFile = async (docNo: string, fileName: string) => {
     }
   } catch (error) {
     console.error("Error deleting file:", error);
+    return error;
+  }
+};
+
+export const completeReceiptEmail = async (
+  docNo: string,
+  processId: string
+) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const data = {
+      doc_no: docNo,
+      process_id: processId,
+    };
+
+    const response = await fetch(`${url}/api/mail/complete/receipt`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+
+    if (result.statusCode === 200 || result.statusCode === 201) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error completing data:", error);
+    return error;
+  }
+};
+
+export const getReceiptEmailHistoryCompleted = async (
+  startDate: string,
+  endDate: string
+) => {
+  try {
+    let url = "";
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+    }
+
+    const response = await fetch(
+      `${url}/api/receipt/completed?start_date=${startDate}&end_date=${endDate}`,
+      {
+        method: "GET",
+      }
+    );
+    const result = await response.json();
+
+    if (result.statusCode === 200 || result.statusCode === 201) {
+      return result;
+    } else {
+      return result;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
     return error;
   }
 };

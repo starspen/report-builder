@@ -67,8 +67,8 @@ export const FormAssign = ({
   const users: OptionType[] = dataUser
     ?.filter((item: any) =>
       Array.isArray(item.roles) &&
-      (item.roles.includes("maker and blaster") ||
-      item.roles.includes("maker"))
+      (item.roles.includes("creator and broadcaster") ||
+      item.roles.includes("creator"))
     )
     .map((item: any) => ({
       value: item.id,
@@ -88,8 +88,8 @@ export const FormAssign = ({
   const usersBlast: OptionType[] = dataUser
     ?.filter((item: any) =>
       Array.isArray(item.roles) &&
-      (item.roles.includes("maker and blaster") ||
-      item.roles.includes("blaster"))
+      (item.roles.includes("creator and broadcaster") ||
+      item.roles.includes("broadcaster"))
     )
     .map((item: any) => ({
       value: item.id,
