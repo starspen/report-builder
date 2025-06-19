@@ -12,6 +12,7 @@ import { Link } from "@/components/navigation";
 import { Icon } from "@/components/ui/icon";
 const UsersPage = async () => {
   const session = await auth();
+
   return (
     <div className="space-y-5">
       <Breadcrumb>

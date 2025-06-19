@@ -32,7 +32,7 @@ interface DataTableProps<TData> {
   data: TData[];
   user: any;
 }
-export function DataTable<TData>({ columns, data, user }: DataTableProps<TData>) {
+export function DataTable<TData>({ columns, data = [], user }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);

@@ -84,7 +84,7 @@ export default function DashboardPage() {
           {/* Unassigned Users */}
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow bg-yellow-50"
-            onClick={() => router.push("/system-admin/assign-user")}
+            onClick={() => router.push("/system-admin/assign-user?roles=unassigned")}
           >
             <CardContent className="flex flex-col items-center p-6">
               <div className="rounded-full bg-white p-3 mb-4">

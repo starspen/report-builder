@@ -3,9 +3,11 @@ import ContentTable from "./content-table";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Link } from "@/components/navigation";
 import { Icon } from "@/components/ui/icon";
+import { auth } from "@/lib/auth";
 
 
-const ReactTablePage = () => {
+const ReactTablePage = async () => {
+  const session = await auth()
   return (
     <div>
       <div className="space-y-6">
@@ -29,7 +31,7 @@ const ReactTablePage = () => {
             <CardTitle>Web Blast User</CardTitle>
           </CardHeader>
           <CardContent>
-            <ContentTable />
+            <ContentTable session={session}/>
           </CardContent>
         </Card>
       </div>

@@ -81,9 +81,40 @@ export const columns: ColumnDef<DataProps>[] = [
       }
       return <span>{display}</span>;
     },
+    // enableSorting: true,
+    // filterFn: (row: Row<DataProps>, id: string, filterValues: unknown[]) => {
+    //   return filterValues.includes(row.getValue(id));
+    // },
     enableSorting: true,
     filterFn: (row: Row<DataProps>, id: string, filterValues: unknown[]) => {
-      return filterValues.includes(row.getValue(id));
+      const cell = row.getValue(id);
+      // detect unassigned filter
+      const wantsUnassigned = (filterValues as string[]).includes("unassigned");
+      // other filters besides unassigned
+      const otherFilters = (filterValues as string[]).filter(v => v !== "unassigned");
+
+      // if only unassigned filter: show rows with no roles/empty array
+      if (wantsUnassigned && otherFilters.length === 0) {
+        if (Array.isArray(cell)) return cell.length === 0;
+        return false;
+      }
+
+      // build match for roles (array of objects with name)
+      if (Array.isArray(cell) && cell.length > 0 && typeof cell[0] === "object" && "name" in cell[0]) {
+        const names = (cell as any[]).map(item => item.name.toString());
+        // if combining unassigned and others: include rows with no roles or matching names
+        if (wantsUnassigned && otherFilters.length > 0) {
+          return names.some(name => otherFilters.includes(name)) || cell.length === 0;
+        }
+        // normal matching
+        return otherFilters.some(val => names.includes(val));
+      }
+
+      // fallback for primitive or simple array
+      if (Array.isArray(cell)) {
+        return otherFilters.some(val => (cell as any[]).includes(val));
+      }
+      return otherFilters.some(val => cell === val);
     },
   })),
 

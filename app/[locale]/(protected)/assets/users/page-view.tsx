@@ -9,12 +9,13 @@ import { getMasterAssetUser } from "@/action/master-user-action";
 
 const UsersPageView = ({ session }: { session: any }) => {
   const { data: users, isLoading: isLoadingUser, isError } = useQuery({
-    queryKey: ["asset-user"],
+    queryKey: ["asset-user", session?.user?.role],
     queryFn: async () => {
       const result = await getMasterAssetUser();
 
       return result;
     },
+    enabled: !!session?.user,
   });
 
   if (isLoadingUser) return <div>Loading...</div>;

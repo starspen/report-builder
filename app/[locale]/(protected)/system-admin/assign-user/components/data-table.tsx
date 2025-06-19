@@ -31,8 +31,10 @@ interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];
   data: TData[];
   user: any;
+  roles: string
 }
-export function DataTable<TData>({ columns, data, user }: DataTableProps<TData>) {
+export function DataTable<TData>({ columns, data, user, roles }: DataTableProps<TData>) {
+  
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -61,7 +63,24 @@ export function DataTable<TData>({ columns, data, user }: DataTableProps<TData>)
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    filterFns: {
+      arrayObjectNameIncludes: (row, columnId, filterValues) => {
+        // row.getValue(columnId) is assumed to be an array of objects with a `name` property
+        const cellArray = row.getValue<any[]>(columnId) || [];
+        const names = cellArray.map(item => item.name?.toString());
+        // filterValues is an array of strings to match against names
+        return filterValues.some((val: string) => names.includes(val));
+      }
+    }
   });
+
+  React.useEffect(() => {
+    if (roles === "unassigned") {
+      table.setColumnFilters([
+        { id: "roles", value: ["unassigned"] }
+      ]);
+    }
+  }, [roles, table]);
 
   return (
     <div className="space-y-4">

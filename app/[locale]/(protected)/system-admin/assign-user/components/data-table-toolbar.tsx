@@ -91,37 +91,24 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
 
   // --- build faceted filter options
 
-  // MODULE filter (flatten module[].name, plus "Unassigned" if array is empty)
-  const moduleColumn = table.getColumn("module");
-  const moduleNames = new Set<string>();
-  table.getFilteredRowModel().rows.forEach(({ original }) => {
-    const mods: { name: string }[] = original.module || [];
-    if (mods.length === 0) {
-      moduleNames.add("Unassigned");
-    } else {
-      mods.forEach((m) => moduleNames.add(m.name));
-    }
-  });
-  const moduleOptions = Array.from(moduleNames).map((name) => ({
-    value: name,
-    label: name,
-  }));
 
-  // ROLE filter (flatten roles[].name)
-  const roleColumn = table.getColumn("roles");
-  const roleNames = new Set<string>();
-  table.getFilteredRowModel().rows.forEach(({ original }) => {
-    const roles: { name: string }[] = original.roles || [];
-    if (roles.length === 0) {
-      roleNames.add("Unassigned");
-    } else {
-      roles.forEach((r) => roleNames.add(r.name));
-    }
-  });
-  const roleOptions = Array.from(roleNames).map((name) => ({
-    value: name,
-    label: name,
-  }));
+  // in your toolbar component
+  const modulesFilter = table.getColumn("module");
+  const modulesOptions = Array.from(
+    new Set(
+      table.getFilteredRowModel().rows.flatMap(r => r.original.module.map((item: any) => item.name))
+    )
+  ).map(val => ({ value: val, label: val }));
+
+  const rolesFilter = table.getColumn("roles");
+  const rolesOptions = Array.from(
+    new Set(
+      table.getFilteredRowModel().rows.flatMap(r => r.original.roles.map((role: any) => role.name))
+    )
+  ).map(val => ({ value: val, label: val }));
+
+  rolesOptions.push({ value: "unassigned", label: "Unassigned" });
+  modulesOptions.push({ value: "unassigned", label: "Unassigned" });
 
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -136,22 +123,24 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
       />
 
       {/* 2) Module faceted filter */}
-      {moduleColumn && (
+      {modulesFilter && (
         <DataTableFacetedFilter
-          column={moduleColumn}
-          title="Module"
-          options={moduleOptions}
+          column={modulesFilter}
+          title="Modules"
+          options={modulesOptions}
         />
       )}
 
       {/* 3) Role faceted filter */}
-      {roleColumn && (
+
+      {rolesFilter && (
         <DataTableFacetedFilter
-          column={roleColumn}
-          title="Role"
-          options={roleOptions}
+          column={rolesFilter}
+          title="Roles"
+          options={rolesOptions}
         />
       )}
+
 
       {/* 4) Reset filters button */}
       {isFiltered && (

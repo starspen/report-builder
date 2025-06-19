@@ -9,14 +9,15 @@ import { Task } from "./components/columns";
 import { Loader2 } from "lucide-react";
 // import { data } from "./data";
 
-export default function AdvancedTable() {
+export default function AdvancedTable({ session }: { session: any }) {
   const { data, isLoading } = useQuery<{ data: Task[] }>({
-    queryKey: ["master-user"],
+    queryKey: ["master-user", session?.user?.role],
     queryFn: async () => {
       const result = await getMasterWebBlastUser();
 
       return result;
     },
+    enabled: !!session?.user
   });
 
   if (isLoading) {

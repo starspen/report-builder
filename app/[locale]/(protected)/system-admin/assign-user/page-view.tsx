@@ -5,6 +5,7 @@ import React, { Fragment } from "react";
 import { DataTable } from "./components/data-table";
 import { columns } from "./components/columns";
 import { getMasterUserWithModules } from "@/action/master-user-action";
+import { useSearchParams } from "next/navigation";
 
 
 const UsersPageView = ({ session }: { session: any }) => {
@@ -17,7 +18,11 @@ const UsersPageView = ({ session }: { session: any }) => {
     },
     enabled: !!session?.user,
   });
-
+  const searchParams = useSearchParams();
+  let initialRoles = ''
+  if (searchParams){
+    initialRoles = searchParams.get("roles") ?? "";
+  }
   if (isLoading) return <div>Loading...</div>;
 
   if (isError) return <div>Error fetching data</div>;
@@ -32,6 +37,7 @@ const UsersPageView = ({ session }: { session: any }) => {
         data={users}
         columns={columns}
         user={session?.user}
+        roles={initialRoles}
       />
     </Fragment>
   );
