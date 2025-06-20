@@ -276,7 +276,9 @@ export const insertMasterUser = async (data: any) => {
     role_id: data.userRoleId,
     module_name: data.moduleName,
     div_cd: data.div_cd,
-    dept_cd: data.dept_cd
+    dept_cd: data.dept_cd,
+    roles: data.role,
+    module: data.module,
   };
   try {
     let url = "";

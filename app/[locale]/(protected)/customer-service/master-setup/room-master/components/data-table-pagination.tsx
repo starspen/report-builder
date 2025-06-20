@@ -2,7 +2,6 @@ import {
   ChevronsLeft,
   ChevronRight,
   ChevronLeft,
-  ChevronsRight,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -91,7 +90,7 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
             disabled={!table.getCanNextPage()}
           >
             <span className="sr-only">Go to last page</span>
-            <ChevronsRight className="h-4 w-4 rtl:rotate-180" />
+            <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           </Button>
         </div>
       </div>

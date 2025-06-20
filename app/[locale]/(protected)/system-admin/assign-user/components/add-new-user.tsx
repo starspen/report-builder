@@ -138,10 +138,12 @@ const AddNewUser = ({
   });
 
   async function onSubmit(data: any) {
+    console.log(data)
     const reqBody = {
       div_cd: data.division,
       dept_cd: data.department,
-      userRole: data.role.label,
+      userRole: data.role,
+      // userRole: data.role.label,
       userRoleId: data.role.value,
       userName: data.name,
       userEmail: data.email,

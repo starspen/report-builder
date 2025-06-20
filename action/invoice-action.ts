@@ -261,7 +261,7 @@ export const generateInvoiceProforma = async (
 export const getInvoiceList = async () => {
   try {
     const session = await auth();
-    const auditUser = session?.user?.name;
+    const auditUser = session?.user?.email;
 
     let url = "";
     if (mode === "sandbox") {
