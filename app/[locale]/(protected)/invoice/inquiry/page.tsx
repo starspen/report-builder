@@ -1,41 +1,22 @@
-"use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ContentTable from "./content-table";
+import React from "react";
+import InvoiceInquiryView from "./page-view";
+import { auth } from "@/lib/auth";
+import { getNewMenu } from "@/action/dashboard-action";
+import { redirect } from "next/navigation";
 
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Link } from "@/components/navigation";
-import { Icon } from "@/components/ui/icon";
+const InvoiceInquiryPage = async () => {
+    const session = await auth();
+    const menu = await getNewMenu();
+    const hasMenu = menu.data.menuList
+    const role = session?.user.role
 
-const ReactTablePage = () => {
-  return (
-    <div>
-      <div className="space-y-6">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <Link href="/dashboard/home">
-                <Icon icon="heroicons:home" className="h-5 w-5" />
-              </Link>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <Link href="/dashboard/home">Invoice</Link>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Invoice Inquiry</BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <Card>
-          <CardHeader>
-            <CardTitle>Invoice Inquiry</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ContentTable />
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+    if (!hasMenu.includes("Invoice Inquiry") && role !== "administrator") {
+        return redirect("/");
+    }
+
+    return (
+        <InvoiceInquiryView/>
+    );
 };
 
-export default ReactTablePage;
+export default InvoiceInquiryPage;

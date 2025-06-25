@@ -50,6 +50,8 @@ export default function AdvancedTable() {
     enabled: !!startDate && !!endDate && shouldFetch,
   });
 
+  console.log(data)
+
   const {
     control,
     formState: { errors },

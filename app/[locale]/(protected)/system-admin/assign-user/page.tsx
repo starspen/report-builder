@@ -8,10 +8,20 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { Link } from "@/components/navigation";
+import { Link, redirect } from "@/components/navigation";
 import { Icon } from "@/components/ui/icon";
+import { getNewMenu } from "@/action/dashboard-action";
 const UsersPage = async () => {
   const session = await auth();
+
+  const menu = await getNewMenu();
+  const hasMenu = menu.data.menuList
+  const role = session?.user.role
+
+  console.log(hasMenu)
+  if (!hasMenu.includes("Assign User") && role !== "administrator") {
+    return redirect("/");
+  }
 
   return (
     <div className="space-y-5">

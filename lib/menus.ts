@@ -42,10 +42,8 @@ export function getMenuList(
   const isBlaster = ["maker and blaster", "blaster"].includes(
     session?.user?.role
   );
-  const isApprover = session?.user?.role === "approver";
-  const hasOrDataMaker = menu?.data?.hasOrDataMaker;
-  const hasOrDataBlaster = menu?.data?.hasOrDataBlaster;
-  const hasOrDataApprover = menu?.data?.hasOrDataApprover;
+  const hasInvoice = menu?.data?.hasInvoice
+  const hasReceipt = menu?.data?.hasReceipt
 
   const menuList: string[] = menu?.data?.menuList ?? [];
   const moduleList: string[] = menu?.data?.moduleList ?? [];
@@ -254,6 +252,24 @@ export function getMenuList(
       visible: canSee("Print QR"),
     },
   ];
+  const vaSubmenus: Submenu[] = [
+    {
+      href: "/va/transfer-receipt",
+      label: "Transfer Receipt",
+      active: pathname.includes("/va/transfer-receipt"),
+      icon: "",
+      children: [],
+      visible: canSee("Transfer Receipt"),
+    },
+    {
+      href: "/va/transaction-history",
+      label: "Transaction History",
+      active: pathname.includes("/va/transaction-history"),
+      icon: "",
+      children: [],
+      visible: canSee("Transaction History"),
+    },
+  ];
 
   const customerServiceSubmenus: Submenu[] = [
     {
@@ -380,6 +396,7 @@ export function getMenuList(
   const filteredInvoiceSubmenus = invoiceSubmenus.filter((s) => s.visible);
   const filteredReceiptSubmenus = receiptSubmenus.filter((s) => s.visible);
   const filterredAssetSubmenus = assetSubmenus.filter((s) => s.visible);
+  const filterredVaSubmenus = vaSubmenus.filter((s) => s.visible);
   const filterredCsSubmenus = customerServiceSubmenus.filter((s) => s.visible);
   return [
     {
@@ -473,7 +490,7 @@ export function getMenuList(
           active: pathname.includes("/invoice"),
           icon: "heroicons-outline:document-text",
           submenus: filteredInvoiceSubmenus,
-          visible: isAdmin || filteredInvoiceSubmenus.length > 0,
+          visible: isAdmin || (filteredInvoiceSubmenus.length > 0 && hasInvoice),
         },
         {
           id: "receipt",
@@ -482,7 +499,16 @@ export function getMenuList(
           active: pathname.includes("/receipt"),
           icon: "heroicons-outline:receipt-percent",
           submenus: filteredReceiptSubmenus,
-          visible: isAdmin || filteredReceiptSubmenus.length > 0,
+          visible: isAdmin || (filteredReceiptSubmenus.length > 0 && hasReceipt ),
+        },
+        {
+          id: "virtual account",
+          href: "#",
+          label: "Virtual Account",
+          active: pathname.includes("/va"),
+          icon: "heroicons-outline:receipt-percent",
+          submenus: filterredVaSubmenus,
+          visible: isAdmin || (filterredVaSubmenus.length > 0),
         },
       ].filter((menu) => menu.visible !== false),
     },
@@ -860,6 +886,24 @@ export function getHorizontalMenuList(
       icon: "",
       children: [],
       visible: canSee("Print QR"),
+    },
+  ];
+  const vaSubmenus: Submenu[] = [
+    {
+      href: "/va/transfer-receipt",
+      label: "Transfer Receipt",
+      active: pathname.includes("/va/transfer-receipt"),
+      icon: "",
+      children: [],
+      visible: canSee("Transfer Receipt"),
+    },
+    {
+      href: "/va/transaction-history",
+      label: "Transaction History",
+      active: pathname.includes("/va/transaction-history"),
+      icon: "",
+      children: [],
+      visible: canSee("Transaction History"),
     },
   ];
 

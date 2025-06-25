@@ -206,7 +206,7 @@ const DashboardPage = () => {
           <Card>
             <CardHeader className="flex-row flex-wrap gap-2">
               <CardTitle className="flex-1 whitespace-nowrap">
-                Approved Invoice
+                Approved Document
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">

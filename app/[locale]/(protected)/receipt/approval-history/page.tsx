@@ -1,22 +1,22 @@
-"use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ContentTable from "./content-table";
+import React from "react";
+import ApprovalHistoryView from "./page-view";
+import { auth } from "@/lib/auth";
+import { getNewMenu } from "@/action/dashboard-action";
+import { redirect } from "next/navigation";
 
-const ReactTablePage = () => {
-  return (
-    <div>
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Receipt Approval History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ContentTable />
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+const ReceiptApprovalHistoryPage = async () => {
+    const session = await auth();
+    const menu = await getNewMenu();
+    const hasMenu = menu.data.menuList
+    const role = session?.user.role
+
+    if (!hasMenu.includes("Receipt Approval History") && role !== "administrator") {
+        return redirect("/");
+    }
+
+    return (
+        <ApprovalHistoryView/>
+    );
 };
 
-export default ReactTablePage;
+export default ReceiptApprovalHistoryPage;

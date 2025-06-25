@@ -1,40 +1,22 @@
-"use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ContentTable from "./content-table";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Link } from "@/components/navigation";
-import { Icon } from "@/components/ui/icon";
+import React from "react";
+import StampHistoryView from "./page-view";
+import { auth } from "@/lib/auth";
+import { getNewMenu } from "@/action/dashboard-action";
+import { redirect } from "next/navigation";
 
-const ReactTablePage = () => {
-  return (
-    <div>
-      <div className="space-y-6">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <Link href="/dashboard/home">
-                <Icon icon="heroicons:home" className="h-5 w-5" />
-              </Link>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <Link href="/dashboard/home">Invoice</Link>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Invoice Stamp History</BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <Card>
-          <CardHeader>
-            <CardTitle>Invoice Stamp History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ContentTable />
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+const InvoiceStampHistoryPage = async () => {
+    const session = await auth();
+    const menu = await getNewMenu();
+    const hasMenu = menu.data.menuList
+    const role = session?.user.role
+
+    if (!hasMenu.includes("Invoice Stamp History") && role !== "administrator") {
+        return redirect("/");
+    }
+
+    return (
+        <StampHistoryView/>
+    );
 };
 
-export default ReactTablePage;
+export default InvoiceStampHistoryPage;

@@ -1,3 +1,4 @@
+// app/dashboard/modules/page.tsx (or wherever this lives)
 import React from "react";
 import ModulesPageView from "./page-view";
 import { auth } from "@/lib/auth";
@@ -10,8 +11,20 @@ import {
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Link } from "@/components/navigation";
 import { Icon } from "@/components/ui/icon";
+import { getNewMenu } from "@/action/dashboard-action";
+import { redirect } from "next/navigation";
+
 const UsersPage = async () => {
   const session = await auth();
+  const menu = await getNewMenu();
+  const hasMenu = menu.data.menuList
+  const role = session?.user.role
+
+  console.log("Role : " + role)
+  if (!hasMenu.includes("Modules") && role !== "administrator") {
+    return redirect("/");
+  }
+
   return (
     <div className="space-y-5">
       <Breadcrumb>
