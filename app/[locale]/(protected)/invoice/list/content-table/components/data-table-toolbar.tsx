@@ -138,7 +138,6 @@ export function DataTableToolbar({
 
     results.forEach((res, idx) => {
       if (res.status === "fulfilled") {
-        successCount += 1;
         const apiResponse = res.value as {
           statusCode: number;
           message: string;

@@ -9,17 +9,13 @@ import { DataTableViewOptions } from "./data-table-view-options";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { Table } from "@tanstack/react-table";
 
-import { ActionConfirm } from "./action-confirm";
-
 interface DataTableToolbarProps {
   table: Table<any>;
   selectedRows: Set<number | string>;
-  setSelectionRows: () => void;
 }
 export function DataTableToolbar({
   table,
   selectedRows,
-  setSelectionRows,
 }: DataTableToolbarProps) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,9 +32,9 @@ export function DataTableToolbar({
     label: projectName,
   }));
 
-  const statusInquiryFilter = table.getColumn("status_payment");
+  const statusInquiryFilter = table.getColumn("status");
   const statusInquirySet = new Set(
-    table.getFilteredRowModel().rows.map((row) => row.original.status_payment)
+    table.getFilteredRowModel().rows.map((row) => row.original.status)
   );
   const statusInquiry = Array.from(statusInquirySet).map((statusInquiry) => ({
     value: statusInquiry,
@@ -53,14 +49,6 @@ export function DataTableToolbar({
         onChange={handleFilterChange}
         className="h-8 min-w-[200px] max-w-sm"
       />
-
-      {selectedRows.size > 0 && (
-      <ActionConfirm
-        table={table}
-        selectedRows={selectedRows}
-        setSelectionRows={setSelectionRows}
-      />
-      )}
 
       {projectNameFilter && (
         <DataTableFacetedFilter

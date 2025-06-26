@@ -11,7 +11,6 @@ import { ChevronDown, ChevronUp, FileIcon, Link } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataProps, tableHeaders } from "../data";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface Task {
   entity_name: string;
@@ -145,37 +144,11 @@ interface Task {
 
 
 export const columns: ColumnDef<DataProps>[] = [
-    {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-0.5"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="translate-y-0.5"
-        disabled={row.original.status_payment !== "PAID"}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   ...tableHeaders.map((header) => ({
     accessorKey: header.accessorKey,
     header: ({ column }: { column: Column<DataProps> }) => (
       <DataTableColumnHeader column={column} title={header.header} />
     ),
-    
     cell: ({ row }: { row: Row<DataProps> }) => {
       const value = row.getValue(header.accessorKey);
       if (header.accessorKey === "status_payment") {
@@ -187,9 +160,9 @@ export const columns: ColumnDef<DataProps>[] = [
               <Badge className="rounded-full px-5 bg-default/20 text-default">
                 Pending
               </Badge>
-            ) : status_payment === "PAID" ? (
+            ) : status_payment === "COMPLETED" ? (
               <Badge className="rounded-full px-5 bg-success/20 text-success">
-                PAID
+                Completed
               </Badge>
             ) : status_payment === "C" ? (
               <Badge className="rounded-full px-5 bg-destructive/20 text-destructive">
@@ -248,10 +221,10 @@ export const columns: ColumnDef<DataProps>[] = [
   },
 
   // {
-  //   id: "action",
+  //   id: "actions",
   //   accessorKey: "action",
   //   header: ({ column }) => (
-  //     <DataTableColumnHeader column={column} title="Confirm payment" />
+  //     <DataTableColumnHeader column={column} title="Action" />
   //   ),
   //   enableHiding: false,
   //   // enableSorting: false,

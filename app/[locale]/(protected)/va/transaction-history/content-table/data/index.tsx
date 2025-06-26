@@ -2,13 +2,12 @@ export type DataProps = {
     virtual_acct: string;
     entity_name: string;
     project_name: string;
+    process_id: string;
     debtor_acct: string;
     debtor_name: string;
     email: string;
     currency_cd: string;
-    mbal_amt: string;
-    status_payment: string;
-    action: React.ReactNode;
+    mbal_amt: string
     // action: React.ReactNode;
   };
   

@@ -20,7 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useForm, Controller } from "react-hook-form";
-import { getTransferReceipt } from "@/action/va-action";
+import { getTransactionHistory, getTransferReceipt } from "@/action/va-action";
 // import { data } from "./data";
 
 const schema = z.object({
@@ -38,11 +38,11 @@ export default function AdvancedTable() {
   const [shouldFetch, setShouldFetch] = useState(false);
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
-    queryKey: ["transfer-receipt"],
+    queryKey: ["transaction-hitsory"],
     queryFn: async () => {
       const formattedStartDate = startDate ? format(startDate, "yyyyMMdd") : "";
       const formattedEndDate = endDate ? format(endDate, "yyyyMMdd") : "";
-      const result = await getTransferReceipt(
+      const result = await getTransactionHistory(
         formattedStartDate,
         formattedEndDate
       );
@@ -66,7 +66,7 @@ export default function AdvancedTable() {
       setStartDate(startDate);
       setEndDate(endDate);
       queryClient.invalidateQueries({
-        queryKey: ["transfer-receipt"],
+        queryKey: ["transaction-history"],
       });
     }
   };

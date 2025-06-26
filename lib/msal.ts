@@ -66,10 +66,12 @@ export const handleLogin = async (
       msalInstance.setActiveAccount(response.account);
       console.log("MSAL loginPopup successful, active account set:", response.account);
       // Optionally, you can forward the token to NextAuth:
-      await signIn("microsoft-entra-id", {
-        token: response.accessToken,
-        redirect: false,
-      });
+      // await signIn("microsoft-entra-id", {
+      //   token: response.accessToken,
+      //   redirect: false,
+      // });
+
+      await signIn("microsoft-entra-id")
     }
   } else if (loginType === "redirect") {
     await msalInstance.initialize();

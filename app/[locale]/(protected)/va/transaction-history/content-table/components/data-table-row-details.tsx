@@ -110,9 +110,9 @@ export function DataTableRowDetails({ data }: DataTableRowDetailsProps) {
                       <Badge className="rounded-full px-5 bg-default/20 text-default">
                         Pending
                       </Badge>
-                    ) : item.status_payment === "PAID" ? (
+                    ) : item.status_payment === "COMPLETED" ? (
                       <Badge className="rounded-full px-5 bg-success/20 text-success">
-                        PAID
+                        Completed
                       </Badge>
                     ) : item.status_payment == "C" ? (
                       <Badge className="rounded-full px-5 bg-destructive/20 text-destructive">

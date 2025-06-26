@@ -1,7 +1,5 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ContentTable from "./content-table";
-
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Link } from "@/components/navigation";
 import { Icon } from "@/components/ui/icon";
@@ -22,15 +20,15 @@ const ReactTablePage = () => {
               <Link href="/dashboard/home">Virtual Account</Link>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem>Transfer Receipt</BreadcrumbItem>
+            <BreadcrumbItem>Payment Simulator</BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
         <Card>
           <CardHeader>
-            <CardTitle>Transfer Receipt</CardTitle>
+            <CardTitle>Payment Simulator</CardTitle>
           </CardHeader>
           <CardContent>
-            <ContentTable />
+           
           </CardContent>
         </Card>
       </div>

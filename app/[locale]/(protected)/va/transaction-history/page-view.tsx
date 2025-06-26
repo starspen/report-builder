@@ -22,12 +22,12 @@ const ReactTablePage = () => {
               <Link href="/dashboard/home">Virtual Account</Link>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem>Transfer Receipt</BreadcrumbItem>
+            <BreadcrumbItem>Transaction History</BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
         <Card>
           <CardHeader>
-            <CardTitle>Transfer Receipt</CardTitle>
+            <CardTitle>Transaction History</CardTitle>
           </CardHeader>
           <CardContent>
             <ContentTable />

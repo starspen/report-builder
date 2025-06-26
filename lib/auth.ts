@@ -158,9 +158,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async jwt({ token, account, user, session, trigger }) {
-      console.log("user: ", user);
-      console.log("account: ", account);
-      console.log("token: ", token);
+      console.log("🔹 JWT callback ENTRY");
+      console.log("  token (before):", token);
+      console.log("  account:", account);
+      console.log("  user:", user);
+      console.log("  trigger:", trigger);
       if (account) {
         token.providerAccountId = account.providerAccountId;
       }

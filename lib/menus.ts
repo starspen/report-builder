@@ -269,6 +269,14 @@ export function getMenuList(
       children: [],
       visible: canSee("Transaction History"),
     },
+    {
+      href: "/va/payment-simulation",
+      label: "Payment",
+      active: pathname.includes("/va/payment-simulation"),
+      icon: "",
+      children: [],
+      visible: canSee("Payment"),
+    },
   ];
 
   const customerServiceSubmenus: Submenu[] = [
