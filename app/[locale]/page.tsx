@@ -94,7 +94,7 @@ const Login = async ({ params: { locale } }: { params: { locale: string } }) => 
               <div className="flex flex-1 flex-col items-center justify-end">
                 <Link href="/">
                   <Image
-                    src={PROJECT_NAME === "Btid" ? "/images/icon/logo-kkb-putih.svg" : "/images/icon/gob-white.svg"}
+                    src={PROJECT_NAME === "Btid" ? "/images/banner-2-1024x474.webp" : "/images/icon/gob-white.svg"}
                     alt=""
                     width={500}
                     height={500}

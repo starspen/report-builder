@@ -252,6 +252,16 @@ export function getMenuList(
       visible: canSee("Print QR"),
     },
   ];
+  const sitePlanSubmenus: Submenu[] = [
+    {
+      href: "/site-plan/main",
+      label: "Site Plan",
+      active: pathname.includes("/site-plan/main"),
+      icon: "",
+      children: [],
+      visible: canSee("Site Plan"),
+    },
+  ];
   const vaSubmenus: Submenu[] = [
     {
       href: "/va/transfer-receipt",
@@ -406,6 +416,7 @@ export function getMenuList(
   const filterredAssetSubmenus = assetSubmenus.filter((s) => s.visible);
   const filterredVaSubmenus = vaSubmenus.filter((s) => s.visible);
   const filterredCsSubmenus = customerServiceSubmenus.filter((s) => s.visible);
+  const filterredSitePlanSubmenus = sitePlanSubmenus.filter((s) => s.visible);
   return [
     {
       groupLabel: "Dashboard",
@@ -507,7 +518,7 @@ export function getMenuList(
           active: pathname.includes("/receipt"),
           icon: "heroicons-outline:receipt-percent",
           submenus: filteredReceiptSubmenus,
-          visible: isAdmin || (filteredReceiptSubmenus.length > 0 && hasReceipt ),
+          visible: isAdmin || (filteredReceiptSubmenus.length > 0 && hasReceipt),
         },
         {
           id: "virtual account",
@@ -547,6 +558,21 @@ export function getMenuList(
           icon: "heroicons:user-group",
           submenus: filterredCsSubmenus,
           visible: hasModule("Customer Service"),
+        },
+      ].filter((menu) => menu.visible !== false),
+    },
+    {
+      groupLabel: hasModule("Site Plan") ? "Site Plan" : "",
+      id: "site-plan",
+      menus: [
+        {
+          id: "site-plan",
+          href: "#",
+          label: "Site Plan",
+          active: pathname.includes("/site-plan"),
+          icon: "heroicons-outline:receipt-percent",
+          submenus: filterredSitePlanSubmenus,
+          visible: isAdmin || filterredSitePlanSubmenus.length > 0,
         },
       ].filter((menu) => menu.visible !== false),
     },
