@@ -16,7 +16,7 @@ const units: Unit[] = [
     y: 2418.3640457290985,
     width: 629.3371191419991,
     height: 189.95132265407437,
-    detailImage: "/images/masterplan_2.jpg",
+    detailImage: "/images/units-3b.png",
     status: "sold",
   },
   {

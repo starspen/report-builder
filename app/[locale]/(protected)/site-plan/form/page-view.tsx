@@ -111,7 +111,7 @@ const FormView = () => {
   });
   function onSubmit(values: z.infer<typeof formSchema>) {
     toast.success("Form submitted successfully!");
-    router.push("/");
+    router.push("main");
     console.log(values);
   }
 

@@ -237,8 +237,8 @@ const SiteplanCanvas: React.FC<Props> = ({
     canvasWidth / bgImage.width,
     canvasHeight / bgImage.height
   );
-  const offsetX = 0; // tidak di-center → kunci kiri-atas
-  const offsetY = 0;
+  // const offsetX = 0; // tidak di-center → kunci kiri-atas
+  // const offsetY = 0;
 
   /** Stage-space → koordinat gambar-asli */
   const toImageCoords = (stage: Konva.Stage) => {
@@ -472,7 +472,7 @@ const SiteplanCanvas: React.FC<Props> = ({
 
   return (
     <>
-      <div className="flex justify-between items-center gap-4 text-white">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-white">
         <Card className="w-full bg-lime-500">
           <CardHeader>
             <CardTitle>Total Unit Available</CardTitle>
@@ -499,216 +499,209 @@ const SiteplanCanvas: React.FC<Props> = ({
         </Card>
       </div>
 
-      <Stage
-        width={canvasWidth}
-        height={canvasHeight}
-        scaleX={stageScale}
-        scaleY={stageScale}
-        x={stagePos.x}
-        y={stagePos.y}
-        onWheel={handleWheel}
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        draggable={isPanning}
-        onMouseDown={handleMouseDownCombined}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onClick={handleStageClick}
-        ref={stageRef}
-        className="border mt-4"
-      >
-        <Layer>
-          {/* GROUP DENGAN SKALA GLOBAL */}
-          <Group
-            scale={{ x: baseScale, y: baseScale }}
-            x={imageOffsetX}
-            y={imageOffsetY}
-            listening={true}
-          >
-            {/* Background */}
-            <KonvaImage
-              image={bgImage}
-              width={bgImage.width}
-              height={bgImage.height}
-              listening={false}
-            />
-
-            {/* Dummy units (data asli) */}
-            {units.map((u) => (
-              <Rect
-                key={u.id}
-                x={u.x}
-                y={u.y}
-                width={u.width}
-                height={u.height}
-                fill={
-                  u.status === "sold"
-                    ? "rgba(252, 133, 131, 0.8)"
-                    : "rgba(0, 255, 0, 0.35)"
-                }
-                stroke="yellow"
-                strokeWidth={2}
-                onClick={() => {
-                  setSelectedShape({ type: "rect", data: u });
-                  if (u.status !== "sold") {
-                    setOpen(true);
-                  }
-                }}
-                onTouchStart={() => {
-                  setSelectedShape({ type: "rect", data: u });
-                  if (u.status !== "sold") setOpen(true);
-                }}
-                onMouseEnter={(e) => {
-                  if (u.status !== "available") return; // hanya aktif jika available
-                  const node = e.target as Konva.Line;
-                  node.fill("rgba(0, 255, 0, 0.7)");
-                  const container = node.getStage()?.container();
-                  if (container) container.style.cursor = "pointer";
-                  node.getLayer()?.batchDraw();
-                }}
-                onMouseLeave={(e) => {
-                  if (u.status !== "available") return;
-                  const node = e.target as Konva.Line;
-                  node.fill("rgba(0, 255, 0, 0.35)");
-                  const container = node.getStage()?.container();
-                  if (container) container.style.cursor = "default";
-                  node.getLayer()?.batchDraw();
-                }}
-              />
-            ))}
-
-            {/* Rectangle hasil draw */}
-            {drawnUnits.map((u) => (
-              <Rect
-                key={u.id}
-                x={u.x}
-                y={u.y}
-                width={u.width}
-                height={u.height}
-                fill="rgba(59,130,246,0.25)"
-                stroke="dodgerblue"
-                strokeWidth={2}
-              />
-            ))}
-
-            {/* Polygon hasil draw */}
-            {drawnPolygonUnits.map((p) => (
-              <Line
-                key={p.id}
-                points={p.points}
-                fill={
-                  p.status === "available"
-                    ? "rgba(0, 255, 0, 0.35)"
-                    : "transparent"
-                }
-                closed
-                onClick={() => {
-                  setSelectedId(p.id);
-                  setSelectedShape({ type: "poly", data: p });
-                  setOpen(true);
-                }}
-                onTouchStart={() => {
-                  setSelectedId(p.id);
-                  setSelectedShape({ type: "poly", data: p });
-                  setOpen(true);
-                }}
-                stroke={selectedId === p.id ? "#43ff64d9" : "transparent"}
-                strokeWidth={2}
-                draggable
-                onDragStart={() => {
-                  pushSnapshot();
-                }}
-                onDragEnd={(e) => {
-                  const node = e.target as Konva.Line;
-                  const dx = node.x();
-                  const dy = node.y();
-
-                  // Geser semua titik polygon
-                  const newPoints = p.points.map((val, idx) =>
-                    idx % 2 === 0 ? val + dx : val + dy
-                  );
-
-                  // Reset posisi node karena kita sudah update data
-                  node.position({ x: 0, y: 0 });
-
-                  const updated = drawnPolygonUnits.map((unit) =>
-                    unit.id === p.id
-                      ? {
-                          ...unit,
-                          points: newPoints,
-                          bbox: getBBox(newPoints),
-                        }
-                      : unit
-                  );
-                  setDrawnPolygonUnits(updated);
-                }}
-                onMouseEnter={(e) => {
-                  const node = e.target as Konva.Line;
-                  node.fill("rgba(0, 255, 0, 0.7)"); // nyalakan
-                  const container = node.getStage()?.container();
-                  if (container) container.style.cursor = "pointer";
-                  node.getLayer()?.batchDraw();
-                }}
-                onMouseLeave={(e) => {
-                  const node = e.target as Konva.Line;
-                  node.fill("rgba(0, 255, 0, 0.35)");
-                  const container = node.getStage()?.container();
-                  if (container) container.style.cursor = "default";
-                  node.getLayer()?.batchDraw();
-                }}
-              />
-            ))}
-
-            {/* Preview rectangle */}
-            {drawMode && tempRect && (
-              <Rect
-                x={tempRect.x}
-                y={tempRect.y}
-                width={tempRect.width}
-                height={tempRect.height}
-                fill="rgba(0,200,0,0.25)"
-                stroke="lime"
-                strokeWidth={1}
+      {/* Centered canvas wrapper */}
+      <div className="flex justify-center mt-4 border">
+        <Stage
+          width={canvasWidth}
+          height={canvasHeight}
+          scaleX={stageScale}
+          scaleY={stageScale}
+          x={stagePos.x}
+          y={stagePos.y}
+          onWheel={handleWheel}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          draggable={isPanning}
+          onMouseDown={handleMouseDownCombined}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onClick={handleStageClick}
+          ref={stageRef}
+          className="border"
+        >
+          <Layer>
+            {/* Main image group with offset and scale */}
+            <Group
+              scale={{ x: baseScale, y: baseScale }}
+              x={imageOffsetX}
+              y={imageOffsetY}
+              listening={true}
+            >
+              <KonvaImage
+                image={bgImage}
+                width={bgImage.width}
+                height={bgImage.height}
                 listening={false}
               />
-            )}
 
-            {/* Preview polygon */}
-            {polygonMode && currentPolyPoints.length >= 2 && (
-              <>
+              {units.map((u) => (
+                <Rect
+                  key={u.id}
+                  x={u.x}
+                  y={u.y}
+                  width={u.width}
+                  height={u.height}
+                  fill={
+                    u.status === "sold"
+                      ? "rgba(252, 133, 131, 0.5)"
+                      : "rgba(0, 255, 0, 0.35)"
+                  }
+                  stroke="yellow"
+                  strokeWidth={2}
+                  onClick={() => {
+                    setSelectedShape({ type: "rect", data: u });
+                    setOpen(true);
+                  }}
+                  onTouchStart={() => {
+                    setSelectedShape({ type: "rect", data: u });
+                    setOpen(true);
+                  }}
+                  onMouseEnter={(e) => {
+                    const node = e.target as Konva.Line;
+                    if (u.status !== "available") {
+                      node.fill("rgba(252, 133, 131, 0.8)");
+                    } else {
+                      node.fill("rgba(0, 255, 0, 0.7)");
+                    }
+                    const container = node.getStage()?.container();
+                    if (container) container.style.cursor = "pointer";
+                    node.getLayer()?.batchDraw();
+                  }}
+                  onMouseLeave={(e) => {
+                    const node = e.target as Konva.Line;
+                    if (u.status !== "available") {
+                      node.fill("rgba(252, 133, 131, 0.5)");
+                    } else {
+                      node.fill("rgba(0, 255, 0, 0.35)");
+                    }
+                    const container = node.getStage()?.container();
+                    if (container) container.style.cursor = "default";
+                    node.getLayer()?.batchDraw();
+                  }}
+                />
+              ))}
+
+              {drawnUnits.map((u) => (
+                <Rect
+                  key={u.id}
+                  x={u.x}
+                  y={u.y}
+                  width={u.width}
+                  height={u.height}
+                  fill="rgba(59,130,246,0.25)"
+                  stroke="dodgerblue"
+                  strokeWidth={2}
+                />
+              ))}
+
+              {drawnPolygonUnits.map((p) => (
                 <Line
-                  points={currentPolyPoints}
-                  stroke="#6b7280"
-                  dash={[10, 5]}
+                  key={p.id}
+                  points={p.points}
+                  fill={
+                    p.status === "available"
+                      ? "rgba(0, 255, 0, 0.35)"
+                      : "transparent"
+                  }
+                  closed
+                  onClick={() => {
+                    setSelectedId(p.id);
+                    setSelectedShape({ type: "poly", data: p });
+                    setOpen(true);
+                  }}
+                  onTouchStart={() => {
+                    setSelectedId(p.id);
+                    setSelectedShape({ type: "poly", data: p });
+                    setOpen(true);
+                  }}
+                  stroke={selectedId === p.id ? "#43ff64d9" : "transparent"}
+                  strokeWidth={2}
+                  draggable
+                  onDragStart={() => pushSnapshot()}
+                  onDragEnd={(e) => {
+                    const node = e.target as Konva.Line;
+                    const dx = node.x();
+                    const dy = node.y();
+                    const newPoints = p.points.map((val, idx) =>
+                      idx % 2 === 0 ? val + dx : val + dy
+                    );
+                    node.position({ x: 0, y: 0 });
+                    const updated = drawnPolygonUnits.map((unit) =>
+                      unit.id === p.id
+                        ? {
+                            ...unit,
+                            points: newPoints,
+                            bbox: getBBox(newPoints),
+                          }
+                        : unit
+                    );
+                    setDrawnPolygonUnits(updated);
+                  }}
+                  onMouseEnter={(e) => {
+                    const node = e.target as Konva.Line;
+                    node.fill("rgba(0, 255, 0, 0.7)");
+                    const container = node.getStage()?.container();
+                    if (container) container.style.cursor = "pointer";
+                    node.getLayer()?.batchDraw();
+                  }}
+                  onMouseLeave={(e) => {
+                    const node = e.target as Konva.Line;
+                    node.fill("rgba(0, 255, 0, 0.35)");
+                    const container = node.getStage()?.container();
+                    if (container) container.style.cursor = "default";
+                    node.getLayer()?.batchDraw();
+                  }}
+                />
+              ))}
+
+              {drawMode && tempRect && (
+                <Rect
+                  x={tempRect.x}
+                  y={tempRect.y}
+                  width={tempRect.width}
+                  height={tempRect.height}
+                  fill="rgba(0,200,0,0.25)"
+                  stroke="lime"
+                  strokeWidth={1}
                   listening={false}
                 />
-                {currentPolyPoints.map((val, idx) =>
-                  idx % 2 === 0 ? (
-                    <Circle
-                      key={idx}
-                      x={val}
-                      y={currentPolyPoints[idx + 1]}
-                      radius={4}
-                      fill="#ef4444"
-                      listening={false}
-                    />
-                  ) : null
-                )}
-              </>
-            )}
-          </Group>
+              )}
 
-          {/* Detail pop-up pakai pixel layar → kalikan scale & offset */}
-          {selectedDetail && (
-            <DetailImage
-              src={selectedDetail.src}
-              x={selectedDetail.x * baseScale + offsetX}
-              y={selectedDetail.y * baseScale + offsetY}
-              onClose={() => setSelectedDetail(null)}
-            />
-          )}
-        </Layer>
-      </Stage>
+              {polygonMode && currentPolyPoints.length >= 2 && (
+                <>
+                  <Line
+                    points={currentPolyPoints}
+                    stroke="#6b7280"
+                    dash={[10, 5]}
+                    listening={false}
+                  />
+                  {currentPolyPoints.map((val, idx) =>
+                    idx % 2 === 0 ? (
+                      <Circle
+                        key={idx}
+                        x={val}
+                        y={currentPolyPoints[idx + 1]}
+                        radius={4}
+                        fill="#ef4444"
+                        listening={false}
+                      />
+                    ) : null
+                  )}
+                </>
+              )}
+            </Group>
+
+            {selectedDetail && (
+              <DetailImage
+                src={selectedDetail.src}
+                x={selectedDetail.x * baseScale + imageOffsetX}
+                y={selectedDetail.y * baseScale + imageOffsetY}
+                onClose={() => setSelectedDetail(null)}
+              />
+            )}
+          </Layer>
+        </Stage>
+      </div>
 
       {selectedShape && (
         <BlockDetail

@@ -8,12 +8,23 @@ import AzureAd from "@/components/partials/azure-ad";
 import { msalInstance } from "@/lib/msal";
 import { redirect } from "@/components/navigation";
 import { auth } from "@/lib/auth";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 const PROJECT_NAME = process.env.NEXT_PUBLIC_PROJECT_NAME;
 
-const Login = async ({ params: { locale } }: { params: { locale: string } }) => {
+const Login = async ({
+  params: { locale },
+}: {
+  params: { locale: string };
+}) => {
   const session = await auth();
   const user = msalInstance.getActiveAccount();
 
@@ -35,12 +46,17 @@ const Login = async ({ params: { locale } }: { params: { locale: string } }) => 
                         Login with credentials
                       </Button>
                     ) : (
-                      <Button color="warning" variant="ghost" size="sm" className="bg-[#EFBF04] text-white">
+                      <Button
+                        color="warning"
+                        variant="ghost"
+                        size="sm"
+                        className="bg-[#EFBF04] text-white"
+                      >
                         Login with credentials
                       </Button>
                     )}
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent size="sm">
                     <DialogHeader>
                       <DialogTitle>Sign in with credentials</DialogTitle>
                     </DialogHeader>
@@ -54,7 +70,11 @@ const Login = async ({ params: { locale } }: { params: { locale: string } }) => 
                 <div className="flex items-end justify-center text-center">
                   <Link href="/">
                     <Image
-                      src={PROJECT_NAME === "Btid" ? "/images/icon/logo-kkb-green.svg" : "/images/icon/gob-color.svg"}
+                      src={
+                        PROJECT_NAME === "Btid"
+                          ? "/Laksana+Business+Park+Logo.png"
+                          : "/images/icon/gob-color.svg"
+                      }
                       alt=""
                       width={300}
                       height={300}
@@ -63,7 +83,10 @@ const Login = async ({ params: { locale } }: { params: { locale: string } }) => 
                   </Link>
                 </div>
                 <div className="mb-10 text-left 2xl:mb-12">
-                  <h4 className="font-medium">Welcome to Asset Management</h4>
+                  <h4 className="font-medium">
+                    Welcome to IFCA Integrated Property Real Estate Business
+                    Solution
+                  </h4>
                   <div className="text-base text-default-500">
                     Access your dashboard to manage company assets efficiently
                   </div>
@@ -86,27 +109,35 @@ const Login = async ({ params: { locale } }: { params: { locale: string } }) => 
           <div
             className="relative hidden flex-1 overflow-hidden bg-cover bg-center bg-no-repeat text-[40px] leading-[48px] text-default-600 lg:block"
             style={{
-              backgroundImage: `url(${PROJECT_NAME === "Btid" ? "/images/all-img/KKB-Marina-Bay-Area.jpg" : "/images/all-img/GOB_View_10.png"})`,
+              backgroundImage: `url(${
+                PROJECT_NAME === "Btid"
+                  ? "/banner_laksana.jpg"
+                  : "/images/all-img/GOB_View_10.png"
+              })`,
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
             <div className="relative z-10 flex h-full flex-col justify-center">
               <div className="flex flex-1 flex-col items-center justify-end">
                 <Link href="/">
-                  <Image
-                    src={PROJECT_NAME === "Btid" ? "/images/banner-2-1024x474.webp" : "/images/icon/gob-white.svg"}
+                  {/* <Image
+                    src={
+                      PROJECT_NAME === "Btid"
+                        ? "/images/banner-2-1024x474.webp"
+                        : "/images/icon/gob-white.svg"
+                    }
                     alt=""
                     width={500}
                     height={500}
                     className="mb-10 w-48"
-                  />
+                  /> */}
                 </Link>
               </div>
               <div>
-                <div className="mx-auto max-w-[525px] pb-20 text-center text-[38px] leading-[48px] text-white">
+                {/* <div className="mx-auto max-w-[525px] pb-20 text-center text-[38px] leading-[48px] text-white">
                   Optimize Your Asset{" "}
                   <span className="ms-1 font-bold text-white">Efficiency</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

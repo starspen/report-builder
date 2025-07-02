@@ -27,11 +27,34 @@ import {
   Circle,
   Transformer,
 } from "react-konva";
-import { PolyUnit, Unit, UnitsDetail } from "../../../interface/unit";
+import {
+  AcSummary,
+  PolyUnit,
+  ScheduleBilling,
+  Unit,
+  UnitSalesData,
+  UnitsDetail,
+} from "../../../interface/unit";
 import { useDrawingCanvas } from "./useDrawingCanvas";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { acSummaryData, scheduleData, unitData, unitSalesData } from "../data";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ContentTable from "@/app/[locale]/(protected)/master-data/user/content-table";
+import { DataTable } from "./table/data-table";
+import { columns } from "./table/columns";
 
 interface BlockDetailProps {
   open: boolean;
@@ -43,295 +66,6 @@ interface BlockDetailProps {
   units: Unit[];
   polygonUnits: PolyUnit[];
 }
-
-const unitData: UnitsDetail[] = [
-  {
-    id: "3H-18",
-    blockId: "LBP_3H",
-    x: 416.72005453133784,
-    y: 189.4447050053153,
-    width: 84.60424362997242,
-    height: 177.8132339454096,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "H-18",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3H-19",
-    blockId: "LBP_3H",
-    x: 497.79942383028447,
-    y: 189.4447050053153,
-    width: 86.01431887549347,
-    height: 176.40197504371685,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "H-19",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3H-20",
-    blockId: "LBP_3H",
-    x: 583.813448287379,
-    y: 187.3278941731773,
-    width: 81.07911360930268,
-    height: 179.22445408690174,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "H-20",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3H-21",
-    blockId: "LBP_3H",
-    x: 666.3025984134474,
-    y: 186.62230348253146,
-    width: 83.89926410034468,
-    height: 180.63563546819344,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "H-21",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3H-22",
-    blockId: "LBP_3H",
-    x: 749.4968442554092,
-    y: 186.62230348253146,
-    width: 84.60420490121737,
-    height: 181.34122615883925,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "H-22",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3H-23",
-    blockId: "LBP_3H",
-    x: 833.3960308982436,
-    y: 189.4447050053153,
-    width: 83.89918664283437,
-    height: 175.69638435307098,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "H-23",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3H-23A",
-    blockId: "LBP_3H",
-    x: 917.2952175410779,
-    y: 186.62230348253146,
-    width: 81.0791136093028,
-    height: 177.81319518520903,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "H-23A",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3H-12A",
-    blockId: "LBP_3H",
-    x: 998.3743311503807,
-    y: 4.575447872845894,
-    width: 81.78413186768569,
-    height: 180.63563546819339,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "H-12A",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3H-12B",
-    blockId: "LBP_3H",
-    x: 1081.5684995348322,
-    y: 4.575447872845894,
-    width: 80.37409535091979,
-    height: 179.930006017347,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "H-12B",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  /////
-  {
-    id: "3E-21",
-    blockId: "LBP_3E",
-    x: 348.2759163920786,
-    y: 187.86734405810813,
-    width: 83.1169103129368,
-    height: 178.34364721943768,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "E-21",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3E-22",
-    blockId: "LBP_3E",
-    x: 432.1093341498312,
-    y: 188.5836052523856,
-    width: 82.40036350823055,
-    height: 177.6273860251602,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "E-22",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3E-23",
-    blockId: "LBP_3E",
-    x: 515.9427519075839,
-    y: 186.43490035795688,
-    width: 81.68389542330522,
-    height: 179.77609091958894,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "E-23",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3E-23A",
-    blockId: "LBP_3E",
-    x: 598.3431547757049,
-    y: 186.43490035795688,
-    width: 83.11691031293685,
-    height: 179.77609091958894,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "E-23A",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3E-25",
-    blockId: "LBP_3E",
-    x: 685.0418227576804,
-    y: 186.43599126172816,
-    width: 75.23517098040111,
-    height: 180.49227342546268,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "E-25",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-  {
-    id: "3E-26",
-    blockId: "LBP_3E",
-    x: 763.860389236982,
-    y: 186.43490035795688,
-    width: 81.6838954233051,
-    height: 180.49231276966455,
-    detailImage: "/images/masterplan_room.jpg",
-    code: "E-26",
-    status: "available",
-    terrace: "240 sq ft",
-    livingRoom: "248 sq ft",
-    bath: "48 sq ft",
-    hallway: "67 sq ft",
-    bedroom: "103 sq ft",
-    backGarden: "249 sq ft",
-    garage: "233 sq ft",
-    price: "750.000.000",
-  },
-];
 
 const BlockDetail: React.FC<BlockDetailProps> = ({
   open,
@@ -548,12 +282,12 @@ const BlockDetail: React.FC<BlockDetailProps> = ({
   const router = useRouter();
 
   const handleBookClick = () => {
-    toast.success("Berhasil booking unit!", {
-      description: "Silakan cek status pemesanan di dashboard.",
-      className: "bg-blue-500 text-white", // tambahkan background dan warna teks
-    });
+    // toast.success("Berhasil booking unit!", {
+    //   description: "Silakan cek status pemesanan di dashboard.",
+    //   className: "bg-blue-500 text-white", // tambahkan background dan warna teks
+    // });
     setOpen(false);
-    router.push("/form");
+    router.push("form");
   };
 
   useLayoutEffect(() => {
@@ -591,20 +325,54 @@ const BlockDetail: React.FC<BlockDetailProps> = ({
     return () => cancelAnimationFrame(frame);
   }, [open, img]);
 
+  const getMatchedSalesUnit = (
+    selectedUnit: Unit | null
+  ): UnitSalesData | null => {
+    if (!selectedUnit) return null;
+    return unitSalesData.find((sale) => sale.id === selectedUnit.id) || null;
+  };
+
+  const matchedSalesUnit = getMatchedSalesUnit(selectedUnit);
+
+  const getMatchedAcSummary = (selectedUnit: Unit | null): AcSummary | null => {
+    if (!selectedUnit) return null;
+    return acSummaryData.find((x) => x.unitId === selectedUnit.id) || null;
+  };
+
+  const matchedAcSummary = getMatchedAcSummary(selectedUnit);
+
+  const [scheduleBillingData, setScheduleBillingData] =
+    useState<ScheduleBilling[]>(scheduleData);
+  const [filteredData, setFilteredData] = useState<ScheduleBilling[]>([]);
+
+  useEffect(() => {
+    if (selectedUnit?.id) {
+      const match = scheduleBillingData.filter(
+        (x) => x.unitId === selectedUnit?.id
+      );
+      console.log("match:", match);
+      setFilteredData(match);
+    } else {
+      setFilteredData([]);
+    }
+  }, [scheduleBillingData, selectedUnit]);
+
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen} >
-        <DialogContent className="sm:w-[2000vw] sm:max-w-full max-h-[90vh] overflow-auto bg-white md:max-w-full">
-          <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle className="mr-4">
-              Detail {isPoly ? "Block" : "Unit"} {data.id}
-            </DialogTitle>
-            <div className="flex gap-2">
-              {/* <Button onClick={handleLogCoordinates}>Log Koordinat</Button>
+      <div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          {/* <DialogContent className="w-[90%] max-w-full sm:max-w-[90%] max-h-[85vh] overflow-y-auto"> */}
+          <DialogContent size="lg">
+            <DialogHeader className="flex flex-row items-center justify-between">
+              <DialogTitle className="mr-4">
+                Detail {isPoly ? "Block" : "Unit"} {data.id}
+              </DialogTitle>
+              <div className="flex gap-2">
+                {/* <Button onClick={handleLogCoordinates}>Log Koordinat</Button>
               <Button
                 onClick={() => setTool(tool === "rect" ? null : "rect")}
                 className={`px-3 py-1 text-sm rounded ${
-                  tool === "rect" ? "bg-blue-600 text-white" : "bg-gray-100"
+                  tool === "rect" ? "bg-blue-600 text-white" : "bg-blue-600"
                 }`}
               >
                 Rectangle
@@ -612,26 +380,27 @@ const BlockDetail: React.FC<BlockDetailProps> = ({
               <Button
                 onClick={() => setTool(tool === "poly" ? null : "poly")}
                 className={`px-3 py-1 text-sm rounded ${
-                  tool === "poly" ? "bg-blue-600 text-white" : "bg-gray-100"
+                  tool === "poly" ? "bg-blue-600 text-white" : "bg-blue-600"
                 }`}
               >
                 Polygon
               </Button> */}
-              <Button
-                className="bg-blue-500 text-white mt-4 hover:cursor-pointer"
-                onClick={handleBookClick}
-                disabled={!selectedUnit || selectedUnit.status !== "available"}
-              >
-                Book
-              </Button>
-            </div>
-          </DialogHeader>
+                <Button
+                  className="bg-blue-500 text-white mt-4 hover:cursor-pointer"
+                  onClick={handleBookClick}
+                  disabled={
+                    !selectedUnit || selectedUnit.status !== "available"
+                  }
+                >
+                  Book
+                </Button>
+              </div>
+            </DialogHeader>
 
-          <DialogDescription asChild>
             <div className="flex flex-col gap-4">
               <div
                 ref={wrapperRef}
-                className="w-full max-h-[75vh] overflow-auto border"
+                className="w-full max-w-full overflow-hidden"
               >
                 {img && (
                   <Stage
@@ -667,36 +436,64 @@ const BlockDetail: React.FC<BlockDetailProps> = ({
                             height={r.height}
                             fill={
                               selectedUnit?.id === r.id
-                                ? "rgba(0, 255, 0, 0.7)" // UNIT TERPILIH = NYALA
+                                ? r.status === "available"
+                                  ? "rgba(0, 255, 0, 0.7)" // Unit dipilih dan tersedia = hijau terang
+                                  : "rgba(255, 0, 0, 0.5)" // Unit dipilih tapi sudah sold = merah solid
                                 : r.status === "available"
                                 ? "rgba(0, 255, 0, 0.35)" // Unit tersedia = hijau muda
-                                : "rgba(128, 128, 128, 0.3)" // Unit tidak tersedia = abu transparan
+                                : "rgba(252, 133, 131, 0.3)" // Unit tidak tersedia = merah muda
                             }
                             stroke="dodgerblue"
                             strokeWidth={2}
                             onClick={() => handleSelectUnit(r.id)}
                             onTouchStart={() => handleSelectUnit(r.id)}
                             onMouseEnter={(e) => {
-                              if (r.status !== "available") return;
                               const node = e.target as Konva.Rect;
-                              if (selectedUnit?.id !== r.id) {
-                                node.fill("rgba(0, 255, 0, 0.7)");
-                                node.getLayer()?.batchDraw();
-                              }
                               const container = node.getStage()?.container();
+
                               if (container) container.style.cursor = "pointer";
+
+                              const isSelected = selectedUnit?.id === r.id;
+
+                              // Jika unit sedang dipilih
+                              if (isSelected) {
+                                if (r.status === "available") {
+                                  node.fill("rgba(0, 255, 0, 0.7)"); // hijau tebal
+                                } else if (r.status === "sold") {
+                                  node.fill("rgba(255, 0, 0, 0.5)"); // merah solid
+                                }
+                              }
+                              // Jika tidak sedang dipilih tapi available, kasih efek hover hijau
+                              else if (r.status === "available") {
+                                node.fill("rgba(0, 255, 0, 0.55)"); // hijau hover
+                              }
+                              // Jika tidak dipilih dan status sold
+                              else if (r.status === "sold") {
+                                node.fill("rgba(252, 133, 131, 0.8)"); // merah muda hover
+                              }
+
+                              node.getLayer()?.batchDraw();
                             }}
                             onMouseLeave={(e) => {
-                              if (r.status !== "available") return;
                               const node = e.target as Konva.Rect;
-                              const isSelected = selectedUnit?.id === r.id;
-                              node.fill(
-                                isSelected
-                                  ? "rgba(0, 255, 0, 0.7)"
-                                  : "rgba(0, 255, 0, 0.35)"
-                              );
                               const container = node.getStage()?.container();
+
                               if (container) container.style.cursor = "default";
+
+                              const isSelected = selectedUnit?.id === r.id;
+
+                              if (isSelected) {
+                                if (r.status === "sold") {
+                                  node.fill("rgba(255, 0, 0, 0.5)");
+                                } else {
+                                  node.fill("rgba(0, 255, 0, 0.7)");
+                                }
+                              } else if (r.status === "available") {
+                                node.fill("rgba(0, 255, 0, 0.35)");
+                              } else if (r.status === "sold") {
+                                node.fill("rgba(252, 133, 131, 0.3)");
+                              }
+
                               node.getLayer()?.batchDraw();
                             }}
                           />
@@ -750,93 +547,634 @@ const BlockDetail: React.FC<BlockDetailProps> = ({
                 )}
               </div>
             </div>
-          </DialogDescription>
-          {selectedUnit && (
-            <>
-              <div className="text-sm text-gray-600 mt-2 border-t pt-2 sm:flex gap-4 w-full">
-                <img
-                  src={selectedUnit.detailImage}
-                  alt={selectedUnit.code}
-                  className="w-96 h-96 rounded border object-cover"
-                />
+            {selectedUnit && (
+              <>
+                {selectedUnit.status === "sold" ? (
+                  <Tabs defaultValue="lot-spec">
+                    <TabsList className="flex w-full flex-col sm:flex-row sm:w-fit">
+                      {" "}
+                      <TabsTrigger value="lot-spec" className="w-full">
+                        Lot Specification
+                      </TabsTrigger>
+                      <TabsTrigger value="sales-reserve" className="w-full">
+                        Sales / Reservation
+                      </TabsTrigger>
+                      <TabsTrigger value="schedule-billing" className="w-full">
+                        Schedule Billing Enquiry
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="lot-spec">
+                      <div className="text-sm text-gray-600 mt-2 border-t pt-2 sm:flex gap-4 lg:w-full">
+                        <img
+                          src={selectedUnit.detailImage}
+                          alt={selectedUnit.code}
+                          className="w-full h-96 rounded border object-cover"
+                        />
 
-                <div className="space-y-3 w-full sm:grid sm:grid-cols-2 gap-2">
-                  <div className="flex flex-col-1">
-                    <div className="space-y-1 w-full">
-                      <label className="text-sm font-medium">Kode Unit</label>
-                      <Input readOnly value={selectedUnit.code} />
-                    </div>
-                  </div>
+                        <div className="w-full sm:grid sm:grid-cols-2 gap-2">
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Property Type
+                              </label>
+                              <Input
+                                readOnly
+                                value={selectedUnit.propertyType}
+                              />
+                            </div>
+                          </div>
 
-                  <div className="flex flex-col-1">
-                    <div className="space-y-1 w-full">
-                      <label className="text-sm font-medium">Status</label>
-                      <Input readOnly value={selectedUnit.status} />
-                    </div>
-                  </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Lot No
+                              </label>
+                              <Input readOnly value={selectedUnit.lotNo} />
+                            </div>
+                          </div>
 
-                  <div className="flex flex-col-1">
-                    <div className="space-y-1 w-full">
-                      <label className="text-sm font-medium">Terrace</label>
-                      <Input readOnly value={selectedUnit.terrace} />
-                    </div>
-                  </div>
-                  <div className="flex flex-col-1">
-                    <div className="space-y-1 w-full">
-                      <label className="text-sm font-medium">
-                        Living Room / Kitchen
-                      </label>
-                      <Input readOnly value={selectedUnit.livingRoom} />
-                    </div>
-                  </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Description
+                              </label>
+                              <Input
+                                readOnly
+                                value={selectedUnit.description}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Address
+                              </label>
+                              <Input readOnly value={selectedUnit.address} />
+                            </div>
+                          </div>
 
-                  <div className="flex flex-col-1">
-                    <div className="space-y-1 w-full">
-                      <label className="text-sm font-medium">Bath</label>
-                      <Input readOnly value={selectedUnit.bath} />
-                    </div>
-                  </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Lot Type
+                              </label>
+                              <Input readOnly value={selectedUnit.lotType} />
+                            </div>
+                          </div>
 
-                  <div className="flex flex-col-1">
-                    <div className="space-y-1 w-full">
-                      <label className="text-sm font-medium">Hallway</label>
-                      <Input readOnly value={selectedUnit.hallway} />
-                    </div>
-                  </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Block
+                              </label>
+                              <Input readOnly value={selectedUnit.block} />
+                            </div>
+                          </div>
 
-                  <div className="flex flex-col-1">
-                    <div className="space-y-1 w-full">
-                      <label className="text-sm font-medium">Bedroom</label>
-                      <Input readOnly value={selectedUnit.bedroom} />
-                    </div>
-                  </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Zone
+                              </label>
+                              <Input readOnly value={selectedUnit.zone} />
+                            </div>
+                          </div>
 
-                  <div className="flex flex-col-1">
-                    <div className="space-y-1 w-full">
-                      <label className="text-sm font-medium">Back Garden</label>
-                      <Input readOnly value={selectedUnit.backGarden} />
-                    </div>
-                  </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Direction
+                              </label>
+                              <Input readOnly value={selectedUnit.direction} />
+                            </div>
+                          </div>
 
-                  <div className="flex flex-col-1">
-                    <div className="space-y-1 w-full">
-                      <label className="text-sm font-medium">Garage</label>
-                      <Input readOnly value={selectedUnit.garage} />
-                    </div>
-                  </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Level
+                              </label>
+                              <Input readOnly value={selectedUnit.level} />
+                            </div>
+                          </div>
 
-                  <div className="flex flex-col-1">
-                    <div className="space-y-1 w-full">
-                      <label className="text-sm font-medium">Harga</label>
-                      <Input readOnly value={selectedUnit.price} />
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Area UOM
+                              </label>
+                              <Input readOnly value={selectedUnit.areaUOM} />
+                            </div>
+                          </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Build-up Area
+                              </label>
+                              <Input
+                                readOnly
+                                value={selectedUnit.buildUpArea}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Theme
+                              </label>
+                              <Input readOnly value={selectedUnit.theme} />
+                            </div>
+                          </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Class
+                              </label>
+                              <Input readOnly value={selectedUnit.class} />
+                            </div>
+                          </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Category
+                              </label>
+                              <Input readOnly value={selectedUnit.category} />
+                            </div>
+                          </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Reference No.
+                              </label>
+                              <Input
+                                readOnly
+                                value={selectedUnit.referenceNo}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col-1">
+                            <div className="space-y-1 w-full">
+                              <label className="text-sm font-medium">
+                                Remarks
+                              </label>
+                              <Input readOnly value={selectedUnit.remarks} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="sales-reserve">
+                      <Tabs defaultValue="sales-history">
+                        <TabsList>
+                          <TabsTrigger value="sales-history">
+                            Sales / Reserve History
+                          </TabsTrigger>
+                          <TabsTrigger value="ac-summary">
+                            A/c Summary
+                          </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="sales-history">
+                          {/* <DataTable
+                            columns={columns}
+                            data={scheduleBillingData}
+                          /> */}
+                          <Table className="table-auto border-collapse overflow-x-auto">
+                            {" "}
+                            <TableCaption className="px-4 py-2 text-sm">
+                              A list of your recent invoices.
+                            </TableCaption>
+                            <TableHeader className="bg-gray-100">
+                              <TableRow>
+                                <TableHead className="text-left ">
+                                  Debtor Acct
+                                </TableHead>
+                                <TableHead className="text-left">
+                                  Debtor Name
+                                </TableHead>
+                                <TableHead className="text-left">
+                                  Sales Date
+                                </TableHead>
+                                <TableHead className="text-left">
+                                  PPJB Date
+                                </TableHead>
+                                <TableHead className="text-left">
+                                  AJB Date
+                                </TableHead>
+                                <TableHead className="text-left">
+                                  Key Collection Date
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  Sales Price
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {matchedSalesUnit && (
+                                <TableRow className="border-b">
+                                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                                    {matchedSalesUnit.debtorAcct}
+                                  </TableCell>
+                                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                                    {matchedSalesUnit.debtorName}
+                                  </TableCell>
+                                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                                    {matchedSalesUnit.salesDate}
+                                  </TableCell>
+                                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                                    {matchedSalesUnit.ppjbDate}
+                                  </TableCell>
+                                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                                    {matchedSalesUnit.ajbDate}
+                                  </TableCell>
+                                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                                    {matchedSalesUnit.keyCollectionDate}
+                                  </TableCell>
+                                  <TableCell className="px-4 py-2 text-right">
+                                    {matchedSalesUnit.salesPrice}
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </TableBody>
+                          </Table>
+                        </TabsContent>
+
+                        <TabsContent value="ac-summary">
+                          {matchedAcSummary && (
+                            <div className="flex flex-col md:flex-row gap-4 w-full">
+                              {/* A/c Summary Section */}
+                              <div className="w-full md:w-1/2 space-y-2">
+                                <div className="text-md font-bold mt-2">
+                                  A/c Summary {selectedUnit.id}
+                                </div>
+
+                                <div>
+                                  <Label htmlFor="invoice">Invoice</Label>
+                                  <Input
+                                    id="invoice"
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.invoice)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="interest">Interest</Label>
+                                  <Input
+                                    id="interest"
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.interest)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="debitNote">Debit Note</Label>
+                                  <Input
+                                    id="debitNote"
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.debitNote)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="tax">Tax</Label>
+                                  <Input
+                                    id="tax"
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.tax)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="creditNote">
+                                    Credit Note
+                                  </Label>
+                                  <Input
+                                    id="creditNote"
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.creditNote)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="receipt">Receipt</Label>
+                                  <Input
+                                    id="receipt"
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.receipt)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="forex">Forex Gain/Loss</Label>
+                                  <Input
+                                    id="forex"
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.forex)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="balance">Balance</Label>
+                                  <Input
+                                    id="balance"
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.balance)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="deposit">Deposit</Label>
+                                  <Input
+                                    id="deposit"
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.deposit)}
+                                    readOnly
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Aging Section */}
+                              <div className="w-full md:w-1/2 space-y-2">
+                                <div className="text-md font-bold mt-2">
+                                  Aging {selectedUnit.id}
+                                </div>
+
+                                <div>
+                                  <Label>&lt;= 15 Days</Label>
+                                  <Input
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.invoice)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label>16-30 Days</Label>
+                                  <Input
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.interest)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label>31-45 Days</Label>
+                                  <Input
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.debitNote)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label>46-60 Days</Label>
+                                  <Input
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.tax)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label>61-90 Days</Label>
+                                  <Input
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.creditNote)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label>91-145 Days</Label>
+                                  <Input
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.receipt)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label>&gt; 145 Days</Label>
+                                  <Input
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.forex)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Total Aging Amount</Label>
+                                  <Input
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.balance)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Unallocated Amount</Label>
+                                  <Input
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.deposit)}
+                                    readOnly
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Balance</Label>
+                                  <Input
+                                    value={new Intl.NumberFormat("id-ID", {
+                                      style: "currency",
+                                      currency: "IDR",
+                                    }).format(matchedAcSummary.deposit)}
+                                    readOnly
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </TabsContent>
+                      </Tabs>
+                    </TabsContent>
+
+                    <TabsContent value="schedule-billing" className="w-full">
+                      {/* Horizontal scroll + center + max width */}
+                      <div className="w-full overflow-x-auto">
+                        <div className="mx-auto max-w-screen-sm">
+                          {/* Batasi tinggi + vertical scroll */}
+                          <div className="max-h-[50vh] overflow-y-auto">
+                            <Table className="w-full table-fixed">
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead className="px-4 py-2">
+                                    Bill Date
+                                  </TableHead>
+                                  <TableHead className="px-4 py-2">
+                                    Type
+                                  </TableHead>
+                                  <TableHead className="px-4 py-2">
+                                    Trx.
+                                  </TableHead>
+                                  <TableHead className="px-4 py-2">
+                                    Description
+                                  </TableHead>
+                                  <TableHead className="px-4 py-2">
+                                    Forex
+                                  </TableHead>
+                                  <TableHead className="px-4 py-2 text-right">
+                                    Trx. Amount
+                                  </TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {filteredData.map((x) => (
+                                  <TableRow key={x.id}>
+                                    <TableCell className="px-4 py-2">
+                                      {x.billDate}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2">
+                                      {x.type}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2">
+                                      {x.trx}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2">
+                                      {x.description}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2">
+                                      {x.forex}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2 text-right">
+                                      {x.trxAmount.toLocaleString("id-ID")}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                ) : (
+                  <div className="text-sm text-gray-600 mt-2 border-t pt-2 sm:flex gap-4 w-full">
+                    <img
+                      src={selectedUnit.detailImage}
+                      alt={selectedUnit.code}
+                      className="h-96 rounded border object-cover"
+                    />
+
+                    <div className="w-full sm:grid sm:grid-cols-2 gap-2">
+                      <div className="flex flex-col-1">
+                        <div className="space-y-1 w-full">
+                          <label className="text-sm font-medium">
+                            Unit Code
+                          </label>
+                          <Input readOnly value={selectedUnit.code} />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col-1">
+                        <div className="space-y-1 w-full">
+                          <label className="text-sm font-medium">Status</label>
+                          <Input readOnly value={selectedUnit.status} />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col-1">
+                        <div className="space-y-1 w-full">
+                          <label className="text-sm font-medium">Terrace</label>
+                          <Input readOnly value={selectedUnit.terrace} />
+                        </div>
+                      </div>
+                      <div className="flex flex-col-1">
+                        <div className="space-y-1 w-full">
+                          <label className="text-sm font-medium">
+                            Living Room / Kitchen
+                          </label>
+                          <Input readOnly value={selectedUnit.livingRoom} />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col-1">
+                        <div className="space-y-1 w-full">
+                          <label className="text-sm font-medium">Bath</label>
+                          <Input readOnly value={selectedUnit.bath} />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col-1">
+                        <div className="space-y-1 w-full">
+                          <label className="text-sm font-medium">Hallway</label>
+                          <Input readOnly value={selectedUnit.hallway} />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col-1">
+                        <div className="space-y-1 w-full">
+                          <label className="text-sm font-medium">Bedroom</label>
+                          <Input readOnly value={selectedUnit.bedroom} />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col-1">
+                        <div className="space-y-1 w-full">
+                          <label className="text-sm font-medium">
+                            Back Garden
+                          </label>
+                          <Input readOnly value={selectedUnit.backGarden} />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col-1">
+                        <div className="space-y-1 w-full">
+                          <label className="text-sm font-medium">Garage</label>
+                          <Input readOnly value={selectedUnit.garage} />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col-1">
+                        <div className="space-y-1 w-full">
+                          <label className="text-sm font-medium">Price</label>
+                          <Input readOnly value={selectedUnit.price} />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+                )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
     </>
   );
 };

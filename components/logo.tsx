@@ -22,13 +22,13 @@ const Logo = () => {
         href="/dashboard/home"
         className="flex gap-2 items-center   justify-center    "
       >
-                 {/* <IFCAGlobeLogo className="h-8 w-8 text-default-900 [&>path:nth-child(2)]:text-background [&>path:nth-child(3)]:text-background" /> */}
+        {/* <IFCAGlobeLogo className="h-8 w-8 text-default-900 [&>path:nth-child(2)]:text-background [&>path:nth-child(3)]:text-background" /> */}
         {PROJECT_NAME === "Btid" ? (
           <BTIDLogo className="h-8 w-8 text-default-900 [&>path:nth-child(2)]:text-background [&>path:nth-child(3)]:text-background" />
         ) : (
           <GOBLogo className="h-8 w-8 text-default-900 [&>path:nth-child(2)]:text-background [&>path:nth-child(3)]:text-background" />
         )}
-        </Link>
+      </Link>
     );
   }
   if (config.sidebar === "two-column" || !isDesktop) return null;
@@ -43,7 +43,7 @@ const Logo = () => {
       )}
       {(!config?.collapsed || hovered) && (
         <h1 className="text-xl font-semibold text-default-900">
-          {PROJECT_NAME === "Btid" ? "BTID" : "GOB"}
+          {/* {PROJECT_NAME === "Btid" ? "BTID" : "GOB"} */}
         </h1>
       )}
     </Link>

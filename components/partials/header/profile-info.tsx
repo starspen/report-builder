@@ -16,7 +16,7 @@ import SignOut from "./sign-out";
 
 const ProfileInfo = async () => {
   const session = await auth();
-  const signInMethod = session?.user?.signInMethod
+  const signInMethod = session?.user?.signInMethod;
 
   return (
     <div>

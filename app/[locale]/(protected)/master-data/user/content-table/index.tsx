@@ -17,7 +17,7 @@ export default function AdvancedTable({ session }: { session: any }) {
 
       return result;
     },
-    enabled: !!session?.user
+    enabled: !!session?.user,
   });
 
   if (isLoading) {
