@@ -40,33 +40,22 @@ export const inputVariants = cva(
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement>,
-  VariantProps<typeof inputVariants> {
-  color?: InputColor
-  size?: any
+    VariantProps<typeof inputVariants> {
+  color?: InputColor;
+  size?: any;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  (
-    {
-      className,
-      type,
-      size,
-      color,
-      ...props
-    },
-    ref
-  ) =>
+  ({ className, type, size, color, ...props }, ref) => (
     <div className="flex-1 w-full">
       <input
         type={type}
-        className={cn(
-          inputVariants({ color, size }),
-          className
-        )}
+        className={cn(inputVariants({ color, size }), className)}
         ref={ref}
         {...props}
       />
     </div>
+  )
 );
 Input.displayName = "Input";
 

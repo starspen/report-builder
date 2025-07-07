@@ -42,8 +42,8 @@ export function getMenuList(
   const isBlaster = ["maker and blaster", "blaster"].includes(
     session?.user?.role
   );
-  const hasInvoice = menu?.data?.hasInvoice
-  const hasReceipt = menu?.data?.hasReceipt
+  const hasInvoice = menu?.data?.hasInvoice;
+  const hasReceipt = menu?.data?.hasReceipt;
 
   const menuList: string[] = menu?.data?.menuList ?? [];
   const moduleList: string[] = menu?.data?.moduleList ?? [];
@@ -261,6 +261,14 @@ export function getMenuList(
       children: [],
       visible: canSee("Site Plan"),
     },
+    {
+      href: "/site-plan-editor", // arahkan ke route art-board di (site-plan)
+      label: "Editor",
+      active: pathname.includes("/site-plan-editor"),
+      icon: "",
+      children: [],
+      visible: canSee("Site Plan Editor"),
+    },
   ];
   const vaSubmenus: Submenu[] = [
     {
@@ -296,7 +304,7 @@ export function getMenuList(
       active: pathname.includes("/customer-service/user"),
       icon: "heroicons:arrow-trending-up",
       visible: canSee("Customer Service User"),
-      children: []
+      children: [],
     },
     {
       href: "/customer-service/master-setup",
@@ -315,28 +323,36 @@ export function getMenuList(
         {
           href: "/customer-service/master-setup/section-master",
           label: t("cs-master-section-master"),
-          active: pathname.includes("/customer-service/master-setup/section-master"),
+          active: pathname.includes(
+            "/customer-service/master-setup/section-master"
+          ),
           icon: "heroicons:arrow-trending-up",
           children: [],
         },
         {
           href: "/customer-service/master-setup/labour-master",
           label: t("cs-master-labour-master"),
-          active: pathname.includes("/customer-service/master-setup/labour-master"),
+          active: pathname.includes(
+            "/customer-service/master-setup/labour-master"
+          ),
           icon: "heroicons:arrow-trending-up",
           children: [],
         },
         {
           href: "/customer-service/master-setup/category-group-master",
           label: t("cs-master-category-group-master"),
-          active: pathname.includes("/customer-service/master-setup/category-group-master"),
+          active: pathname.includes(
+            "/customer-service/master-setup/category-group-master"
+          ),
           icon: "heroicons:arrow-trending-up",
           children: [],
         },
         {
           href: "/customer-service/master-setup/category-master",
           label: t("cs-master-category-master"),
-          active: pathname.includes("/customer-service/master-setup/category-master"),
+          active: pathname.includes(
+            "/customer-service/master-setup/category-master"
+          ),
           icon: "heroicons:arrow-trending-up",
           children: [],
         },
@@ -350,21 +366,27 @@ export function getMenuList(
         {
           href: "/customer-service/master-setup/complain-source",
           label: t("cs-master-complain-source"),
-          active: pathname.includes("/customer-service/master-setup/complain-source"),
+          active: pathname.includes(
+            "/customer-service/master-setup/complain-source"
+          ),
           icon: "heroicons:arrow-trending-up",
           children: [],
         },
         {
           href: "/customer-service/master-setup/item-master",
           label: t("cs-master-item-master"),
-          active: pathname.includes("/customer-service/master-setup/item-master"),
+          active: pathname.includes(
+            "/customer-service/master-setup/item-master"
+          ),
           icon: "heroicons:arrow-trending-up",
           children: [],
         },
         {
           href: "/customer-service/master-setup/feedback-setup",
           label: t("cs-master-feedback-setup"),
-          active: pathname.includes("/customer-service/master-setup/feedback-setup"),
+          active: pathname.includes(
+            "/customer-service/master-setup/feedback-setup"
+          ),
           icon: "heroicons:arrow-trending-up",
           children: [],
         },
@@ -378,11 +400,12 @@ export function getMenuList(
         {
           href: "/customer-service/master-setup/room-master",
           label: t("cs-master-room"),
-          active: pathname.includes("/customer-service/master-setup/room-master"),
+          active: pathname.includes(
+            "/customer-service/master-setup/room-master"
+          ),
           icon: "heroicons:arrow-trending-up",
           children: [],
         },
-
       ],
     },
     {
@@ -509,7 +532,8 @@ export function getMenuList(
           active: pathname.includes("/invoice"),
           icon: "heroicons-outline:document-text",
           submenus: filteredInvoiceSubmenus,
-          visible: isAdmin || (filteredInvoiceSubmenus.length > 0 && hasInvoice),
+          visible:
+            isAdmin || (filteredInvoiceSubmenus.length > 0 && hasInvoice),
         },
         {
           id: "receipt",
@@ -518,7 +542,8 @@ export function getMenuList(
           active: pathname.includes("/receipt"),
           icon: "heroicons-outline:receipt-percent",
           submenus: filteredReceiptSubmenus,
-          visible: isAdmin || (filteredReceiptSubmenus.length > 0 && hasReceipt),
+          visible:
+            isAdmin || (filteredReceiptSubmenus.length > 0 && hasReceipt),
         },
         {
           id: "virtual account",
@@ -527,7 +552,7 @@ export function getMenuList(
           active: pathname.includes("/va"),
           icon: "heroicons-outline:receipt-percent",
           submenus: filterredVaSubmenus,
-          visible: isAdmin || (filterredVaSubmenus.length > 0),
+          visible: isAdmin || filterredVaSubmenus.length > 0,
         },
       ].filter((menu) => menu.visible !== false),
     },

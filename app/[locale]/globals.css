@@ -34,8 +34,6 @@
     --warning: 16 93% 70%;
     --warning-foreground: 33.3 100% 96.5%;
 
-
-
     --success: 154 52% 55%;
     --success-foreground: 138.5 76.5% 96.7%;
 
@@ -82,10 +80,19 @@
     --menu-arrow: 228, 45%, 98%;
     --menu-arrow-active: 212.7 26.8% 83.9%;
     --menu-foreground: 215, 20%, 65%;
+
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 98%;
   }
 
   .dark {
-
     --background: 222.2 47.4% 11.2%;
     --foreground: 210 40% 98%;
 
@@ -94,7 +101,6 @@
 
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    
 
     --card: 215 27.9% 16.9%;
     --card-foreground: 210 40% 98%;
@@ -144,6 +150,16 @@
     --menu-arrow: 215.3 25% 26.7%;
     --menu-arrow-active: 215.3 19.3% 34.5%;
     --menu-foreground: 214.3 31.8% 91.4%;
+
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 240 5.9% 10%;
   }
 }
 
@@ -166,18 +182,15 @@
 .dashcode-app-codeVmapWarning path {
   @apply fill-warning;
 }
-.dashcode-app-codeVmapWarning path  .svg-map__location[aria-checked="true"] {
-    @apply fill-warning;
+.dashcode-app-codeVmapWarning path .svg-map__location[aria-checked="true"] {
+  @apply fill-warning;
 }
 .dashcode-app-codeVmapSuccess path {
   @apply fill-success;
-
 }
-.dashcode-app-codeVmapSuccess path .svg-map__location[aria-checked="true"]  {
-    @apply fill-success;
+.dashcode-app-codeVmapSuccess path .svg-map__location[aria-checked="true"] {
+  @apply fill-success;
 }
-
-
 
 @layer base {
   * {
@@ -208,7 +221,6 @@
     padding-right: 0px !important;
   }
 
-
   .no-scrollbar::-webkit-scrollbar {
     width: 0px;
   }
@@ -216,7 +228,6 @@
   .no-scrollbar::-webkit-scrollbar-thumb {
     background-color: transparent;
   }
-
 }
 
 .logo-box-3 {
@@ -227,15 +238,23 @@
   @apply flex flex-col items-center justify-center;
 }
 
-
 .has-sticky-header::after {
   position: absolute;
   z-index: -10;
   --tw-backdrop-blur: blur(12px);
-  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness)
+    var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale)
+    var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+    var(--tw-backdrop-opacity) var(--tw-backdrop-saturate)
+    var(--tw-backdrop-sepia);
   --tw-content: "";
   content: var(--tw-content);
-  background: linear-gradient(180deg, rgba(var(--v-theme-background)) 44%, rgba(var(--v-theme-background)) 73%, rgba(var(--v-theme-background)));
+  background: linear-gradient(
+    180deg,
+    rgba(var(--v-theme-background)) 44%,
+    rgba(var(--v-theme-background)) 73%,
+    rgba(var(--v-theme-background))
+  );
   background-repeat: repeat;
   block-size: 5.5rem;
   inset-block-start: -2.5rem;
@@ -248,10 +267,19 @@
   position: absolute;
   z-index: -10;
   --tw-backdrop-blur: blur(12px);
-  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness)
+    var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale)
+    var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+    var(--tw-backdrop-opacity) var(--tw-backdrop-saturate)
+    var(--tw-backdrop-sepia);
   --tw-content: "";
   content: var(--tw-content);
-  background: linear-gradient(180deg, rgba(var(--v-theme-background)) 44%, rgba(var(--v-theme-background)) 73%, rgba(var(--v-theme-background)));
+  background: linear-gradient(
+    180deg,
+    rgba(var(--v-theme-background)) 44%,
+    rgba(var(--v-theme-background)) 73%,
+    rgba(var(--v-theme-background))
+  );
   background-repeat: repeat;
   block-size: 5.5rem;
   inset-block-start: 1.5rem;
@@ -365,7 +393,7 @@
   @apply hidden;
 }
 
-.dashcode-app-calendar .fc .fc-list-sticky .fc-list-day>* {
+.dashcode-app-calendar .fc .fc-list-sticky .fc-list-day > * {
   @apply bg-default-50;
 }
 
@@ -373,12 +401,11 @@
   @apply pt-0;
 }
 
-.dashcode-app-calendar .fc-timegrid-event-harness>.fc-timegrid-event {
+.dashcode-app-calendar .fc-timegrid-event-harness > .fc-timegrid-event {
   @apply static;
 }
 
 @media (max-width: 981px) {
-
   .dashcode-app-calendar .fc-button-group,
   .dashcode-app-calendar .fc .fc-toolbar {
     display: block !important;
@@ -445,14 +472,13 @@
   @apply bg-success border-none text-primary-foreground text-center px-2 font-medium text-sm;
 }
 
-.dashcode-app-calendar .dark  {
+.dashcode-app-calendar .dark {
   @apply bg-card-foreground border-none text-primary-foreground px-2 font-medium text-sm;
 }
 
-
 /* react select */
 
- .dashcode-app .react-select .react-select.is-invalid .select__control {
+.dashcode-app .react-select .react-select.is-invalid .select__control {
   border-color: none !important;
 }
 
@@ -473,10 +499,13 @@
 }
 
 .dashcode-app .react-select .select__menu .select__option {
-  @apply  hover:bg-default/10;
+  @apply hover:bg-default/10;
 }
 
-.dashcode-app .react-select .select__menu .select__option.select__option--is-selected {
+.dashcode-app
+  .react-select
+  .select__menu
+  .select__option.select__option--is-selected {
   @apply bg-default dark:bg-default-200;
 }
 
@@ -492,11 +521,16 @@
   @apply text-default-500;
 }
 
-.dashcode-app .react-select .react-select__control.select__control--is-disabled {
+.dashcode-app
+  .react-select
+  .react-select__control.select__control--is-disabled {
   @apply cursor-not-allowed;
 }
 
-.dashcode-app .react-select .react-select__control .select__indicator-separator {
+.dashcode-app
+  .react-select
+  .react-select__control
+  .select__indicator-separator {
   @apply bg-default-50 text-default-800 placeholder:text-opacity-60;
 }
 
@@ -504,7 +538,12 @@
   @apply cursor-pointer text-default-600;
 }
 
-.dashcode-app .react-select .has-error .react-select__control .select__indicator svg {
+.dashcode-app
+  .react-select
+  .has-error
+  .react-select__control
+  .select__indicator
+  svg {
   @apply text-destructive;
 }
 
@@ -520,9 +559,9 @@
   @apply fill-default-foreground;
 }
 
-html[dir=rtl] .react-select .select__loading-indicator {
+html[dir="rtl"] .react-select .select__loading-indicator {
   flex-direction: row-reverse;
-} 
+}
 
 /* quil editor */
 .ql-container {
@@ -541,3 +580,12 @@ html[dir=rtl] .react-select .select__loading-indicator {
 }
 
 
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

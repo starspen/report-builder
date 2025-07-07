@@ -1,0 +1,534 @@
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+import { Stage, Layer, Rect, Text, Circle, Line } from "react-konva";
+import { Button } from "@/components/ui/button";
+import {
+  CircleShape,
+  EllipseShape,
+  ImageShape,
+  PolygonShape,
+  RectShape,
+  Shape,
+} from "./toolbar";
+import StretchableShape from "./image-renderer";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import {
+  PenLine,
+  Square,
+  Circle as CircleIcon,
+  CircleDashed,
+} from "lucide-react";
+import StretchablePolygon from "./stretchable-polygon";
+import { ArtboardMenuItem } from "./art-board";
+
+interface ImageMapViewProps {
+  shapes: any[];
+  onShapesChange: (shapes: any[]) => void;
+  activeArtboardId: string;
+  setMenuItems: React.Dispatch<React.SetStateAction<ArtboardMenuItem[]>>;
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
+}
+
+const ImageMapView = ({
+  shapes,
+  onShapesChange,
+  activeArtboardId,
+  setMenuItems,
+  selectedId,
+  setSelectedId,
+}: ImageMapViewProps) => {
+  const stageRef = useRef<any>(null);
+  const [isDrawingPoly, setIsDrawingPoly] = useState(false);
+  const [currentPolyPoints, setCurrentPolyPoints] = useState<number[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const TOLERANCE = 10;
+  const undoStack = useRef<any[][]>([]);
+  const redoStack = useRef<any[][]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [stageSize, setStageSize] = useState({ width: 800, height: 550 });
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [stageScale, setStageScale] = useState(1);
+  const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
+
+  const pushHistory = (next: any[]) => {
+    undoStack.current.push(shapes); // simpan snapshot sebelum berubah
+    redoStack.current = []; // bersihkan redo setelah aksi baru
+    onShapesChange(next);
+  };
+
+  // -------- Handlers --------
+  const addRect = () => {
+    const newRect: RectShape = {
+      id: `rect-${Date.now()}`,
+      type: "rect",
+      x: 50,
+      y: 50,
+      width: 100,
+      height: 100,
+      fill: "#ef4444",
+    };
+    pushHistory([...shapes, newRect]);
+  };
+
+  const addEllipse = () =>
+    pushHistory([
+      ...shapes,
+      {
+        id: `ellipse-${Date.now()}`,
+        type: "ellipse",
+        x: 150,
+        y: 150,
+        radiusX: 50,
+        radiusY: 30,
+        fill: "#3b82f6",
+      } as EllipseShape,
+    ]);
+
+  const addCircle = () =>
+    pushHistory([
+      ...shapes,
+      {
+        id: `circle-${Date.now()}`,
+        type: "circle",
+        radius: 50,
+        x: 200,
+        y: 200,
+        fill: "#3b82f6",
+      } as CircleShape,
+    ]);
+
+  const startPolygon = () => {
+    if (isDrawingPoly) {
+      setIsDrawingPoly(false);
+      setCurrentPolyPoints([]);
+    } else {
+      setIsDrawingPoly(true);
+      setCurrentPolyPoints([]);
+    }
+  };
+
+  const isCloseToFirstPoint = (x: number, y: number) => {
+    if (currentPolyPoints.length < 2) return false;
+    const firstX = currentPolyPoints[0];
+    const firstY = currentPolyPoints[1];
+    const dx = x - firstX;
+    const dy = y - firstY;
+    return Math.sqrt(dx * dx + dy * dy) < TOLERANCE;
+  };
+
+  const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      const stage = stageRef.current;
+      const maxWidth = stage?.width() || 800;
+      const maxHeight = stage?.height() || 550;
+      let width = img.width;
+      let height = img.height;
+
+      // scale down if too large
+      // Hanya scale jika gambar benar-benar lebih besar dari Stage
+      if (width > maxWidth || height > maxHeight) {
+        const scale = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const newImgShape: ImageShape = {
+        id: `img-${Date.now()}`,
+        type: "image",
+        x: 0,
+        y: 0,
+        fill: "",
+        src: url,
+        width,
+        height,
+      };
+
+      onShapesChange([newImgShape, ...shapes]);
+    };
+    img.src = url;
+    e.target.value = "";
+  };
+
+  const handleStageClick = () => {
+    if (isDrawingPoly) {
+      // ...existing polygon logic...
+      const stage = stageRef.current;
+      const pointerPosition = stage.getPointerPosition();
+      if (!pointerPosition) return;
+      const x = (pointerPosition.x - stagePos.x) / stageScale;
+      const y = (pointerPosition.y - stagePos.y) / stageScale;
+
+      if (currentPolyPoints.length >= 6 && isCloseToFirstPoint(x, y)) {
+        const newPoly: PolygonShape = {
+          id: `polygon-${Date.now()}`,
+          type: "polygon",
+          fill: "#22c55e",
+          x: currentPolyPoints[0],
+          y: currentPolyPoints[1],
+          points: currentPolyPoints,
+        };
+        onShapesChange([...shapes, newPoly]);
+        setIsDrawingPoly(false);
+        setCurrentPolyPoints([]);
+        console.log("newPoly:", newPoly);
+        return;
+      }
+
+      setCurrentPolyPoints((pts) => [...pts, x, y]);
+    } else {
+      // Jika tidak sedang gambar polygon, hilangkan selection
+      setSelectedId(null);
+    }
+  };
+
+  const updateShape = (
+    id: string,
+    attrs: Partial<
+      RectShape | EllipseShape | PolygonShape | ImageShape | CircleShape
+    >
+  ) => {
+    onShapesChange(shapes.map((s) => (s.id === id ? { ...s, ...attrs } : s)));
+  };
+
+  const deleteSelected = () => {
+    if (!selectedId) return;
+    const next = shapes.filter((s) => s.id !== selectedId);
+    pushHistory(next);
+    setMenuItems((prev) =>
+      prev.map((item) =>
+        item.id === activeArtboardId
+          ? {
+              ...item,
+              children: item.children.filter(
+                (child) => !child.url.includes(selectedId)
+              ),
+            }
+          : item
+      )
+    );
+    setSelectedId(null);
+  };
+
+  const undo = () => {
+    if (!undoStack.current.length) return;
+    const prev = undoStack.current.pop()!;
+    redoStack.current.push(shapes);
+    onShapesChange(prev); // ini akan update shapes + menu via onShapesChange handler
+    setSelectedId(null);
+  };
+
+  const redo = () => {
+    if (!redoStack.current.length) return;
+    const prev = redoStack.current.pop()!;
+    undoStack.current.push(shapes);
+    onShapesChange(prev);
+    setSelectedId(null);
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput =
+        target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+
+      if (isInput) return; // <- Jangan lanjut kalau sedang di input field
+
+      if (e.key === "Delete") {
+        deleteSelected();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+        undo();
+      } else if (
+        (e.ctrlKey || e.metaKey) &&
+        (e.key === "y" || (e.key === "z" && e.shiftKey))
+      ) {
+        redo();
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [shapes, selectedId]);
+
+  const clearAll = () => {
+    onShapesChange([]);
+    setIsDrawingPoly(false);
+    setCurrentPolyPoints([]);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  // Handler drop gambar
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    const url = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+      const maxWidth = stageSize.width;
+      const maxHeight = stageSize.height;
+      if (width > maxWidth || height > maxHeight) {
+        const scale = Math.min(maxWidth / width, maxHeight / height);
+        width *= scale;
+        height *= scale;
+      }
+      const newImgShape: ImageShape = {
+        id: `img-${Date.now()}`,
+        type: "image",
+        x: 0,
+        y: 0,
+        fill: "",
+        src: url,
+        width,
+        height,
+      };
+      onShapesChange([...shapes, newImgShape]);
+    };
+    img.src = url;
+  };
+
+  // Handler zoom (mouse wheel)
+  const handleWheel = (e: any) => {
+    e.evt.preventDefault();
+    const scaleBy = 1.08;
+    const oldScale = stageScale;
+    const pointer = stageRef.current.getPointerPosition();
+    if (!pointer) return;
+
+    // Hitung posisi pointer relatif terhadap stage
+    const mousePointTo = {
+      x: (pointer.x - stagePos.x) / oldScale,
+      y: (pointer.y - stagePos.y) / oldScale,
+    };
+
+    // Zoom in/out
+    const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+    setStageScale(newScale);
+
+    // Update posisi agar zoom ke arah pointer
+    setStagePos({
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    });
+  };
+
+  // Handler pan (drag)
+  const handleDragEnd = (e: any) => {
+    setStagePos(e.target.position());
+  };
+
+  useEffect(() => {
+    const updateSize = () => {
+      const container = containerRef.current;
+      if (container) {
+        const width = container.offsetWidth;
+        const height = container.offsetHeight; // 16:9 aspect ratio
+        setStageSize({ width, height });
+      }
+    };
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  return (
+    <div>
+      <div className="flex h-auto py-2 bg-sidebar mb-4 pl-6 border border-b-inherit border-l-0 border-r-0">
+        <div className="ml-4 flex gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={addRect}
+                variant="ghost"
+                className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+              >
+                <Square className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Draw Rectangle</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={addEllipse}
+                variant="ghost"
+                className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+              >
+                <CircleDashed className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Draw Ellipse</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={addCircle}
+                variant="ghost"
+                className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+              >
+                <CircleIcon className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Draw Circle</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={startPolygon}
+                style={{ background: isDrawingPoly ? "#facc15" : undefined }}
+                variant="ghost"
+                className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+              >
+                {isDrawingPoly ? (
+                  "Finish / Cancel"
+                ) : (
+                  <PenLine className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Draw Polygon</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={clearAll}
+                variant="ghost"
+                className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+              >
+                Clear
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Clear Canvas</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <div className="grid w-full max-w-sm items-center gap-3">
+            <Input
+              id="picture"
+              type="file"
+              className="bg-white read-only:bg-white rounded-xl shadow-xs"
+              onChange={handleFileChange}
+              ref={fileInputRef}
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        ref={containerRef}
+        className="w-full px-4 pb-4"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {isDragOver && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/50 pointer-events-none rounded">
+            <div className="bg-white/90 px-6 py-4 rounded shadow text-center text-lg font-semibold text-gray-700 border border-dashed border-gray-400">
+              Drop image here to add to canvas
+            </div>
+          </div>
+        )}
+        <div className="flex justify-center border border-gray-300 rounded overflow-hidden">
+          <Stage
+            width={stageSize.width}
+            height={stageSize.height}
+            pixelRatio={window.devicePixelRatio || 1}
+            ref={stageRef}
+            onClick={handleStageClick}
+            scaleX={stageScale}
+            scaleY={stageScale}
+            x={stagePos.x}
+            y={stagePos.y}
+            onWheel={handleWheel}
+            style={{ background: "#fff" }}
+          >
+            <Layer>
+              {/* Semua shapes & live drawing (seperti sebelumnya) */}
+              {shapes.map((shape) => {
+                if (shape.type === "polygon") {
+                  const s = shape as PolygonShape;
+                  return (
+                    <StretchablePolygon
+                      key={shape.id}
+                      shape={shape}
+                      isSelected={shape.id === selectedId}
+                      onSelect={() => setSelectedId(shape.id)}
+                      onChange={(attrs) => updateShape(shape.id, attrs)}
+                    />
+                  );
+                }
+                return (
+                  <StretchableShape
+                    key={shape.id}
+                    shape={shape}
+                    isSelected={shape.id === selectedId}
+                    onSelect={() => setSelectedId(shape.id)}
+                    onChange={(attrs) => updateShape(shape.id, attrs)}
+                  />
+                );
+              })}
+              {isDrawingPoly && currentPolyPoints.length >= 2 && (
+                <Line
+                  points={currentPolyPoints}
+                  stroke="#6b7280"
+                  dash={[10, 5]}
+                  closed={false}
+                />
+              )}
+              {isDrawingPoly &&
+                currentPolyPoints.map((val, idx) => {
+                  if (idx % 2 === 1) return null;
+                  const x = currentPolyPoints[idx];
+                  const y = currentPolyPoints[idx + 1];
+                  return (
+                    <Circle
+                      key={`dot-${idx}`}
+                      x={x}
+                      y={y}
+                      radius={4}
+                      fill="#ef4444"
+                    />
+                  );
+                })}
+            </Layer>
+          </Stage>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ImageMapView;

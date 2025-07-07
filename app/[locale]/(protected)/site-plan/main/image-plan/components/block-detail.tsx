@@ -362,7 +362,7 @@ const BlockDetail: React.FC<BlockDetailProps> = ({
       <div>
         <Dialog open={open} onOpenChange={setOpen}>
           {/* <DialogContent className="w-[90%] max-w-full sm:max-w-[90%] max-h-[85vh] overflow-y-auto"> */}
-          <DialogContent size="lg">
+          <DialogContent size="5xl">
             <DialogHeader className="flex flex-row items-center justify-between">
               <DialogTitle className="mr-4">
                 Detail {isPoly ? "Block" : "Unit"} {data.id}
@@ -734,70 +734,67 @@ const BlockDetail: React.FC<BlockDetailProps> = ({
                             A/c Summary
                           </TabsTrigger>
                         </TabsList>
-
                         <TabsContent value="sales-history">
-                          {/* <DataTable
-                            columns={columns}
-                            data={scheduleBillingData}
-                          /> */}
-                          <Table className="table-auto border-collapse overflow-x-auto">
-                            {" "}
-                            <TableCaption className="px-4 py-2 text-sm">
-                              A list of your recent invoices.
-                            </TableCaption>
-                            <TableHeader className="bg-gray-100">
-                              <TableRow>
-                                <TableHead className="text-left ">
-                                  Debtor Acct
-                                </TableHead>
-                                <TableHead className="text-left">
-                                  Debtor Name
-                                </TableHead>
-                                <TableHead className="text-left">
-                                  Sales Date
-                                </TableHead>
-                                <TableHead className="text-left">
-                                  PPJB Date
-                                </TableHead>
-                                <TableHead className="text-left">
-                                  AJB Date
-                                </TableHead>
-                                <TableHead className="text-left">
-                                  Key Collection Date
-                                </TableHead>
-                                <TableHead className="text-right">
-                                  Sales Price
-                                </TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {matchedSalesUnit && (
-                                <TableRow className="border-b">
-                                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                                    {matchedSalesUnit.debtorAcct}
-                                  </TableCell>
-                                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                                    {matchedSalesUnit.debtorName}
-                                  </TableCell>
-                                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                                    {matchedSalesUnit.salesDate}
-                                  </TableCell>
-                                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                                    {matchedSalesUnit.ppjbDate}
-                                  </TableCell>
-                                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                                    {matchedSalesUnit.ajbDate}
-                                  </TableCell>
-                                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                                    {matchedSalesUnit.keyCollectionDate}
-                                  </TableCell>
-                                  <TableCell className="px-4 py-2 text-right">
-                                    {matchedSalesUnit.salesPrice}
-                                  </TableCell>
+                          {/* <DataTable columns={columns} data={scheduleBillingData} /> */}
+                          <div className="w-full overflow-x-auto">
+                            <Table className="table-auto border-collapse">
+                              <TableCaption className="px-4 py-2 text-sm">
+                                A list of your recent invoices.
+                              </TableCaption>
+                              <TableHeader className="bg-gray-100">
+                                <TableRow>
+                                  <TableHead className="text-left px-4 py-2">
+                                    Debtor Acct
+                                  </TableHead>
+                                  <TableHead className="text-left px-4 py-2">
+                                    Debtor Name
+                                  </TableHead>
+                                  <TableHead className="text-left px-4 py-2">
+                                    Sales Date
+                                  </TableHead>
+                                  <TableHead className="text-left px-4 py-2">
+                                    PPJB Date
+                                  </TableHead>
+                                  <TableHead className="text-left px-4 py-2">
+                                    AJB Date
+                                  </TableHead>
+                                  <TableHead className="text-left px-4 py-2">
+                                    Key Collection Date
+                                  </TableHead>
+                                  <TableHead className="text-right px-4 py-2">
+                                    Sales Price
+                                  </TableHead>
                                 </TableRow>
-                              )}
-                            </TableBody>
-                          </Table>
+                              </TableHeader>
+                              <TableBody>
+                                {matchedSalesUnit && (
+                                  <TableRow className="border-b">
+                                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                                      {matchedSalesUnit.debtorAcct}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                                      {matchedSalesUnit.debtorName}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                                      {matchedSalesUnit.salesDate}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                                      {matchedSalesUnit.ppjbDate}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                                      {matchedSalesUnit.ajbDate}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                                      {matchedSalesUnit.keyCollectionDate}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2 text-right">
+                                      {matchedSalesUnit.salesPrice}
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </TableBody>
+                            </Table>
+                          </div>
                         </TabsContent>
 
                         <TabsContent value="ac-summary">
