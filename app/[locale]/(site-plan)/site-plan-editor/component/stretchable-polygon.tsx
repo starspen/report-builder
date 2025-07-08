@@ -89,7 +89,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
               key={idx}
               x={x}
               y={y}
-              radius={2}
+              radius={4}
               fill="#facc15"
               stroke="#333"
               strokeWidth={1}
@@ -101,7 +101,12 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
           );
         })}
       {isSelected && (
-        <Transformer ref={trRef} rotateEnabled={false} enabledAnchors={[]} />
+        <Transformer
+          ref={trRef}
+          rotateEnabled={false}
+          enabledAnchors={[]} // disable all resize
+          anchorSize={12}
+        />
       )}
     </>
   );

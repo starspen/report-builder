@@ -11,15 +11,6 @@ import {
   PenLine,
   Square,
 } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Info } from "lucide-react";
-import { Sidebar } from "@/components/ui/sidebar";
 import RightSideBar from "./component/right-sidebar";
 
 const Editor = () => {
@@ -28,6 +19,10 @@ const Editor = () => {
     { "1": [] }
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+  const [mode, setMode] = useState<"default" | "drawPolygon">("default");
 
   const [menuItems, setMenuItems] = useState<ArtboardMenuItem[]>([
     {
@@ -38,41 +33,32 @@ const Editor = () => {
     },
   ]);
 
-  // Handler untuk update shapes pada artboard aktif
   const handleShapesChange = (shapes: any[]) => {
-    const prevShapes = artboardShapes[activeArtboardId] || [];
-    const prevIds = new Set(prevShapes.map((s) => s.id));
-    const nextIds = new Set(shapes.map((s) => s.id));
-
-    // 1. Update shapes per artboard
-    setArtboardShapes((prev) => ({
-      ...prev,
-      [activeArtboardId]: shapes,
-    }));
-
     const shapeIconMap: Record<string, React.ElementType> = {
       rect: Square,
       ellipse: CircleDashed,
       circle: CircleIcon,
       polygon: PenLine,
-      image: ImageIcon, // misal kamu import icon ini
+      image: ImageIcon,
     };
-    // 2. Sync child sidebar dengan shapes
+
+    const nextChildren = shapes.map((s) => ({
+      title: s.title || s.type,
+      url: `#${s.id}`,
+      icon: shapeIconMap[s.type] ?? Layout,
+    }));
+
+    setArtboardShapes((prev) => ({
+      ...prev,
+      [activeArtboardId]: shapes,
+    }));
+
     setMenuItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== activeArtboardId) return item;
-
-        const nextChildren = shapes.map((s) => ({
-          title: s.title || s.type,
-          url: `#${s.id}`,
-          icon: shapeIconMap[s.type] ?? Layout,
-        }));
-
-        return {
-          ...item,
-          children: nextChildren,
-        };
-      })
+      prev.map((item) =>
+        item.id === activeArtboardId
+          ? { ...item, children: nextChildren }
+          : item
+      )
     );
   };
 
@@ -91,38 +77,82 @@ const Editor = () => {
   };
 
   return (
-    <div className="flex w-full">
-      <ArtBoard
-        activeArtboardId={activeArtboardId}
-        setActiveArtboardId={setActiveArtboardId}
-        artboardShapes={artboardShapes}
-        setArtboardShapes={setArtboardShapes}
-        menuItems={menuItems}
-        setMenuItems={setMenuItems}
-        setSelectedId={setSelectedId}
-        selectedId={selectedId}
-      />
-      <div className="flex-1 overflow-x-hidden">
-        <ImageMapView
-          shapes={artboardShapes[activeArtboardId] || []}
-          onShapesChange={handleShapesChange}
-          activeArtboardId={activeArtboardId}
-          setMenuItems={setMenuItems}
-          selectedId={selectedId}
-          setSelectedId={setSelectedId}
-        />
-      </div>
-      <div>
-        <RightSideBar
-          selectedId={selectedId}
-          setSelectedId={setSelectedId}
-          activeArtboardId={activeArtboardId}
-          setActiveArtboardId={setActiveArtboardId}
-          shapes={artboardShapes[activeArtboardId]}
-          artboardShapes={artboardShapes}
-          setArtboardShapes={setArtboardShapes}
-          updateMenuTitle={updateMenuTitle}
-        />
+    <div className="flex flex-col w-full h-screen overflow-hidden">
+      {/* Main layout: Sidebar kiri | Canvas | Sidebar kanan */}
+      <div className="flex flex-1 w-full overflow-hidden">
+        {/* Sidebar kiri */}
+        <div
+          className={`transition-all duration-300 ease-in-out ${
+            leftSidebarOpen ? "w-64" : "w-0"
+          } overflow-hidden`}
+        >
+          <div
+            className={`transition-transform duration-300 transform ${
+              leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            } h-full`}
+          >
+            <ArtBoard
+              activeArtboardId={activeArtboardId}
+              setActiveArtboardId={setActiveArtboardId}
+              artboardShapes={artboardShapes}
+              setArtboardShapes={setArtboardShapes}
+              menuItems={menuItems}
+              setMenuItems={setMenuItems}
+              setSelectedId={setSelectedId}
+              selectedId={selectedId}
+              leftSidebarOpen={leftSidebarOpen}
+            />
+          </div>
+        </div>
+
+        {/* Canvas */}
+        <div className="flex-1 relative overflow-hidden transition-all duration-300">
+          <ImageMapView
+            shapes={artboardShapes[activeArtboardId] || []}
+            setArtboardShapes={setArtboardShapes}
+            onShapesChange={handleShapesChange}
+            activeArtboardId={activeArtboardId}
+            setActiveArtboardId={setActiveArtboardId}
+            menuItems={menuItems}
+            setMenuItems={setMenuItems}
+            selectedId={selectedId}
+            setSelectedId={setSelectedId}
+            isPreviewMode={isPreviewMode}
+            setIsPreviewMode={setIsPreviewMode}
+            setRightSidebarOpen={setRightSidebarOpen}
+            rightSidebarOpen={rightSidebarOpen}
+            setLeftSidebarOpen={setLeftSidebarOpen}
+            mode={mode}
+            setMode={setMode}
+          />
+        </div>
+
+        {/* Sidebar kanan */}
+        <div
+          className={`transition-all duration-300 ease-in-out ${
+            !rightSidebarOpen ? "w-0" : "w-fit"
+          } overflow-hidden`}
+        >
+          <div
+            className={`transition-transform duration-300 transform ${
+              rightSidebarOpen ? "translate-x-0" : "translate-x-full"
+            } h-full`}
+          >
+            <RightSideBar
+              selectedId={selectedId}
+              setSelectedId={setSelectedId}
+              activeArtboardId={activeArtboardId || ""}
+              setActiveArtboardId={setActiveArtboardId}
+              shapes={artboardShapes[activeArtboardId]}
+              artboardShapes={artboardShapes}
+              setArtboardShapes={setArtboardShapes}
+              updateMenuTitle={updateMenuTitle}
+              menuItems={menuItems}
+              setRightSidebarOpen={setRightSidebarOpen}
+              rightSidebarOpen={rightSidebarOpen}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -47,7 +47,12 @@ export type ImageShape = ShapeBase & {
   height: number;
 };
 
-export type Shape = RectShape | CircleShape | PolygonShape | ImageShape;
+export type Shape =
+  | RectShape
+  | CircleShape
+  | PolygonShape
+  | ImageShape
+  | EllipseShape;
 
 // -----------------------------
 // 🧰 Toolbar Component

@@ -23,26 +23,52 @@ import {
   Square,
   Circle as CircleIcon,
   CircleDashed,
+  Layout,
+  Play,
+  PanelRight,
+  PanelLeft,
 } from "lucide-react";
 import StretchablePolygon from "./stretchable-polygon";
 import { ArtboardMenuItem } from "./art-board";
 
 interface ImageMapViewProps {
   shapes: any[];
+  setArtboardShapes: React.Dispatch<
+    React.SetStateAction<{ [id: string]: Shape[] }>
+  >;
   onShapesChange: (shapes: any[]) => void;
   activeArtboardId: string;
+  setActiveArtboardId: React.Dispatch<React.SetStateAction<string>>;
+  menuItems: ArtboardMenuItem[];
   setMenuItems: React.Dispatch<React.SetStateAction<ArtboardMenuItem[]>>;
+  setIsPreviewMode: React.Dispatch<React.SetStateAction<boolean>>;
+  isPreviewMode: boolean;
   selectedId: string | null;
   setSelectedId: (id: string | null) => void;
+  rightSidebarOpen: boolean;
+  setRightSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setLeftSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  mode: "default" | "drawPolygon";
+  setMode: React.Dispatch<React.SetStateAction<"default" | "drawPolygon">>;
 }
 
 const ImageMapView = ({
   shapes,
   onShapesChange,
   activeArtboardId,
+  setActiveArtboardId,
+  menuItems,
   setMenuItems,
   selectedId,
   setSelectedId,
+  setIsPreviewMode,
+  isPreviewMode,
+  setArtboardShapes,
+  rightSidebarOpen,
+  setRightSidebarOpen,
+  setLeftSidebarOpen,
+  mode,
+  setMode,
 }: ImageMapViewProps) => {
   const stageRef = useRef<any>(null);
   const [isDrawingPoly, setIsDrawingPoly] = useState(false);
@@ -63,8 +89,30 @@ const ImageMapView = ({
     onShapesChange(next);
   };
 
+  const ensureArtboardExists = (): string => {
+    if (menuItems.length === 0) {
+      const defaultId = "1";
+      const defaultTitle = "Artboard 1";
+
+      setMenuItems([
+        {
+          id: defaultId,
+          title: defaultTitle,
+          icon: Layout,
+          children: [],
+        },
+      ]);
+      setArtboardShapes({ [defaultId]: [] });
+      setActiveArtboardId(defaultId);
+      return defaultId;
+    }
+    return activeArtboardId;
+  };
+
   // -------- Handlers --------
   const addRect = () => {
+    const targetArtboardId = ensureArtboardExists();
+
     const newRect: RectShape = {
       id: `rect-${Date.now()}`,
       type: "rect",
@@ -74,42 +122,59 @@ const ImageMapView = ({
       height: 100,
       fill: "#ef4444",
     };
-    pushHistory([...shapes, newRect]);
+
+    if (targetArtboardId === activeArtboardId) {
+      onShapesChange([...shapes, newRect]);
+      setSelectedId(newRect.id);
+    }
   };
 
-  const addEllipse = () =>
-    pushHistory([
-      ...shapes,
-      {
-        id: `ellipse-${Date.now()}`,
-        type: "ellipse",
-        x: 150,
-        y: 150,
-        radiusX: 50,
-        radiusY: 30,
-        fill: "#3b82f6",
-      } as EllipseShape,
-    ]);
+  const addEllipse = () => {
+    const targetArtboardId = ensureArtboardExists();
 
-  const addCircle = () =>
-    pushHistory([
-      ...shapes,
-      {
-        id: `circle-${Date.now()}`,
-        type: "circle",
-        radius: 50,
-        x: 200,
-        y: 200,
-        fill: "#3b82f6",
-      } as CircleShape,
-    ]);
+    const newEllipse: EllipseShape = {
+      id: `ellipse-${Date.now()}`,
+      type: "ellipse",
+      x: 150,
+      y: 150,
+      radiusX: 50,
+      radiusY: 30,
+      fill: "#3b82f6",
+    };
+
+    if (targetArtboardId === activeArtboardId) {
+      onShapesChange([...shapes, newEllipse]);
+      setSelectedId(newEllipse.id);
+    }
+  };
+
+  const addCircle = () => {
+    const targetArtboardId = ensureArtboardExists();
+
+    const newCircle: CircleShape = {
+      id: `circle-${Date.now()}`,
+      type: "circle",
+      radius: 50,
+      x: 200,
+      y: 200,
+      fill: "#3b82f6",
+    };
+
+    if (targetArtboardId === activeArtboardId) {
+      onShapesChange([...shapes, newCircle]);
+      setSelectedId(newCircle.id);
+    }
+  };
 
   const startPolygon = () => {
+    ensureArtboardExists();
     if (isDrawingPoly) {
       setIsDrawingPoly(false);
+      setMode("default");
       setCurrentPolyPoints([]);
     } else {
       setIsDrawingPoly(true);
+      setMode("drawPolygon");
       setCurrentPolyPoints([]);
     }
   };
@@ -124,6 +189,7 @@ const ImageMapView = ({
   };
 
   const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    ensureArtboardExists();
     const file = e.target.files?.[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
@@ -135,13 +201,12 @@ const ImageMapView = ({
       let width = img.width;
       let height = img.height;
 
-      // scale down if too large
-      // Hanya scale jika gambar benar-benar lebih besar dari Stage
       if (width > maxWidth || height > maxHeight) {
         const scale = Math.min(maxWidth / width, maxHeight / height);
         width = Math.round(width * scale);
         height = Math.round(height * scale);
       }
+
       const newImgShape: ImageShape = {
         id: `img-${Date.now()}`,
         type: "image",
@@ -161,10 +226,10 @@ const ImageMapView = ({
 
   const handleStageClick = () => {
     if (isDrawingPoly) {
-      // ...existing polygon logic...
       const stage = stageRef.current;
       const pointerPosition = stage.getPointerPosition();
       if (!pointerPosition) return;
+
       const x = (pointerPosition.x - stagePos.x) / stageScale;
       const y = (pointerPosition.y - stagePos.y) / stageScale;
 
@@ -177,16 +242,25 @@ const ImageMapView = ({
           y: currentPolyPoints[1],
           points: currentPolyPoints,
         };
-        onShapesChange([...shapes, newPoly]);
+
+        const targetId = activeArtboardId;
+        setArtboardShapes((prev) => {
+          const current = prev[targetId] || [];
+          return {
+            ...prev,
+            [targetId]: [...current, newPoly],
+          };
+        });
+
         setIsDrawingPoly(false);
+        setMode("default");
         setCurrentPolyPoints([]);
-        console.log("newPoly:", newPoly);
+        setSelectedId(newPoly.id);
         return;
       }
 
       setCurrentPolyPoints((pts) => [...pts, x, y]);
     } else {
-      // Jika tidak sedang gambar polygon, hilangkan selection
       setSelectedId(null);
     }
   };
@@ -358,7 +432,7 @@ const ImageMapView = ({
 
   return (
     <div>
-      <div className="flex h-auto py-2 bg-sidebar mb-4 pl-6 border border-b-inherit border-l-0 border-r-0">
+      <div className="flex h-auto py-2 bg-sidebar mb-4 pl-2 border border-b-inherit border-l-0 border-r-0">
         <div className="ml-4 flex gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -445,6 +519,50 @@ const ImageMapView = ({
               ref={fileInputRef}
             />
           </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                onClick={() => setLeftSidebarOpen((prev) => !prev)}
+                className="py-1 hover:bg-gray-300 rounded text-sm"
+                variant="ghost"
+              >
+                <PanelLeft className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Collapse Left Sidebar</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Toggle sidebar kanan */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+                className="py-1 hover:bg-gray-300 rounded text-sm"
+                variant="ghost"
+              >
+                <PanelRight className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Collapse Right Sidebar</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <div className="grid items-center gap-3 mx-2">
+            <Button
+              size="md"
+              type="button"
+              onClick={() => setIsPreviewMode((prev) => !prev)}
+              className="bg-[#f59f0a] flex gap-2 hover:bg-[#ffb83c] hover:ring-transparent text-sm"
+            >
+              <Play fill="#fff" className="w-4 h-4" />{" "}
+              {isPreviewMode ? "Exit Preview" : "Preview"}
+            </Button>
+          </div>
         </div>
       </div>
       <div
@@ -473,7 +591,10 @@ const ImageMapView = ({
             x={stagePos.x}
             y={stagePos.y}
             onWheel={handleWheel}
-            style={{ background: "#fff" }}
+            style={{
+              background: "#fff",
+              cursor: mode === "drawPolygon" ? "crosshair" : "default",
+            }}
           >
             <Layer>
               {/* Semua shapes & live drawing (seperti sebelumnya) */}
@@ -485,7 +606,13 @@ const ImageMapView = ({
                       key={shape.id}
                       shape={shape}
                       isSelected={shape.id === selectedId}
-                      onSelect={() => setSelectedId(shape.id)}
+                      onSelect={() => {
+                        if (isPreviewMode && shape.linkToArtboard) {
+                          setActiveArtboardId(shape.linkToArtboard);
+                        } else {
+                          setSelectedId(shape.id);
+                        }
+                      }}
                       onChange={(attrs) => updateShape(shape.id, attrs)}
                     />
                   );
@@ -495,18 +622,47 @@ const ImageMapView = ({
                     key={shape.id}
                     shape={shape}
                     isSelected={shape.id === selectedId}
-                    onSelect={() => setSelectedId(shape.id)}
+                    onSelect={() => {
+                      console.log(
+                        "Clicked shape:",
+                        shape.id,
+                        shape.linkToArtboard
+                      );
+                      if (isPreviewMode && shape.linkToArtboard) {
+                        console.log(
+                          "Redirecting to artboard",
+                          shape.linkToArtboard
+                        );
+                        setActiveArtboardId(shape.linkToArtboard);
+                      } else {
+                        setSelectedId(shape.id);
+                      }
+                    }}
                     onChange={(attrs) => updateShape(shape.id, attrs)}
+                    mode={mode}
                   />
                 );
               })}
               {isDrawingPoly && currentPolyPoints.length >= 2 && (
-                <Line
-                  points={currentPolyPoints}
-                  stroke="#6b7280"
-                  dash={[10, 5]}
-                  closed={false}
-                />
+                <>
+                  {/* Preview garis */}
+                  <Line
+                    points={currentPolyPoints}
+                    stroke="#6b7280"
+                    strokeWidth={2}
+                    closed={false}
+                  />
+                  {/* Preview shape (tertutup dengan fill transparan) */}
+                  {currentPolyPoints.length >= 6 && (
+                    <Line
+                      points={currentPolyPoints}
+                      fill="#22c55e55"
+                      stroke="#22c55e"
+                      strokeWidth={1}
+                      closed={true}
+                    />
+                  )}
+                </>
               )}
               {isDrawingPoly &&
                 currentPolyPoints.map((val, idx) => {

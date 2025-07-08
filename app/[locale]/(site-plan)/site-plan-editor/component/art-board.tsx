@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -53,6 +53,7 @@ interface ArtBoardProps {
   >;
   setSelectedId: (id: string | null) => void;
   selectedId: string | null;
+  leftSidebarOpen: boolean;
 }
 
 const ArtBoard: React.FC<ArtBoardProps> = ({
@@ -64,6 +65,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
   setArtboardShapes,
   setSelectedId,
   selectedId,
+  leftSidebarOpen,
 }) => {
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const [artboardCount, setArtboardCount] = useState(2);
@@ -80,9 +82,28 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
     }));
   };
 
+  useEffect(() => {
+    const newOpenMenus: { [key: string]: boolean } = {};
+
+    menuItems.forEach((item) => {
+      if (item.children && item.children.length > 0) {
+        newOpenMenus[item.title] = true; // otomatis buka jika ada child
+      }
+    });
+
+    setOpenMenus((prev) => ({ ...prev, ...newOpenMenus }));
+  }, [menuItems]);
+
   const handleAddArtboard = () => {
-    const newId = artboardId;
-    const newTitle = `Artboard ${artboardCount}`;
+    // Cari ID dan count tertinggi dari menuItems
+    const lastId = menuItems.reduce((max, item) => {
+      const idNum = parseInt(item.id, 10);
+      return isNaN(idNum) ? max : Math.max(max, idNum);
+    }, 0);
+
+    const newId = (lastId + 1).toString();
+    const newTitle = `Artboard ${lastId + 1}`;
+    // Tambahkan item baru
     setMenuItems((prev) => [
       ...prev,
       {
@@ -92,21 +113,39 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
         children: [],
       },
     ]);
-    // 1. Tambahkan artboard kosong ke shapes
     setArtboardShapes((prev) => ({
       ...prev,
       [newId]: [],
     }));
-
-    // 2. Aktifkan artboard yang baru
     setActiveArtboardId(newId);
-
-    setArtboardCount((c) => c + 1);
-    setArtboardId((x) => (parseInt(x) + 1).toString());
+    setArtboardCount(lastId + 1);
+    setArtboardId(newId);
   };
 
   const handleDeleteArtboard = (id: string) => {
-    setMenuItems((prev) => prev.filter((item) => item.id !== id));
+    setMenuItems((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+
+      // Jika yang dihapus adalah artboard aktif
+      if (activeArtboardId === id && updated.length > 0) {
+        setActiveArtboardId(updated[0].id); // pindahkan ke artboard pertama yang tersisa
+      } else if (updated.length === 0) {
+        setActiveArtboardId(""); // kosongkan
+      }
+
+      return updated;
+    });
+
+    setArtboardShapes((prev) => {
+      const newShapes = { ...prev };
+      delete newShapes[id];
+      return newShapes;
+    });
+
+    // Hapus juga selectedId kalau id-nya dari artboard yang dihapus
+    if (artboardShapes[id]?.some((shape) => shape.id === selectedId)) {
+      setSelectedId(null);
+    }
   };
 
   const handleStartEdit = (id: string, currentTitle: string) => {
@@ -136,6 +175,14 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
   function truncate(str: string, max: number) {
     return str.length > max ? str.slice(0, max) + "..." : str;
   }
+
+  useEffect(() => {
+    const handleToggle = () => toggleSidebar();
+    document.addEventListener("toggle-left-sidebar", handleToggle);
+    return () => {
+      document.removeEventListener("toggle-left-sidebar", handleToggle);
+    };
+  }, [toggleSidebar]);
 
   return (
     <div className="flex">
@@ -263,40 +310,40 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                   </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {item.children.map((child) => {
-                const isActive = selectedId === child.url.replace("#", "");
-                const Icon = child.icon;
-                return (
-                  <SidebarMenuItem key={child.url}>
-                    <a
-                      href={child.url}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        const shapeId = child.url.replace("#", "");
-                        setActiveArtboardId(item.id);
-                        setSelectedId(shapeId);
-                      }}
-                      className={`block w-full rounded px-3 py-1 text-sm ${
-                        isActive
-                          ? "bg-primary-100 text-primary font-semibold pl-8"
-                          : "text-muted-foreground hover:text-primary pl-8"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {Icon && <Icon className="w-4 h-4" />}
-                        {child.title}
-                      </div>
-                    </a>
-                  </SidebarMenuItem>
-                );
-              })}
+              {openMenus[item.title] &&
+                item.children.map((child) => {
+                  const isActive = selectedId === child.url.replace("#", "");
+                  const Icon = child.icon;
+                  return (
+                    <SidebarMenuItem key={child.url}>
+                      <a
+                        href={child.url}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const shapeId = child.url.replace("#", "");
+                          setActiveArtboardId(item.id);
+                          setSelectedId(shapeId);
+                        }}
+                        className={`block w-full rounded px-3 py-1 text-sm ${
+                          isActive
+                            ? "bg-primary-100 text-primary font-semibold pl-8"
+                            : "text-muted-foreground hover:text-primary pl-8"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {Icon && <Icon className="w-4 h-4" />}
+                          {child.title}
+                        </div>
+                      </a>
+                    </SidebarMenuItem>
+                  );
+                })}
             </React.Fragment>
           ))}
         </SidebarMenu>
       </Sidebar>
 
-      <div className="flex-1 relative">
-        {/* Tombol toggle di pojok kiri atas konten */}
+      {/* <div className="flex-1 relative">
         <div
           onClick={toggleSidebar}
           className="absolute z-20 w-fit p-1 border-1 bg-[#fafafa] border border-l-0 top-0 hover:bg-gray-100 hover:cursor-pointer"
@@ -304,8 +351,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
         >
           <PanelLeft className="w-6 h-6" />
         </div>
-        {/* Konten utama/canvas di sini */}
-      </div>
+      </div> */}
     </div>
   );
 };

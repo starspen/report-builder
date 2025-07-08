@@ -1,4 +1,5 @@
 "use client";
+import { EllipseShape } from "@/app/[locale]/(site-plan)/site-plan-editor/component/toolbar";
 import { Button } from "@/components/ui/button";
 import React, { useState, useRef } from "react";
 import { Stage, Layer, Rect, Circle, Line } from "react-konva";
@@ -37,7 +38,12 @@ export type ImageShape = ShapeBase & {
   height: number;
 };
 
-export type Shape = RectShape | CircleShape | PolygonShape | ImageShape;
+export type Shape =
+  | RectShape
+  | CircleShape
+  | PolygonShape
+  | ImageShape
+  | EllipseShape;
 
 // -----------------------------
 // 🧰 Toolbar Component

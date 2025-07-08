@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import {
   Rect as KonvaRect,
   Circle as KonvaCircle,
@@ -47,6 +47,7 @@ export type StretchableShapeProps = {
   onChange: (
     newAttrs: Partial<RectShape | CircleShape | EllipseShape | ImageShape>
   ) => void;
+  mode: "default" | "drawPolygon";
 };
 
 // -----------------------------
@@ -58,6 +59,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   isSelected,
   onSelect,
   onChange,
+  mode,
 }) => {
   const ref = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -204,6 +206,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           e.cancelBubble = true;
           onSelect();
         }}
+        listening={mode !== "drawPolygon"}
       />
     );
   }
