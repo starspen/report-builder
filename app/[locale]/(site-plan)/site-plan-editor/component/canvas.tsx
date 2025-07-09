@@ -103,6 +103,7 @@ const ImageMapView = ({
   const [isolatedGroup, setIsolatedGroup] = useState<{
     originalGroup: GroupShape;
     fromGroupId: string;
+    allChildren: Shape[]; // ⬅️ tambahkan ini
   } | null>(null);
 
   const pushHistory = (next: any[]) => {
@@ -294,36 +295,10 @@ const ImageMapView = ({
     e.target.value = "";
   };
 
-  const handleStageClick = () => {
-    if (isolatedGroup) {
-      const original = isolatedGroup.originalGroup;
-      const children = original.children;
+  const handleStageClick = (e: any) => {
+    const clickedOnEmpty = e.target === e.target.getStage();
 
-      const updatedChildren = children.map((child) => {
-        const live = shapes.find((s) => s.id === child.id);
-        return {
-          ...child,
-          ...live,
-          x: (live?.x ?? child.x) - original.x,
-          y: (live?.y ?? child.y) - original.y,
-        };
-      });
-
-      const newGroup: GroupShape = {
-        ...original,
-        children: updatedChildren,
-      };
-
-      const remaining = shapes.filter(
-        (s) => !children.some((c) => c.id === s.id)
-      );
-
-      onShapesChange([...remaining, newGroup]);
-      setIsolatedGroup(null);
-      setSelectedId(null);
-      return;
-    }
-
+    // ✅ 1. Handle polygon dulu
     if (isDrawingPoly) {
       const stage = stageRef.current;
       const pointer = stage.getPointerPosition();
@@ -358,7 +333,52 @@ const ImageMapView = ({
       }
 
       setCurrentPolyPoints((pts) => [...pts, x, y]);
-    } else {
+      return;
+    }
+
+    // ✅ 2. Kalau dalam state isolate, klik di luar harus langsung regroup
+    if (isolatedGroup && clickedOnEmpty) {
+      const original = isolatedGroup.originalGroup;
+      const children = isolatedGroup.allChildren;
+
+      const updatedChildren = children.map((child) => {
+        const live = shapes.find((s) => s.id === child.id);
+        return {
+          ...child,
+          ...live,
+          x: (live?.x ?? child.x) - original.x,
+          y: (live?.y ?? child.y) - original.y,
+        };
+      });
+
+      const remaining = shapes.filter(
+        (s) => !children.some((c) => c.id === s.id)
+      );
+
+      // 🟡 Tambahan: jika shape terseleksi adalah bagian dari grup ini, hilangkan seleksi
+      const selectedIsolated = shapes.find((s) => s.id === selectedId);
+      const isChildFromGroup = isolatedGroup.allChildren.some(
+        (child) => child.id === selectedId
+      );
+
+      if (selectedIsolated && isChildFromGroup) {
+        setSelectedId(null);
+      }
+
+      onShapesChange([
+        ...remaining,
+        {
+          ...original,
+          children: updatedChildren,
+        },
+      ]);
+
+      setIsolatedGroup(null);
+      return;
+    }
+
+    // ✅ 3. Clear selection hanya jika klik di luar shape
+    if (clickedOnEmpty) {
       setSelectedId(null);
       setSelectedIds([]);
     }

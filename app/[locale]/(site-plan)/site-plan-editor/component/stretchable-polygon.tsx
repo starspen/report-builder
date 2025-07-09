@@ -1,18 +1,18 @@
 "use client";
 import React, { useRef, useEffect, useState } from "react";
 import { Line, Transformer, Circle as KonvaCircle } from "react-konva";
-import type { PolygonShape } from "./toolbar";
 import Konva from "konva";
+import type { PolygonShape } from "./toolbar";
 
 interface StretchablePolygonProps {
   shape: PolygonShape;
   isSelected: boolean;
   onSelect: (e: Konva.KonvaEventObject<Event>) => void;
   onChange: (attrs: Partial<PolygonShape>) => void;
-  stageScale: number; // 👈 tambahkan ini
+  stageScale: number;
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   selectedIds?: string[];
-  isInGroup?: boolean
+  isInGroup?: boolean;
 }
 
 const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
@@ -23,23 +23,23 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
   stageScale,
   setSelectedIds,
   selectedIds,
-  isInGroup
+  isInGroup = false,
 }) => {
   const shapeRef = useRef<any>(null);
   const trRef = useRef<any>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
 
+  // Transformer support
   useEffect(() => {
-    if (isSelected && trRef.current && shapeRef.current) {
+    if (isSelected && shapeRef.current && trRef.current) {
       trRef.current.nodes([shapeRef.current]);
-      trRef.current.getLayer().batchDraw();
+      trRef.current.getLayer()?.batchDraw();
     }
   }, [isSelected]);
 
-  // Drag point handler
   const handlePointDrag = (idx: number, e: any) => {
-    const newPoints = shape.points.slice();
+    const newPoints = [...shape.points];
     const stage = shapeRef.current.getStage();
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
@@ -47,49 +47,44 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
     const canvasX = (pointer.x - stage.x()) / stage.scaleX();
     const canvasY = (pointer.y - stage.y()) / stage.scaleY();
 
-    newPoints[idx * 2] = canvasX;
-    newPoints[idx * 2 + 1] = canvasY;
+    newPoints[idx * 2] = canvasX - shape.x;
+    newPoints[idx * 2 + 1] = canvasY - shape.y;
 
     onChange({ points: newPoints });
-  };
-
-  // Drag polygon handler
-  const handleDragMove = (e: any) => {
-    setIsDragging(true);
-    setDragOffset({ x: e.target.x(), y: e.target.y() });
   };
 
   const handleDragEnd = (e: any) => {
-    const node = e.target;
-    const stage = shapeRef.current.getStage();
-    const dx = node.x() / stage.scaleX();
-    const dy = node.y() / stage.scaleY();
+    const dx = e.target.x();
+    const dy = e.target.y();
 
-    // Geser semua points dengan delta drag
-    const newPoints = shape.points.map((val, i) =>
-      i % 2 === 0 ? val + dx : val + dy
+    const updatedPoints = shape.points.map((val, idx) =>
+      idx % 2 === 0 ? val : val
     );
-    // Reset posisi Line ke (0,0)
-    node.x(0);
-    node.y(0);
-    setIsDragging(false);
-    setDragOffset({ x: 0, y: 0 });
-    onChange({ points: newPoints });
+
+    onChange({
+      x: shape.x + dx,
+      y: shape.y + dy,
+      points: updatedPoints,
+    });
+
+    e.target.x(0);
+    e.target.y(0);
   };
 
   return (
     <>
       <Line
         ref={shapeRef}
+        x={shape.x}
+        y={shape.y}
         points={shape.points}
         fill={shape.fill}
         closed
-        draggable={!isInGroup}
         opacity={0.5}
+        draggable={!isInGroup}
+        onDragEnd={isInGroup ? undefined : handleDragEnd}
         onClick={(e) => {
           e.cancelBubble = true;
-          console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
-
           if (setSelectedIds && selectedIds) {
             if (e.evt.shiftKey) {
               setSelectedIds((prev) =>
@@ -105,15 +100,15 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
           e.cancelBubble = true;
           onSelect(e);
         }}
-        onDragMove={handleDragMove}
-        onDragEnd={handleDragEnd}
       />
-      {isSelected &&
+      {/* Points hanya muncul jika polygon tidak di dalam group */}
+      {!isInGroup &&
+        isSelected &&
         shape.points.length >= 4 &&
         shape.points.map((val, idx) => {
           if (idx % 2 === 1) return null;
-          const x = shape.points[idx] + (isDragging ? dragOffset.x : 0);
-          const y = shape.points[idx + 1] + (isDragging ? dragOffset.y : 0);
+          const x = shape.x + shape.points[idx];
+          const y = shape.y + shape.points[idx + 1];
           return (
             <KonvaCircle
               key={idx}
@@ -127,8 +122,6 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
               onDragMove={(e) => handlePointDrag(idx / 2, e)}
               onClick={(e) => {
                 e.cancelBubble = true;
-                console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
-
                 if (setSelectedIds && selectedIds) {
                   if (e.evt.shiftKey) {
                     setSelectedIds((prev) =>
@@ -144,13 +137,8 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
             />
           );
         })}
-      {isSelected && (
-        <Transformer
-          ref={trRef}
-          rotateEnabled={false}
-          enabledAnchors={[]} // disable all resize
-          anchorSize={12}
-        />
+      {isSelected && !isInGroup && (
+        <Transformer ref={trRef} rotateEnabled={false} enabledAnchors={[]} />
       )}
     </>
   );

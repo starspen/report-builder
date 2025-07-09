@@ -11,6 +11,11 @@ import {
   X,
   ChevronLeft,
   PanelLeft,
+  Square,
+  CircleIcon,
+  CircleDashed,
+  ImageIcon,
+  PenLine,
 } from "lucide-react";
 import {
   Sidebar,
@@ -184,6 +189,25 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
     };
   }, [toggleSidebar]);
 
+  const getShapeIcon = (type: string) => {
+    switch (type) {
+      case "rect":
+        return Square;
+      case "circle":
+        return CircleIcon;
+      case "ellipse":
+        return CircleDashed;
+      case "polygon":
+        return PenLine;
+      case "image":
+        return ImageIcon;
+      case "group":
+        return Layout;
+      default:
+        return Layout;
+    }
+  };
+
   return (
     <div className="flex">
       <Sidebar className="mr-0">
@@ -205,141 +229,213 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
           <SidebarGroupContent />
         </SidebarGroup>
         <SidebarMenu>
-          {menuItems.map((item) => (
-            <React.Fragment key={item.id}>
-              <SidebarMenuItem
-                onMouseEnter={() => setHoveredMenuId(item.id)}
-                onMouseLeave={() => setHoveredMenuId(null)}
-                onClick={() => setActiveArtboardId(item.id)}
-                className={activeArtboardId === item.id ? "bg-gray-100" : ""}
-              >
-                <SidebarMenuButton
-                  onClick={() => handleToggle(item.title)}
-                  className="flex items-center w-full justify-between"
+          {menuItems.map((item) => {
+            const shapes = artboardShapes[item.id] || [];
+
+            return (
+              <React.Fragment key={item.id}>
+                <SidebarMenuItem
+                  onMouseEnter={() => setHoveredMenuId(item.id)}
+                  onMouseLeave={() => setHoveredMenuId(null)}
+                  onClick={() => setActiveArtboardId(item.id)}
+                  className={activeArtboardId === item.id ? "bg-gray-100" : ""}
                 >
-                  <span className="flex items-center">
-                    <item.icon className="mr-2" />
-                    {editingId === item.id ? (
-                      <>
-                        <input
-                          className="border px-1 py-0.5 rounded text-sm w-32"
-                          value={editValue}
-                          autoFocus
-                          onChange={handleEditChange}
-                          onBlur={() => handleEditSave(item.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleEditSave(item.id);
-                            if (e.key === "Escape") handleEditCancel();
-                          }}
-                        />
-                        <button
-                          type="button"
-                          title="Save"
-                          className="ml-1 text-green-600 hover:text-green-800"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditSave(item.id);
-                          }}
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          title="Cancel"
-                          className="ml-1 text-gray-400 hover:text-gray-600"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditCancel();
-                          }}
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                        {/* Trash tetap tampil saat edit */}
-                        <button
-                          type="button"
-                          title="Delete artboard"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteArtboard(item.id);
-                          }}
-                          className="ml-2 text-red-500 hover:text-red-700 transition-opacity"
-                        >
-                          <Trash className="w-4 h-4" />
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        {truncate(item.title, 18)}
-                        {item.icon === Layout && hoveredMenuId === item.id && (
-                          <>
-                            <button
-                              type="button"
-                              title="Rename"
-                              className="ml-2 text-gray-400 hover:text-primary"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleStartEdit(item.id, item.title);
-                              }}
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              title="Delete artboard"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteArtboard(item.id);
-                              }}
-                              className="ml-2 text-red-500 hover:text-red-700 transition-opacity"
-                            >
-                              <Trash className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </>
-                    )}
-                  </span>
-                  <span className="flex items-center">
-                    {item.children &&
-                      item.children.length > 0 &&
-                      (openMenus[item.title] ? (
-                        <ChevronDown className="ml-2 h-4 w-4" />
+                  <SidebarMenuButton
+                    onClick={() => handleToggle(item.title)}
+                    className="flex items-center w-full justify-between"
+                  >
+                    <span className="flex items-center">
+                      <item.icon className="mr-2" />
+                      {editingId === item.id ? (
+                        <>
+                          <input
+                            className="border px-1 py-0.5 rounded text-sm w-32"
+                            value={editValue}
+                            autoFocus
+                            onChange={handleEditChange}
+                            onBlur={() => handleEditSave(item.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleEditSave(item.id);
+                              if (e.key === "Escape") handleEditCancel();
+                            }}
+                          />
+                          <button
+                            type="button"
+                            title="Save"
+                            className="ml-1 text-green-600 hover:text-green-800"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditSave(item.id);
+                            }}
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            title="Cancel"
+                            className="ml-1 text-gray-400 hover:text-gray-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditCancel();
+                            }}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            title="Delete artboard"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteArtboard(item.id);
+                            }}
+                            className="ml-2 text-red-500 hover:text-red-700 transition-opacity"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
+                        </>
                       ) : (
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      ))}
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              {openMenus[item.title] &&
-                item.children.map((child) => {
-                  const isActive = selectedId === child.url.replace("#", "");
-                  const Icon = child.icon;
-                  return (
-                    <SidebarMenuItem key={child.url}>
-                      <a
-                        href={child.url}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const shapeId = child.url.replace("#", "");
-                          setActiveArtboardId(item.id);
-                          setSelectedId(shapeId);
-                        }}
-                        className={`block w-full rounded px-3 py-1 text-sm ${
-                          isActive
-                            ? "bg-primary-100 text-primary font-semibold pl-8"
-                            : "text-muted-foreground hover:text-primary pl-8"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {Icon && <Icon className="w-4 h-4" />}
-                          {child.title}
-                        </div>
-                      </a>
-                    </SidebarMenuItem>
-                  );
-                })}
-            </React.Fragment>
-          ))}
+                        <>
+                          {truncate(item.title, 18)}
+                          {item.icon === Layout &&
+                            hoveredMenuId === item.id && (
+                              <>
+                                <button
+                                  type="button"
+                                  title="Rename"
+                                  className="ml-2 text-gray-400 hover:text-primary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStartEdit(item.id, item.title);
+                                  }}
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="Delete artboard"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteArtboard(item.id);
+                                  }}
+                                  className="ml-2 text-red-500 hover:text-red-700 transition-opacity"
+                                >
+                                  <Trash className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                        </>
+                      )}
+                    </span>
+                    <span className="flex items-center">
+                      {shapes.length > 0 &&
+                        (openMenus[item.title] ? (
+                          <ChevronDown className="ml-2 h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        ))}
+                    </span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {/* Render shapes & groups */}
+                {openMenus[item.title] &&
+                  shapes.map((shape) => {
+                    const isActive = selectedId === shape.id;
+
+                    // Group (collapsible)
+                    if (shape.type === "group") {
+                      const isGroupOpen = openMenus[shape.id] ?? true;
+
+                      return (
+                        <React.Fragment key={shape.id}>
+                          <SidebarMenuItem
+                            className="pl-4"
+                            onClick={() => {
+                              setOpenMenus((prev) => ({
+                                ...prev,
+                                [shape.id]: !prev[shape.id],
+                              }));
+                            }}
+                          >
+                            <SidebarMenuButton className="w-full flex justify-between px-3 py-1 text-sm">
+                              <span className="flex items-center gap-2">
+                                <Layout className="w-4 h-4" />
+                                {shape.title || "Group"}
+                              </span>
+
+                              {isGroupOpen ? (
+                                <ChevronDown className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+
+                          {isGroupOpen &&
+                            shape.children.map((child: any) => {
+                              const isChildActive = selectedId === child.id;
+                              return (
+                                <SidebarMenuItem
+                                  key={child.id}
+                                  className="pl-8 flex gap-2"
+                                >
+                                  <a
+                                    href={`#${child.id}`}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setActiveArtboardId(item.id);
+                                      setSelectedId(child.id);
+                                    }}
+                                    className={`block w-full rounded px-3 py-1 text-sm ${
+                                      isChildActive
+                                        ? "bg-primary-100 text-primary font-semibold"
+                                        : "text-muted-foreground hover:text-primary"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      {React.createElement(
+                                        getShapeIcon(child.type),
+                                        { className: "w-4 h-4" }
+                                      )}
+                                      {child.name || child.type}
+                                    </div>
+                                  </a>
+                                </SidebarMenuItem>
+                              );
+                            })}
+                        </React.Fragment>
+                      );
+                    }
+
+                    // Non-group shape
+                    return (
+                      <SidebarMenuItem key={shape.id}>
+                        <a
+                          href={`#${shape.id}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setActiveArtboardId(item.id);
+                            setSelectedId(shape.id);
+                          }}
+                          className={`block w-full rounded px-3 py-1 text-sm pl-7 ${
+                            isActive
+                              ? "bg-primary-100 text-primary font-semibold"
+                              : "text-muted-foreground hover:text-primary"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {React.createElement(getShapeIcon(shape.type), {
+                              className: "w-4 h-4",
+                            })}
+                            {shape.title || shape.type}
+                          </div>
+                        </a>
+                      </SidebarMenuItem>
+                    );
+                  })}
+              </React.Fragment>
+            );
+          })}
         </SidebarMenu>
       </Sidebar>
 

@@ -22,6 +22,7 @@ interface Props {
     React.SetStateAction<{
       originalGroup: GroupShape;
       fromGroupId: string;
+      allChildren: Shape[];
     } | null>
   >;
   setSelectedId: (id: string | null) => void;
@@ -274,33 +275,30 @@ const StretchableGroup: React.FC<Props> = ({
                 };
 
                 // Kosongkan isi grup
-                onChange({ children: [] });
-
                 // Hapus grup lama
                 const remainingShapes = shapes.filter(
                   (s) => s.id !== parentGroup.id
                 );
 
-                // Tambahkan shape hasil isolate
-                const updatedShapes = [...remainingShapes, absoluteChild];
-                onShapesChange(updatedShapes);
+                // Ubah semua children menjadi shape mandiri (dalam koordinat absolut)
+                const ungroupedChildren = parentGroup.children.map((child) => ({
+                  ...child,
+                  x: parentGroup.x + child.x,
+                  y: parentGroup.y + child.y,
+                }));
+
+                // Update shapes
+                onShapesChange([...remainingShapes, ...ungroupedChildren]);
 
                 // Simpan state untuk nanti regroup
                 setIsolatedGroup({
                   originalGroup: parentGroup,
                   fromGroupId: parentGroup.id,
+                  allChildren: parentGroup.children, // ⬅️ simpan semua children
                 });
 
-                // Auto-select langsung agar transformer muncul
-                setSelectedId(clickedChild.id);
-
-                // Trigger klik manual agar Transformer langsung muncul
                 setTimeout(() => {
-                  const layer = groupRef.current?.getLayer();
-                  const node = layer?.findOne(`#${clickedChild.id}`);
-                  if (node) {
-                    node.fire("click");
-                  }
+                  setSelectedId(clickedChild.id);
                 }, 0);
               }}
             />

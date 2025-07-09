@@ -161,8 +161,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         onTransformEnd={handleTransformEnd}
         onClick={(e) => {
           e.cancelBubble = true;
-          console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
 
+          // Biarkan shape langsung di-select tanpa klik tambahan
           if (setSelectedIds && selectedIds) {
             if (e.evt.shiftKey) {
               setSelectedIds((prev) =>
@@ -172,6 +172,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
               setSelectedIds([shape.id]);
             }
           }
+
+          // Panggil onSelect satu kali, cukup
           onSelect(e);
         }}
         onTap={(e) => {
@@ -202,8 +204,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         onTransformEnd={handleTransformEnd}
         onClick={(e) => {
           e.cancelBubble = true;
-          console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
 
+          // Biarkan shape langsung di-select tanpa klik tambahan
           if (setSelectedIds && selectedIds) {
             if (e.evt.shiftKey) {
               setSelectedIds((prev) =>
@@ -213,6 +215,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
               setSelectedIds([shape.id]);
             }
           }
+
+          // Panggil onSelect satu kali, cukup
           onSelect(e);
         }}
         onTap={(e) => {
@@ -241,8 +245,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         onTransformEnd={handleTransformEnd}
         onClick={(e) => {
           e.cancelBubble = true;
-          console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
 
+          // Biarkan shape langsung di-select tanpa klik tambahan
           if (setSelectedIds && selectedIds) {
             if (e.evt.shiftKey) {
               setSelectedIds((prev) =>
@@ -252,6 +256,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
               setSelectedIds([shape.id]);
             }
           }
+
+          // Panggil onSelect satu kali, cukup
           onSelect(e);
         }}
         onTap={(e) => {
@@ -282,8 +288,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         onTransformEnd={handleTransformEnd}
         onClick={(e) => {
           e.cancelBubble = true;
-          console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
 
+          // Biarkan shape langsung di-select tanpa klik tambahan
           if (setSelectedIds && selectedIds) {
             if (e.evt.shiftKey) {
               setSelectedIds((prev) =>
@@ -293,6 +299,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
               setSelectedIds([shape.id]);
             }
           }
+
+          // Panggil onSelect satu kali, cukup
           onSelect(e);
         }}
         onTap={(e) => {
