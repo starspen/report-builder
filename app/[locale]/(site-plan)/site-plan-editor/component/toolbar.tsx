@@ -47,12 +47,22 @@ export type ImageShape = ShapeBase & {
   height: number;
 };
 
-export type Shape =
+export type GroupChildShape =
   | RectShape
   | CircleShape
-  | PolygonShape
+  | EllipseShape
   | ImageShape
-  | EllipseShape;
+  | PolygonShape; // Polygon bisa kamu pakai di StretchablePolygon
+
+export type GroupShape = {
+  id: string;
+  type: "group";
+  x: number;
+  y: number;
+  children: GroupChildShape[]; // bisa rect, image, polygon, dll
+};
+
+export type Shape = GroupChildShape | GroupShape;
 
 // -----------------------------
 // 🧰 Toolbar Component

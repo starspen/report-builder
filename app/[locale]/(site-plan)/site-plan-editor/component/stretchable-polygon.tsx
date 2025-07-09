@@ -2,12 +2,17 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Line, Transformer, Circle as KonvaCircle } from "react-konva";
 import type { PolygonShape } from "./toolbar";
+import Konva from "konva";
 
 interface StretchablePolygonProps {
   shape: PolygonShape;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect: (e: Konva.KonvaEventObject<Event>) => void;
   onChange: (attrs: Partial<PolygonShape>) => void;
+  stageScale: number; // 👈 tambahkan ini
+  setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedIds?: string[];
+  isInGroup?: boolean
 }
 
 const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
@@ -15,6 +20,10 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
   isSelected,
   onSelect,
   onChange,
+  stageScale,
+  setSelectedIds,
+  selectedIds,
+  isInGroup
 }) => {
   const shapeRef = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -31,8 +40,16 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
   // Drag point handler
   const handlePointDrag = (idx: number, e: any) => {
     const newPoints = shape.points.slice();
-    newPoints[idx * 2] = e.target.x();
-    newPoints[idx * 2 + 1] = e.target.y();
+    const stage = shapeRef.current.getStage();
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
+
+    const canvasX = (pointer.x - stage.x()) / stage.scaleX();
+    const canvasY = (pointer.y - stage.y()) / stage.scaleY();
+
+    newPoints[idx * 2] = canvasX;
+    newPoints[idx * 2 + 1] = canvasY;
+
     onChange({ points: newPoints });
   };
 
@@ -44,8 +61,10 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
 
   const handleDragEnd = (e: any) => {
     const node = e.target;
-    const dx = node.x();
-    const dy = node.y();
+    const stage = shapeRef.current.getStage();
+    const dx = node.x() / stage.scaleX();
+    const dy = node.y() / stage.scaleY();
+
     // Geser semua points dengan delta drag
     const newPoints = shape.points.map((val, i) =>
       i % 2 === 0 ? val + dx : val + dy
@@ -65,15 +84,26 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
         points={shape.points}
         fill={shape.fill}
         closed
-        draggable
+        draggable={!isInGroup}
         opacity={0.5}
         onClick={(e) => {
           e.cancelBubble = true;
-          onSelect();
+          console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
+
+          if (setSelectedIds && selectedIds) {
+            if (e.evt.shiftKey) {
+              setSelectedIds((prev) =>
+                prev.includes(shape.id) ? prev : [...prev, shape.id]
+              );
+            } else {
+              setSelectedIds([shape.id]);
+            }
+          }
+          onSelect(e);
         }}
         onTap={(e) => {
           e.cancelBubble = true;
-          onSelect();
+          onSelect(e);
         }}
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
@@ -89,13 +119,27 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
               key={idx}
               x={x}
               y={y}
-              radius={4}
+              radius={4 / stageScale}
               fill="#facc15"
               stroke="#333"
-              strokeWidth={1}
+              strokeWidth={1 / stageScale}
               draggable
               onDragMove={(e) => handlePointDrag(idx / 2, e)}
-              onClick={(e) => (e.cancelBubble = true)}
+              onClick={(e) => {
+                e.cancelBubble = true;
+                console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
+
+                if (setSelectedIds && selectedIds) {
+                  if (e.evt.shiftKey) {
+                    setSelectedIds((prev) =>
+                      prev.includes(shape.id) ? prev : [...prev, shape.id]
+                    );
+                  } else {
+                    setSelectedIds([shape.id]);
+                  }
+                }
+                onSelect(e);
+              }}
               onTap={(e) => (e.cancelBubble = true)}
             />
           );

@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Stage, Layer, Rect, Text, Circle, Line } from "react-konva";
+import { Stage, Layer, Rect, Text, Circle, Line, Ellipse } from "react-konva";
 import { Button } from "@/components/ui/button";
 import {
   CircleShape,
   EllipseShape,
+  GroupShape,
   ImageShape,
   PolygonShape,
   RectShape,
@@ -30,7 +31,14 @@ import {
 } from "lucide-react";
 import StretchablePolygon from "./stretchable-polygon";
 import { ArtboardMenuItem } from "./art-board";
+import StretchableGroup from "./stretchable-group";
 
+export type DrawMode =
+  | "default"
+  | "drawPolygon"
+  | "drawRect"
+  | "drawCircle"
+  | "drawEllipse";
 interface ImageMapViewProps {
   shapes: any[];
   setArtboardShapes: React.Dispatch<
@@ -48,8 +56,8 @@ interface ImageMapViewProps {
   rightSidebarOpen: boolean;
   setRightSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setLeftSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  mode: "default" | "drawPolygon";
-  setMode: React.Dispatch<React.SetStateAction<"default" | "drawPolygon">>;
+  mode: DrawMode;
+  setMode: React.Dispatch<React.SetStateAction<DrawMode>>;
 }
 
 const ImageMapView = ({
@@ -82,6 +90,20 @@ const ImageMapView = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [stageScale, setStageScale] = useState(1);
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
+  const [copiedShape, setCopiedShape] = useState<Shape | null>(null);
+  const [drawingShape, setDrawingShape] = useState<null | {
+    type: DrawMode;
+    startX: number;
+    startY: number;
+    endX?: number;
+    endY?: number;
+  }>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDraggingGroup, setIsDraggingGroup] = useState(false);
+  const [isolatedGroup, setIsolatedGroup] = useState<{
+    originalGroup: GroupShape;
+    fromGroupId: string;
+  } | null>(null);
 
   const pushHistory = (next: any[]) => {
     undoStack.current.push(shapes); // simpan snapshot sebelum berubah
@@ -109,61 +131,19 @@ const ImageMapView = ({
     return activeArtboardId;
   };
 
-  // -------- Handlers --------
-  const addRect = () => {
-    const targetArtboardId = ensureArtboardExists();
-
-    const newRect: RectShape = {
-      id: `rect-${Date.now()}`,
-      type: "rect",
-      x: 50,
-      y: 50,
-      width: 100,
-      height: 100,
-      fill: "#ef4444",
-    };
-
-    if (targetArtboardId === activeArtboardId) {
-      onShapesChange([...shapes, newRect]);
-      setSelectedId(newRect.id);
-    }
+  const startDrawRect = () => {
+    ensureArtboardExists();
+    setMode("drawRect");
   };
 
-  const addEllipse = () => {
-    const targetArtboardId = ensureArtboardExists();
-
-    const newEllipse: EllipseShape = {
-      id: `ellipse-${Date.now()}`,
-      type: "ellipse",
-      x: 150,
-      y: 150,
-      radiusX: 50,
-      radiusY: 30,
-      fill: "#3b82f6",
-    };
-
-    if (targetArtboardId === activeArtboardId) {
-      onShapesChange([...shapes, newEllipse]);
-      setSelectedId(newEllipse.id);
-    }
+  const startDrawCircle = () => {
+    ensureArtboardExists();
+    setMode("drawCircle");
   };
 
-  const addCircle = () => {
-    const targetArtboardId = ensureArtboardExists();
-
-    const newCircle: CircleShape = {
-      id: `circle-${Date.now()}`,
-      type: "circle",
-      radius: 50,
-      x: 200,
-      y: 200,
-      fill: "#3b82f6",
-    };
-
-    if (targetArtboardId === activeArtboardId) {
-      onShapesChange([...shapes, newCircle]);
-      setSelectedId(newCircle.id);
-    }
+  const startDrawEllipse = () => {
+    ensureArtboardExists();
+    setMode("drawEllipse");
   };
 
   const startPolygon = () => {
@@ -177,6 +157,96 @@ const ImageMapView = ({
       setMode("drawPolygon");
       setCurrentPolyPoints([]);
     }
+  };
+
+  const handleDrawStart = (e: any) => {
+    if (
+      mode === "drawRect" ||
+      mode === "drawCircle" ||
+      mode === "drawEllipse"
+    ) {
+      const pos = stageRef.current.getRelativePointerPosition();
+      if (!pos) return;
+
+      setDrawingShape({
+        type: mode,
+        startX: pos.x,
+        startY: pos.y,
+      });
+    }
+  };
+
+  const handleDrawMove = (e: any) => {
+    if (!drawingShape) return;
+    const pos = stageRef.current.getRelativePointerPosition();
+    if (!pos) return;
+
+    setDrawingShape((prev) =>
+      prev
+        ? {
+            ...prev,
+            endX: pos.x,
+            endY: pos.y,
+          }
+        : null
+    );
+  };
+
+  const handleDrawEnd = (e: any) => {
+    if (!drawingShape) return;
+
+    const pos = stageRef.current.getRelativePointerPosition();
+    if (!pos) return;
+
+    const endX = pos.x;
+    const endY = pos.y;
+
+    const x = Math.min(drawingShape.startX, endX);
+    const y = Math.min(drawingShape.startY, endY);
+    const width = Math.abs(drawingShape.startX - endX);
+    const height = Math.abs(drawingShape.startY - endY);
+
+    let newShape: Shape | null = null;
+
+    if (drawingShape.type === "drawRect") {
+      newShape = {
+        id: `rect-${Date.now()}`,
+        type: "rect",
+        x,
+        y,
+        width,
+        height,
+        fill: "#ef4444",
+      };
+    } else if (drawingShape.type === "drawCircle") {
+      const radius = Math.max(width, height) / 2;
+      newShape = {
+        id: `circle-${Date.now()}`,
+        type: "circle",
+        x: x + radius,
+        y: y + radius,
+        radius,
+        fill: "#3b82f6",
+      };
+    } else if (drawingShape.type === "drawEllipse") {
+      newShape = {
+        id: `ellipse-${Date.now()}`,
+        type: "ellipse",
+        x: x + width / 2,
+        y: y + height / 2,
+        radiusX: width / 2,
+        radiusY: height / 2,
+        fill: "#3b82f6",
+      };
+    }
+
+    if (newShape) {
+      onShapesChange([...shapes, newShape]);
+      setSelectedId(newShape.id);
+    }
+
+    setDrawingShape(null);
+    setMode("default");
   };
 
   const isCloseToFirstPoint = (x: number, y: number) => {
@@ -210,8 +280,8 @@ const ImageMapView = ({
       const newImgShape: ImageShape = {
         id: `img-${Date.now()}`,
         type: "image",
-        x: 0,
-        y: 0,
+        x: (maxWidth - width) / 2,
+        y: (maxHeight - height) / 2,
         fill: "",
         src: url,
         width,
@@ -225,13 +295,41 @@ const ImageMapView = ({
   };
 
   const handleStageClick = () => {
+    if (isolatedGroup) {
+      const original = isolatedGroup.originalGroup;
+      const children = original.children;
+
+      const updatedChildren = children.map((child) => {
+        const live = shapes.find((s) => s.id === child.id);
+        return {
+          ...child,
+          ...live,
+          x: (live?.x ?? child.x) - original.x,
+          y: (live?.y ?? child.y) - original.y,
+        };
+      });
+
+      const newGroup: GroupShape = {
+        ...original,
+        children: updatedChildren,
+      };
+
+      const remaining = shapes.filter(
+        (s) => !children.some((c) => c.id === s.id)
+      );
+
+      onShapesChange([...remaining, newGroup]);
+      setIsolatedGroup(null);
+      setSelectedId(null);
+      return;
+    }
+
     if (isDrawingPoly) {
       const stage = stageRef.current;
-      const pointerPosition = stage.getPointerPosition();
-      if (!pointerPosition) return;
-
-      const x = (pointerPosition.x - stagePos.x) / stageScale;
-      const y = (pointerPosition.y - stagePos.y) / stageScale;
+      const pointer = stage.getPointerPosition();
+      if (!pointer) return;
+      const x = (pointer.x - stage.x()) / stage.scaleX();
+      const y = (pointer.y - stage.y()) / stage.scaleY();
 
       if (currentPolyPoints.length >= 6 && isCloseToFirstPoint(x, y)) {
         const newPoly: PolygonShape = {
@@ -262,15 +360,11 @@ const ImageMapView = ({
       setCurrentPolyPoints((pts) => [...pts, x, y]);
     } else {
       setSelectedId(null);
+      setSelectedIds([]);
     }
   };
 
-  const updateShape = (
-    id: string,
-    attrs: Partial<
-      RectShape | EllipseShape | PolygonShape | ImageShape | CircleShape
-    >
-  ) => {
+  const updateShape = (id: string, attrs: Partial<Shape>) => {
     onShapesChange(shapes.map((s) => (s.id === id ? { ...s, ...attrs } : s)));
   };
 
@@ -314,8 +408,7 @@ const ImageMapView = ({
       const target = e.target as HTMLElement;
       const isInput =
         target.tagName === "INPUT" || target.tagName === "TEXTAREA";
-
-      if (isInput) return; // <- Jangan lanjut kalau sedang di input field
+      if (isInput) return;
 
       if (e.key === "Delete") {
         deleteSelected();
@@ -326,12 +419,51 @@ const ImageMapView = ({
         (e.key === "y" || (e.key === "z" && e.shiftKey))
       ) {
         redo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+        // Copy
+        if (selectedId) {
+          const shape = shapes.find((s) => s.id === selectedId);
+          if (shape) {
+            setCopiedShape({ ...shape });
+          }
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key === "v") {
+        // Paste
+        if (copiedShape) {
+          const newId = `${copiedShape.type}-${Date.now()}`;
+          const offset = 20;
+
+          let newShape;
+
+          if (copiedShape.type === "polygon") {
+            const original = copiedShape as PolygonShape;
+            const offsetPoints = original.points.map((val, idx) =>
+              idx % 2 === 0 ? val + offset : val + offset
+            );
+            newShape = {
+              ...original,
+              id: newId,
+              points: offsetPoints,
+            };
+          } else {
+            newShape = {
+              ...copiedShape,
+              id: newId,
+              x: copiedShape.x + offset,
+              y: copiedShape.y + offset,
+            };
+          }
+
+          const next = [...shapes, newShape];
+          pushHistory(next);
+          setSelectedId(newId);
+        }
       }
     };
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [shapes, selectedId]);
+  }, [shapes, selectedId, copiedShape]);
 
   const clearAll = () => {
     onShapesChange([]);
@@ -374,8 +506,8 @@ const ImageMapView = ({
       const newImgShape: ImageShape = {
         id: `img-${Date.now()}`,
         type: "image",
-        x: 0,
-        y: 0,
+        x: (maxWidth - width) / 2,
+        y: (maxHeight - height) / 2,
         fill: "",
         src: url,
         width,
@@ -411,9 +543,66 @@ const ImageMapView = ({
     });
   };
 
-  // Handler pan (drag)
-  const handleDragEnd = (e: any) => {
-    setStagePos(e.target.position());
+  const groupSelectedShapes = () => {
+    console.log("SelectedIds for grouping:", selectedIds);
+
+    const selectedShapes = shapes.filter((s) => selectedIds.includes(s.id));
+    if (selectedShapes.length < 2) {
+      alert("Pilih minimal 2 shape untuk digroup.");
+      return;
+    }
+
+    // 1. Cari bounding box untuk semua selectedShapes
+    const minX = Math.min(...selectedShapes.map((s) => s.x));
+    const minY = Math.min(...selectedShapes.map((s) => s.y));
+
+    // 2. Offset posisi children agar relatif terhadap bounding box
+    const children = selectedShapes.map((s) => {
+      const base = {
+        ...s,
+        x: s.x - minX,
+        y: s.y - minY,
+      };
+
+      if (s.type === "polygon") {
+        return {
+          ...base,
+          points: [...s.points], // deep copy array
+        };
+      }
+
+      return base;
+    });
+
+    // 3. Buat grup dengan posisi sesuai bounding box
+    const newGroup: GroupShape = {
+      id: `group-${Date.now()}`,
+      type: "group",
+      x: minX,
+      y: minY,
+      children,
+    };
+
+    // 4. Gabungkan shapes: hapus yang digroup, tambahkan group baru
+    const remainingShapes = shapes.filter((s) => !selectedIds.includes(s.id));
+    pushHistory([...remainingShapes, newGroup]);
+
+    setSelectedIds([]);
+    setSelectedId(newGroup.id);
+    console.log("Added group:", newGroup);
+  };
+
+  const ungroupSelectedGroup = () => {
+    const group = shapes.find(
+      (s) => s.id === selectedId && s.type === "group"
+    ) as GroupShape;
+    if (!group) return;
+
+    const remaining = shapes.filter((s) => s.id !== group.id);
+    const next = [...remaining, ...group.children];
+    pushHistory(next);
+    setSelectedId(null);
+    setSelectedIds([]);
   };
 
   useEffect(() => {
@@ -437,7 +626,7 @@ const ImageMapView = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={addRect}
+                onClick={startDrawRect}
                 variant="ghost"
                 className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
               >
@@ -451,7 +640,7 @@ const ImageMapView = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={addEllipse}
+                onClick={startDrawEllipse}
                 variant="ghost"
                 className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
               >
@@ -465,7 +654,7 @@ const ImageMapView = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={addCircle}
+                onClick={startDrawCircle}
                 variant="ghost"
                 className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
               >
@@ -507,6 +696,35 @@ const ImageMapView = ({
             </TooltipTrigger>
             <TooltipContent>
               <p>Clear Canvas</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={groupSelectedShapes}
+                variant="ghost"
+                className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+              >
+                Group
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Group Selected</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={ungroupSelectedGroup}
+                variant="ghost"
+                className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+              >
+                Ungroup
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Ungroup</p>
             </TooltipContent>
           </Tooltip>
 
@@ -586,19 +804,59 @@ const ImageMapView = ({
             pixelRatio={window.devicePixelRatio || 1}
             ref={stageRef}
             onClick={handleStageClick}
-            scaleX={stageScale}
+            draggable={mode === "default" && !isDraggingGroup}
+            onWheel={handleWheel}
+            onMouseDown={handleDrawStart}
+            onMouseMove={handleDrawMove}
+            onMouseUp={handleDrawEnd}
+            onDragMove={(e) => {
+              if (e.target === stageRef.current) {
+                setStagePos(e.target.position());
+              }
+            }}
+            onDragEnd={(e) => {
+              if (e.target === stageRef.current) {
+                setStagePos(e.target.position());
+              }
+            }}
+            scaleX={stageScale} // 👈 tetap di Stage
             scaleY={stageScale}
             x={stagePos.x}
             y={stagePos.y}
-            onWheel={handleWheel}
             style={{
               background: "#fff",
-              cursor: mode === "drawPolygon" ? "crosshair" : "default",
+              cursor:
+                mode === "drawPolygon"
+                  ? "crosshair"
+                  : ["drawRect", "drawCircle", "drawEllipse"].includes(mode)
+                  ? "crosshair"
+                  : drawingShape
+                  ? "copy"
+                  : "default",
             }}
           >
             <Layer>
               {/* Semua shapes & live drawing (seperti sebelumnya) */}
               {shapes.map((shape) => {
+                if (shape.type === "group") {
+                  return (
+                    <StretchableGroup
+                      key={shape.id}
+                      shape={shape}
+                      isSelected={shape.id === selectedId}
+                      onSelect={() => setSelectedId(shape.id)}
+                      onChange={(attrs) => updateShape(shape.id, attrs)}
+                      stageScale={stageScale}
+                      setSelectedIds={setSelectedIds}
+                      selectedIds={selectedIds}
+                      setIsDraggingGroup={setIsDraggingGroup}
+                      setIsolatedGroup={setIsolatedGroup}
+                      shapes={shapes}
+                      onShapesChange={onShapesChange}
+                      setSelectedId={setSelectedId}
+                    />
+                  );
+                }
                 if (shape.type === "polygon") {
                   const s = shape as PolygonShape;
                   return (
@@ -614,6 +872,10 @@ const ImageMapView = ({
                         }
                       }}
                       onChange={(attrs) => updateShape(shape.id, attrs)}
+                      stageScale={stageScale}
+                      selectedIds={selectedIds}
+                      setSelectedIds={setSelectedIds}
+                      isInGroup={false}
                     />
                   );
                 }
@@ -623,23 +885,20 @@ const ImageMapView = ({
                     shape={shape}
                     isSelected={shape.id === selectedId}
                     onSelect={() => {
-                      console.log(
-                        "Clicked shape:",
-                        shape.id,
-                        shape.linkToArtboard
-                      );
                       if (isPreviewMode && shape.linkToArtboard) {
-                        console.log(
-                          "Redirecting to artboard",
-                          shape.linkToArtboard
-                        );
                         setActiveArtboardId(shape.linkToArtboard);
                       } else {
                         setSelectedId(shape.id);
                       }
                     }}
+                    onDoubleClick={() => {
+                      setSelectedId(shape.id); // ⬅️ Trigger Transformer
+                    }}
                     onChange={(attrs) => updateShape(shape.id, attrs)}
                     mode={mode}
+                    setSelectedIds={setSelectedIds}
+                    selectedIds={selectedIds}
+                    isInGroup={false}
                   />
                 );
               })}
@@ -679,6 +938,55 @@ const ImageMapView = ({
                     />
                   );
                 })}
+              {drawingShape?.endX !== undefined &&
+                drawingShape?.endY !== undefined &&
+                (() => {
+                  const { startX, startY, endX, endY, type } = drawingShape;
+                  const x = Math.min(startX, endX);
+                  const y = Math.min(startY, endY);
+                  const width = Math.abs(endX - startX);
+                  const height = Math.abs(endY - startY);
+                  const fillColor = "#64748b33"; // slate-500 with opacity
+
+                  if (type === "drawRect") {
+                    return (
+                      <Rect
+                        x={x}
+                        y={y}
+                        width={width}
+                        height={height}
+                        stroke="#64748b"
+                        strokeWidth={1.5}
+                        fill={fillColor}
+                      />
+                    );
+                  } else if (type === "drawEllipse") {
+                    return (
+                      <Ellipse
+                        x={x + width / 2}
+                        y={y + height / 2}
+                        radiusX={width / 2}
+                        radiusY={height / 2}
+                        stroke="#64748b"
+                        strokeWidth={1.5}
+                        fill={fillColor}
+                      />
+                    );
+                  } else if (type === "drawCircle") {
+                    const radius = Math.max(width, height) / 2;
+                    return (
+                      <Circle
+                        x={x + radius}
+                        y={y + radius}
+                        radius={radius}
+                        stroke="#64748b"
+                        strokeWidth={1.5}
+                        fill={fillColor}
+                      />
+                    );
+                  }
+                  return null;
+                })()}
             </Layer>
           </Stage>
         </div>

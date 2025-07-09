@@ -1,4 +1,5 @@
 "use client";
+import Konva from "konva";
 import React, { useRef, useEffect, useState } from "react";
 import {
   Rect as KonvaRect,
@@ -42,12 +43,17 @@ export type EllipseShape = ShapeBase & {
 export type StretchableShapeProps = {
   shape: RectShape | CircleShape | ImageShape | EllipseShape;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect: (e: Konva.KonvaEventObject<Event>) => void;
   /** update callback – supply only changed attrs */
   onChange: (
     newAttrs: Partial<RectShape | CircleShape | EllipseShape | ImageShape>
   ) => void;
-  mode: "default" | "drawPolygon";
+  mode: "default" | "drawPolygon" | "drawRect" | "drawCircle" | "drawEllipse";
+  /** optional, untuk multi-select support */
+  setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedIds?: string[];
+  isInGroup?: boolean;
+  onDoubleClick?: (e: Konva.KonvaEventObject<Event>) => void;
 };
 
 // -----------------------------
@@ -60,6 +66,10 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   onSelect,
   onChange,
   mode,
+  setSelectedIds,
+  selectedIds,
+  isInGroup,
+  onDoubleClick,
 }) => {
   const ref = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -79,7 +89,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     y: shape.y,
     fill: shape.fill,
     opacity: 0.5,
-    draggable: true,
+    listening: true,
+    draggable: !isInGroup,
     onClick: onSelect,
     onTap: onSelect,
   } as const;
@@ -89,13 +100,14 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     x: shape.x,
     y: shape.y,
     fill: shape.fill,
-    draggable: true,
+    draggable: !isInGroup,
     onClick: onSelect,
     onTap: onSelect,
   } as const;
 
   const handleTransformEnd = () => {
     const node = ref.current;
+
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
     node.scaleX(1);
@@ -105,35 +117,38 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
       onChange({
         x: node.x(),
         y: node.y(),
-        width: Math.max(5, node.width() * scaleX),
-        height: Math.max(5, node.height() * scaleY),
+        width: node.width() * scaleX,
+        height: node.height() * scaleY,
       });
     } else if (shape.type === "ellipse") {
       onChange({
         x: node.x(),
         y: node.y(),
-        radiusX: Math.max(5, node.radiusX() * scaleX),
-        radiusY: Math.max(5, node.radiusY() * scaleY),
+        radiusX: node.radiusX() * scaleX,
+        radiusY: node.radiusY() * scaleY,
       });
     } else if (shape.type === "circle") {
       onChange({
         x: node.x(),
         y: node.y(),
-        radius: Math.max(5, node.radius() * scaleX),
+        radius: node.radius() * scaleX,
       });
     } else {
-      // image
       onChange({
         x: node.x(),
         y: node.y(),
-        width: Math.max(5, node.width() * scaleX),
-        height: Math.max(5, node.height() * scaleY),
+        width: node.width() * scaleX,
+        height: node.height() * scaleY,
       });
     }
   };
 
-  const handleDragEnd = (e: any) =>
-    onChange({ x: e.target.x(), y: e.target.y() });
+  const handleDragEnd = (e: any) => {
+    const node = e.target;
+    const x = node.x(); // sudah otomatis dihitung dalam konteks Group
+    const y = node.y();
+    onChange({ x, y });
+  };
 
   let element = null;
   if (shape.type === "rect") {
@@ -142,15 +157,38 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         {...common}
         width={(shape as RectShape).width}
         height={(shape as RectShape).height}
-        onDragEnd={handleDragEnd}
+        onDragEnd={isInGroup ? undefined : handleDragEnd}
         onTransformEnd={handleTransformEnd}
         onClick={(e) => {
           e.cancelBubble = true;
-          onSelect();
+          console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
+
+          if (setSelectedIds && selectedIds) {
+            if (e.evt.shiftKey) {
+              setSelectedIds((prev) =>
+                prev.includes(shape.id) ? prev : [...prev, shape.id]
+              );
+            } else {
+              setSelectedIds([shape.id]);
+            }
+          }
+          onSelect(e);
         }}
         onTap={(e) => {
           e.cancelBubble = true;
-          onSelect();
+          onSelect(e);
+        }}
+        onDblClick={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.(e); // 🟡 optional
+          onSelect(e);
+          console.log("click count:", e.evt.detail);
+          console.log("CLICKED CHILD", shape.id);
+        }}
+        onDblTap={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.(e);
+          onSelect(e); // 🟡 for touch
         }}
       />
     );
@@ -160,15 +198,37 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         {...common}
         radiusX={(shape as EllipseShape).radiusX}
         radiusY={(shape as EllipseShape).radiusY}
-        onDragEnd={handleDragEnd}
+        onDragEnd={isInGroup ? undefined : handleDragEnd}
         onTransformEnd={handleTransformEnd}
         onClick={(e) => {
           e.cancelBubble = true;
-          onSelect();
+          console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
+
+          if (setSelectedIds && selectedIds) {
+            if (e.evt.shiftKey) {
+              setSelectedIds((prev) =>
+                prev.includes(shape.id) ? prev : [...prev, shape.id]
+              );
+            } else {
+              setSelectedIds([shape.id]);
+            }
+          }
+          onSelect(e);
         }}
         onTap={(e) => {
           e.cancelBubble = true;
-          onSelect();
+          onSelect(e);
+        }}
+        onDblClick={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.(e); // 🟡 optional
+          onSelect(e);
+          console.log("click count:", e.evt.detail);
+        }}
+        onDblTap={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.(e); // 🟡 for touch
+          onSelect(e);
         }}
       />
     );
@@ -177,15 +237,37 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
       <KonvaCircle
         {...common}
         radius={(shape as CircleShape).radius}
-        onDragEnd={handleDragEnd}
+        onDragEnd={isInGroup ? undefined : handleDragEnd}
         onTransformEnd={handleTransformEnd}
         onClick={(e) => {
           e.cancelBubble = true;
-          onSelect();
+          console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
+
+          if (setSelectedIds && selectedIds) {
+            if (e.evt.shiftKey) {
+              setSelectedIds((prev) =>
+                prev.includes(shape.id) ? prev : [...prev, shape.id]
+              );
+            } else {
+              setSelectedIds([shape.id]);
+            }
+          }
+          onSelect(e);
         }}
         onTap={(e) => {
           e.cancelBubble = true;
-          onSelect();
+          onSelect(e);
+        }}
+        onDblClick={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.(e); // 🟡 optional
+          onSelect(e);
+          console.log("click count:", e.evt.detail);
+        }}
+        onDblTap={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.(e); // 🟡 for touch
+          onSelect(e);
         }}
       />
     );
@@ -196,17 +278,39 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         image={img}
         width={(shape as ImageShape).width}
         height={(shape as ImageShape).height}
-        onDragEnd={handleDragEnd}
+        onDragEnd={isInGroup ? undefined : handleDragEnd}
         onTransformEnd={handleTransformEnd}
         onClick={(e) => {
           e.cancelBubble = true;
-          onSelect();
+          console.log("clicked", shape.id, "shift?", e.evt.shiftKey);
+
+          if (setSelectedIds && selectedIds) {
+            if (e.evt.shiftKey) {
+              setSelectedIds((prev) =>
+                prev.includes(shape.id) ? prev : [...prev, shape.id]
+              );
+            } else {
+              setSelectedIds([shape.id]);
+            }
+          }
+          onSelect(e);
         }}
         onTap={(e) => {
           e.cancelBubble = true;
-          onSelect();
+          onSelect(e);
         }}
-        listening={mode !== "drawPolygon"}
+        draggable={isSelected && mode === "default"}
+        listening={mode === "default"} // 🔑 ini penting
+        onDblClick={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.(e); // 🟡 optional
+          onSelect(e);
+        }}
+        onDblTap={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.(e); // 🟡 for touch
+          onSelect(e);
+        }}
       />
     );
   }

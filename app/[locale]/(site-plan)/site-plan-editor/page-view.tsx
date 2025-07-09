@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import ArtBoard, { ArtboardMenuItem } from "./component/art-board";
-import ImageMapView from "./component/canvas";
+import ImageMapView, { DrawMode } from "./component/canvas";
 import {
   CircleDashed,
   CircleIcon,
@@ -22,8 +22,7 @@ const Editor = () => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
-  const [mode, setMode] = useState<"default" | "drawPolygon">("default");
-
+  const [mode, setMode] = useState<DrawMode>("default");
   const [menuItems, setMenuItems] = useState<ArtboardMenuItem[]>([
     {
       id: "1",
