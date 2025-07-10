@@ -11,23 +11,24 @@ export const getInvoiceSchedule = async (
     const session = await auth();
     const auditUser = session?.user?.email;
 
-
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`
+    const response = await fetch(
+      `
       ${url}/api/invoice/schedule/get?startDate=${startDate}&endDate=${endDate}&auditUser=${auditUser}
       `,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-        }
-      });
+        },
+      }
+    );
     const result = await response.json();
 
     if (result.statusCode === 200) {
@@ -61,28 +62,25 @@ export const generateInvoiceSchedule = async (
       related_class,
       entity_cd,
       email_addr,
-      auditUser
-    }
+      auditUser,
+    };
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(
-      `${url}/api/invoice/schedule/generate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
+    const response = await fetch(`${url}/api/invoice/schedule/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
     const result = await response.json();
-    console.log(result)
+    console.log(result);
 
     if (result.statusCode === 200) {
       return result;
@@ -100,23 +98,24 @@ export const getInvoiceManual = async (startDate: string, endDate: string) => {
     const session = await auth();
     const auditUser = session?.user?.email;
 
-
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(`
+    const response = await fetch(
+      `
       ${url}/api/invoice/manual/get?startDate=${startDate}&endDate=${endDate}&auditUser=${auditUser}
       `,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-        }
-      });
+        },
+      }
+    );
     const result = await response.json();
 
     if (result.statusCode === 200) {
@@ -137,7 +136,7 @@ export const generateInvoiceManual = async (
   trx_type: string,
   entity_cd: string,
   email_addr: string,
-  related_class: string,
+  related_class: string
 ) => {
   try {
     const session = await auth();
@@ -150,26 +149,23 @@ export const generateInvoiceManual = async (
       entity_cd,
       email_addr,
       related_class,
-      auditUser
-    }
+      auditUser,
+    };
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
-    const response = await fetch(
-      `${url}/api/invoice/manual/generate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
+    const response = await fetch(`${url}/api/invoice/manual/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
     const result = await response.json();
 
     if (result.statusCode === 200) {
@@ -199,9 +195,9 @@ export const getInvoiceProforma = async (
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice-proforma`, {
@@ -234,9 +230,9 @@ export const generateInvoiceProforma = async (
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -265,9 +261,9 @@ export const getInvoiceList = async () => {
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -293,9 +289,9 @@ export const cancelInvoice = async (docNo: string, processId: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const data = {
@@ -330,7 +326,7 @@ export const submitInvoiceEmail = async (
   doc_amt: string,
   entity_cd: string,
   project_no: string,
-  debtor_acct: string,
+  debtor_acct: string
 ) => {
   try {
     const session = await auth();
@@ -350,9 +346,9 @@ export const submitInvoiceEmail = async (
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice-submit`, {
@@ -380,9 +376,9 @@ export const deleteInvoice = async (docNo: string, processId: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -414,9 +410,9 @@ export const getInvoiceApprovalByUser = async () => {
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -449,9 +445,9 @@ export const getInvoiceApprovalHistoryByUser = async (
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -477,9 +473,9 @@ export const getInvoiceApprovalHd = async (processId: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/get-approval/${processId}`, {
@@ -502,9 +498,9 @@ export const getInvoiceApprovalDetail = async (processId: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/get-approval-dtl/${processId}`, {
@@ -530,9 +526,9 @@ export const submitInvoiceApproval = async (data: any) => {
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     let queryParams = `doc_no=${data.docNo}&process_id=${data.process_id}&approval_user=${auditUser}&approval_status=${data.approvalStatus}&approval_level=${data.approvalLevel}`;
@@ -573,13 +569,12 @@ export const submitInvoiceApproval = async (data: any) => {
 //     console.log(JSON.stringify(body))
 //     let url = "";
 //     if (mode === "sandbox") {
-//       url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+//       url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
 //     } else {
-//       url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+//       url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
 //     }
 
-
-//     const response = await fetch(`${url}/api/invoice/approve`, 
+//     const response = await fetch(`${url}/api/invoice/approve`,
 //       {
 //         method: "POST",
 //         headers: {
@@ -606,9 +601,9 @@ export const getInvoiceEmail = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice/email/${auditUser}`, {
@@ -631,9 +626,9 @@ export const uploadFakturPajak = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -663,9 +658,9 @@ export const sendInvoiceEmail = async (docNo: string, processId: string) => {
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -700,14 +695,14 @@ export const getInvoiceEmailHistorySuccess = async (
       startDate: startDate,
       endDate: endDate,
       status: "S",
-      auditUser
+      auditUser,
     };
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice/email-history`, {
@@ -741,14 +736,14 @@ export const getInvoiceEmailHistoryFailed = async (
       startDate: startDate,
       endDate: endDate,
       status: "F",
-      auditUser
+      auditUser,
     };
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice/email-history`, {
@@ -779,9 +774,9 @@ export const resendInvoiceEmail = async (
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -803,7 +798,11 @@ export const resendInvoiceEmail = async (
   }
 };
 
-export const stampInvoice = async (fileName: string, fileType: string, processId: string) => {
+export const stampInvoice = async (
+  fileName: string,
+  fileType: string,
+  processId: string
+) => {
   try {
     const session = await auth();
     const auditUser = session?.user?.name;
@@ -813,14 +812,14 @@ export const stampInvoice = async (fileName: string, fileType: string, processId
       file_name: fileName,
       file_type: fileType,
       audit_user: auditUser,
-      process_id: processId
+      process_id: processId,
     };
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/peruri/stamp`, {
@@ -850,9 +849,9 @@ export const regenerateInvoiceEmail = async (
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const submitData = {
@@ -884,9 +883,9 @@ export const noStampInvoice = async (docNo: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/peruri/no-stamp/${docNo}`, {
@@ -911,9 +910,9 @@ export const getInvoiceStampSuccess = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice/stamp/S/${auditUser}`, {
@@ -938,9 +937,9 @@ export const getInvoiceStampFailed = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice/stamp/F/${auditUser}`, {
@@ -959,7 +958,11 @@ export const getInvoiceStampFailed = async () => {
   }
 };
 
-export const reStampInvoice = async (fileName: string, fileType: string, processId: string) => {
+export const reStampInvoice = async (
+  fileName: string,
+  fileType: string,
+  processId: string
+) => {
   try {
     const session = await auth();
     const auditUser = session?.user?.name;
@@ -969,14 +972,14 @@ export const reStampInvoice = async (fileName: string, fileType: string, process
       file_name: fileName,
       file_type: fileType,
       audit_user: auditUser,
-      process_id: processId
+      process_id: processId,
     };
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/peruri/stamp`, {
@@ -1012,9 +1015,9 @@ export const getInvoiceStampHistory = async (
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/invoice/stamp-history`, {
@@ -1044,9 +1047,9 @@ export const downloadInvoiceStampHistory = async (
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -1072,9 +1075,9 @@ export const getInvoiceInquiry = async (startDate: string, endDate: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -1100,9 +1103,9 @@ export const deleteFakturPajak = async (docNo: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/delete-faktur/${docNo}`, {
@@ -1125,9 +1128,9 @@ export const uploadAdditionalFile = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/upload-extra-file`, {
@@ -1151,9 +1154,9 @@ export const deleteAdditionalFile = async (docNo: string, fileName: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(
@@ -1182,9 +1185,9 @@ export const completeInvoiceEmail = async (
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const data = {
@@ -1219,9 +1222,9 @@ export const getInvoiceEmailHistoryCompleted = async (
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(

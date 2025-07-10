@@ -33,6 +33,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Shape } from "./toolbar";
 
 type ArtboardChild = {
   title: string;
@@ -60,6 +61,26 @@ interface ArtBoardProps {
   selectedId: string | null;
   leftSidebarOpen: boolean;
 }
+
+export type Lot = {
+  id: string;
+  title: string;
+  shapes: Shape[];
+};
+
+export type Block = {
+  id: string;
+  title: string;
+  shapes: Shape[]; // ✅ block bisa punya shapes
+  lots: Lot[];
+};
+
+export type Masterplan = {
+  id: string;
+  title: string;
+  shapes: Shape[]; // ✅ masterplan juga bisa punya shapes (misalnya image)
+  blocks: Block[];
+};
 
 const ArtBoard: React.FC<ArtBoardProps> = ({
   activeArtboardId,

@@ -31,7 +31,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   //   strategy: "jwt",
   // },
   // adapter: PrismaAdapter(prisma),
-  adapter:CustomAdapter(),
+  adapter: CustomAdapter(),
   trustHost: true,
   providers: [
     MicrosoftEntraID({
@@ -41,8 +41,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       authorization: {
         params: {
           scope: "openid profile email User.Read",
-          redirect_uri:
-            `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback/microsoft-entra-id`,
+          redirect_uri: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback/microsoft-entra-id`,
           tenantId: process.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID,
         },
       },
@@ -67,9 +66,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         try {
           let url = "";
           if (mode === "sandbox") {
-            url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+            url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
           } else {
-            url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+            url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
           }
 
           const response = await fetch(`${url}/auth/user/login`, {
@@ -205,8 +204,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       session.user.modules = token.modules as string[] | undefined;
       session.user.emailVerified = new Date(token.emailVerified as string);
       session.user.signInMethod = token.signInMethod as string | undefined;
-      session.user.image = token.image as string || '/default-avatar.png';
-      if(token.accessToken !== null){
+      session.user.image = (token.image as string) || "/default-avatar.png";
+      if (token.accessToken !== null) {
         session.user.accessToken = token.accessToken;
       }
       return session;

@@ -10,8 +10,8 @@ import { Stage, Layer, Rect, Circle, Line } from "react-konva";
 export type ShapeBase = {
   id: string;
   fill: string;
-  x: number; // representative x (first vertex or center)
-  y: number; // representative y
+  x: number;
+  y: number;
 };
 
 export type RectShape = ShapeBase & {

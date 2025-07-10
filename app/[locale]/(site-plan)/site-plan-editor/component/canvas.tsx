@@ -103,7 +103,6 @@ const ImageMapView = ({
   const [isolatedGroup, setIsolatedGroup] = useState<{
     originalGroup: GroupShape;
     fromGroupId: string;
-    allChildren: Shape[]; // ⬅️ tambahkan ini
   } | null>(null);
 
   const pushHistory = (next: any[]) => {
@@ -337,45 +336,6 @@ const ImageMapView = ({
     }
 
     // ✅ 2. Kalau dalam state isolate, klik di luar harus langsung regroup
-    if (isolatedGroup && clickedOnEmpty) {
-      const original = isolatedGroup.originalGroup;
-      const children = isolatedGroup.allChildren;
-
-      const updatedChildren = children.map((child) => {
-        const live = shapes.find((s) => s.id === child.id);
-        return {
-          ...child,
-          ...live,
-          x: (live?.x ?? child.x) - original.x,
-          y: (live?.y ?? child.y) - original.y,
-        };
-      });
-
-      const remaining = shapes.filter(
-        (s) => !children.some((c) => c.id === s.id)
-      );
-
-      // 🟡 Tambahan: jika shape terseleksi adalah bagian dari grup ini, hilangkan seleksi
-      const selectedIsolated = shapes.find((s) => s.id === selectedId);
-      const isChildFromGroup = isolatedGroup.allChildren.some(
-        (child) => child.id === selectedId
-      );
-
-      if (selectedIsolated && isChildFromGroup) {
-        setSelectedId(null);
-      }
-
-      onShapesChange([
-        ...remaining,
-        {
-          ...original,
-          children: updatedChildren,
-        },
-      ]);
-
-      setIsolatedGroup(null);
-      return;
-    }
 
     // ✅ 3. Clear selection hanya jika klik di luar shape
     if (clickedOnEmpty) {
@@ -719,7 +679,7 @@ const ImageMapView = ({
             </TooltipContent>
           </Tooltip>
 
-          <Tooltip>
+          {/* <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 onClick={groupSelectedShapes}
@@ -746,7 +706,7 @@ const ImageMapView = ({
             <TooltipContent>
               <p>Ungroup</p>
             </TooltipContent>
-          </Tooltip>
+          </Tooltip> */}
 
           <div className="grid w-full max-w-sm items-center gap-3">
             <Input

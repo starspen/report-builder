@@ -6,9 +6,9 @@ export const getTypeReceipt = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/type/get-or`, {
@@ -31,9 +31,9 @@ export const getTypeInvoiceById = async (id: number | string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/type/get/${id}`, {
@@ -56,9 +56,9 @@ export const getTypeInvoiceDetailById = async (id: number | string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/type-dtl/get/${id}`, {
@@ -88,9 +88,9 @@ export const insertTypeInvoice = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/type/create`, {
@@ -125,9 +125,9 @@ export const updateTypeInvoice = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/type/edit`, {
@@ -154,9 +154,9 @@ export const deleteTypeInvoice = async (id: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/type/delete/${id}`, {
@@ -182,9 +182,9 @@ export const insertAssignmentInvoice = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/user/assign/type-approval`, {

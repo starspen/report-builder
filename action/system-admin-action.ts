@@ -7,9 +7,9 @@ export const getModules = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/module/get`, {
@@ -32,9 +32,9 @@ export const createModule = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/module/create`, {
@@ -61,9 +61,9 @@ export const createMenu = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/menu/create`, {
@@ -89,9 +89,9 @@ export const createRole = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/role/create`, {
@@ -114,13 +114,13 @@ export const createRole = async (data: any) => {
   }
 };
 export const assignMenuToRole = async (data: any) => {
-  console.log(data)
+  console.log(data);
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/menu/assign`, {
@@ -147,9 +147,9 @@ export const deleteModule = async (id: number | string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/module/delete/${id}`, {
@@ -171,9 +171,9 @@ export const deleteRole = async (id: number | string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/role/delete/${id}`, {
@@ -195,9 +195,9 @@ export const deleteMenu = async (id: number | string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/menu/delete/${id}`, {
@@ -220,9 +220,9 @@ export const editModule = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/module/edit`, {
@@ -248,9 +248,9 @@ export const editRole = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/role/edit`, {
@@ -276,9 +276,9 @@ export const editMenu = async (data: any) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/menu/edit`, {

@@ -15,9 +15,9 @@ export const changePassword = async (data: any) => {
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/user/edit-password`, {
@@ -47,9 +47,9 @@ export const uploadPhotoProfile = async (data: any) => {
 
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
 
     const response = await fetch(`${url}/api/user/change-photo/${emailLogin}`, {

@@ -5,11 +5,11 @@ const mode = `${process.env.NEXT_PUBLIC_ENV_MODE}`;
 export const generateQr = async () => {
   try {
     let url = "";
-      if (mode === "sandbox") {
-        url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
-      } else {
-        url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
-      }
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
+    }
     const response = await fetch(`${url}/api/qr/generate`, {
       method: "GET",
     });
@@ -22,7 +22,7 @@ export const generateQr = async () => {
 
     if (!response.ok) {
       throw new Error(
-        `HTTP error! status: ${result.message || response.statusText}`,
+        `HTTP error! status: ${result.message || response.statusText}`
       );
     }
     return result;
@@ -35,11 +35,11 @@ export const generateQr = async () => {
 export const getNonQrData = async () => {
   try {
     let url = "";
-      if (mode === "sandbox") {
-        url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
-      } else {
-        url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
-      }
+    if (mode === "sandbox") {
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
+    } else {
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
+    }
     const response = await fetch(`${url}/api/qr/datanonqr`, {
       method: "GET",
     });
@@ -52,7 +52,7 @@ export const getNonQrData = async () => {
 
     if (!response.ok) {
       throw new Error(
-        `HTTP error! status: ${result.message || response.statusText}`,
+        `HTTP error! status: ${result.message || response.statusText}`
       );
     }
     return result;
@@ -66,9 +66,9 @@ export const getWithQrData = async () => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
     const response = await fetch(`${url}/api/qr/datawithqr`, {
       method: "GET",
@@ -82,7 +82,7 @@ export const getWithQrData = async () => {
 
     if (!response.ok) {
       throw new Error(
-        `HTTP error! status: ${result.message || response.statusText}`,
+        `HTTP error! status: ${result.message || response.statusText}`
       );
     }
     return result;
@@ -96,9 +96,9 @@ export const getSingleData = async (entity_cd: string, reg_id: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
     const response = await fetch(`${url}/api/qr/get-single-asset`, {
       method: "POST",
@@ -121,7 +121,7 @@ export const getSingleData = async (entity_cd: string, reg_id: string) => {
 
     if (!response.ok) {
       throw new Error(
-        `HTTP error! status: ${result.message || response.statusText}`,
+        `HTTP error! status: ${result.message || response.statusText}`
       );
     }
     return result;
@@ -165,14 +165,14 @@ export const getSingleData = async (entity_cd: string, reg_id: string) => {
 // };
 
 export const getManyData = async (
-  dataArray: Array<{ entity_cd: string; reg_id: string }>,
+  dataArray: Array<{ entity_cd: string; reg_id: string }>
 ) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
     const response = await fetch(`${url}/api/qr/get-many-asset`, {
       method: "POST",
@@ -190,7 +190,7 @@ export const getManyData = async (
 
     if (!response.ok) {
       throw new Error(
-        `HTTP error! status: ${result.message || response.statusText}`,
+        `HTTP error! status: ${result.message || response.statusText}`
       );
     }
     return result;
@@ -201,14 +201,14 @@ export const getManyData = async (
 };
 
 export const updatePrint = async (
-  dataArray: Array<{ entity_cd: string; reg_id: string }>,
+  dataArray: Array<{ entity_cd: string; reg_id: string }>
 ) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
     const response = await fetch(`${url}/api/qr/update-print`, {
       method: "PUT",
@@ -226,7 +226,7 @@ export const updatePrint = async (
 
     if (!response.ok) {
       throw new Error(
-        `HTTP error! status: ${result.message || response.statusText}`,
+        `HTTP error! status: ${result.message || response.statusText}`
       );
     }
     return result;
@@ -240,9 +240,9 @@ export const getAssetTrx = async (entity_cd: string, reg_id: string) => {
   try {
     let url = "";
     if (mode === "sandbox") {
-      url = `${process.env.NEXT_API_BACKEND_SANDBOX_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL}`;
     } else {
-      url = `${process.env.NEXT_API_BACKEND_PRODUCTION_URL}`;
+      url = `${process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL}`;
     }
     const response = await fetch(`${url}/api/qr/get-asset-trx`, {
       method: "POST",
@@ -265,7 +265,7 @@ export const getAssetTrx = async (entity_cd: string, reg_id: string) => {
 
     if (!response.ok) {
       throw new Error(
-        `HTTP error! status: ${result.message || response.statusText}`,
+        `HTTP error! status: ${result.message || response.statusText}`
       );
     }
     return result;
@@ -274,7 +274,6 @@ export const getAssetTrx = async (entity_cd: string, reg_id: string) => {
     return { success: false, message: "Error getting asset transaction data" };
   }
 };
-
 
 // export const getAssetTrx = async (entity_cd: string, reg_id: string) => {
 //   try {
@@ -308,4 +307,3 @@ export const getAssetTrx = async (entity_cd: string, reg_id: string) => {
 //     return { success: false, message: "Error getting asset transaction data" };
 //   }
 // };
-

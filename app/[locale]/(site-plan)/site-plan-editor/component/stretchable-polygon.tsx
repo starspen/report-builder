@@ -54,21 +54,27 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
   };
 
   const handleDragEnd = (e: any) => {
-    const dx = e.target.x();
-    const dy = e.target.y();
+    const node = e.target;
+    const absPos = node.absolutePosition();
 
-    const updatedPoints = shape.points.map((val, idx) =>
-      idx % 2 === 0 ? val : val
-    );
+    const stage = node.getStage();
+    const scaleX = stage.scaleX();
+    const scaleY = stage.scaleY();
+    const stageX = stage.x();
+    const stageY = stage.y();
+
+    // Hitung posisi baru relatif terhadap canvas (bukan terhadap parent)
+    const newX = (absPos.x - stageX) / scaleX;
+    const newY = (absPos.y - stageY) / scaleY;
+
+    // Reset posisi node agar tidak offset dobel
+    node.position({ x: 0, y: 0 });
 
     onChange({
-      x: shape.x + dx,
-      y: shape.y + dy,
-      points: updatedPoints,
+      x: newX,
+      y: newY,
+      points: shape.points,
     });
-
-    e.target.x(0);
-    e.target.y(0);
   };
 
   return (
