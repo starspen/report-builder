@@ -27,6 +27,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { getLotData } from "@/action/getLot";
+import BasicCombobox from "@/app/[locale]/(protected)/forms/combobox/basic-combobox";
 
 interface Shape {
   id: string;
@@ -42,6 +45,9 @@ interface Shape {
   fill?: string;
   title?: string;
   linkToArtboard?: string;
+  linkToShapeId?: string;
+  category?: "block" | "unit";
+  lotId?: string;
 }
 
 interface RightSideBarProps {
@@ -58,6 +64,8 @@ interface RightSideBarProps {
   menuItems: ArtboardMenuItem[];
   rightSidebarOpen: boolean;
   setRightSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  entityCode: string;
+  projectCode: string;
 }
 
 const RightSideBar: React.FC<RightSideBarProps> = ({
@@ -71,21 +79,46 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   menuItems,
   rightSidebarOpen,
   setRightSidebarOpen,
+  entityCode,
+  projectCode,
 }) => {
   const selectedShape = shapes?.find((s) => s.id === selectedId);
+  console.log(selectedShape, "selectedShape");
   const [localTitle, setLocalTitle] = React.useState(
     selectedShape?.title || selectedShape?.type || ""
   );
   const { toggleSidebar } = useSidebar();
 
   const handleUpdateShape = (id: string, updates: Partial<Shape>) => {
-    setArtboardShapes((prev) => ({
-      ...prev,
-      [activeArtboardId]: prev[activeArtboardId].map((s) =>
-        s.id === id ? { ...s, ...updates } : s
-      ),
-    }));
+    setArtboardShapes((prev) => {
+      const nextShapes = prev[activeArtboardId].map((s) => {
+        if (s.id === id) {
+          return {
+            ...s,
+            ...updates,
+          };
+        }
+        return s;
+      });
+
+      return {
+        ...prev,
+        [activeArtboardId]: nextShapes,
+      };
+    });
   };
+
+  console.log("entityCode:", entityCode, "projectCode:", projectCode);
+
+  const { data: lotOptions, isLoading: isLoadingLots } = useQuery({
+    queryKey: ["lots", entityCode, projectCode],
+    queryFn: () => getLotData(entityCode, projectCode),
+    enabled: !!entityCode && !!projectCode,
+  });
+
+  useEffect(() => {
+    console.log("lotOptions result:", lotOptions);
+  }, [lotOptions]);
 
   useEffect(() => {
     if (selectedShape) {
@@ -259,29 +292,73 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       </div>
                     )}
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Shape Group</Label>
+                    <BasicCombobox
+                      options={[
+                        { label: "Block", value: "block" },
+                        { label: "Unit", value: "unit" },
+                      ]}
+                      placeholder="Select Group"
+                      value={selectedShape?.category || ""}
+                      onChange={(val) => {
+                        if (!selectedShape) return;
+                        handleUpdateShape(selectedShape.id, {
+                          category: val as "block" | "unit",
+                        });
+                      }}
+                    />
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="linkTo">Link to Artboard</Label>
-                    <Select
+                    <BasicCombobox
+                      options={menuItems.map((item) => ({
+                        label: item.title,
+                        value: item.id,
+                      }))}
+                      placeholder="Select Destination"
                       value={selectedShape?.linkToArtboard || ""}
-                      onValueChange={(val) => {
+                      onChange={(val) => {
                         if (!selectedShape) return;
                         handleUpdateShape(selectedShape.id, {
                           linkToArtboard: val,
                         });
                       }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih Artboard Tujuan" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {menuItems.map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
+
+                  {lotOptions && (
+                    <div className="space-y-2">
+                      <Label htmlFor="lot">Assign Lot</Label>
+                      <BasicCombobox
+                        options={[
+                          ...lotOptions.map((lot: any) => ({
+                            label: lot.lot_no,
+                            value: lot.lot_no,
+                          })),
+                          ...(selectedShape?.lotId &&
+                          !lotOptions.some(
+                            (lot: any) => lot.lot_no === selectedShape.lotId
+                          )
+                            ? [
+                                {
+                                  label: selectedShape.lotId,
+                                  value: selectedShape.lotId,
+                                },
+                              ]
+                            : []),
+                        ]}
+                        placeholder="Select Lot"
+                        value={selectedShape?.lotId || ""}
+                        onChange={(val) => {
+                          if (!selectedShape) return;
+                          handleUpdateShape(selectedShape.id, { lotId: val });
+                        }}
+                      />
+                    </div>
+                  )}
                 </form>
               ) : (
                 <div className="text-sm text-muted-foreground p-2">

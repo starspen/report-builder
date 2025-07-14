@@ -28,10 +28,18 @@ import {
   Play,
   PanelRight,
   PanelLeft,
+  Save,
+  Upload,
 } from "lucide-react";
 import StretchablePolygon from "./stretchable-polygon";
 import { ArtboardMenuItem } from "./art-board";
 import StretchableGroup from "./stretchable-group";
+import { useSession } from "next-auth/react";
+import {
+  saveMasterplan,
+  SaveMasterplanPayload,
+} from "@/action/save-masterplan";
+import { useMutation } from "@tanstack/react-query";
 
 export type DrawMode =
   | "default"
@@ -58,6 +66,12 @@ interface ImageMapViewProps {
   setLeftSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   mode: DrawMode;
   setMode: React.Dispatch<React.SetStateAction<DrawMode>>;
+  selectedEntity: any;
+  selectedProject: any;
+  selectedMasterplan: any;
+  artboardShapes: { [id: string]: Shape[] };
+  onSave: () => void;
+  session: any;
 }
 
 const ImageMapView = ({
@@ -77,6 +91,12 @@ const ImageMapView = ({
   setLeftSidebarOpen,
   mode,
   setMode,
+  selectedEntity,
+  selectedProject,
+  selectedMasterplan,
+  artboardShapes,
+  onSave,
+  session,
 }: ImageMapViewProps) => {
   const stageRef = useRef<any>(null);
   const [isDrawingPoly, setIsDrawingPoly] = useState(false);
@@ -262,35 +282,42 @@ const ImageMapView = ({
     ensureArtboardExists();
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    const img = new window.Image();
-    img.onload = () => {
-      const stage = stageRef.current;
-      const maxWidth = stage?.width() || 800;
-      const maxHeight = stage?.height() || 550;
-      let width = img.width;
-      let height = img.height;
 
-      if (width > maxWidth || height > maxHeight) {
-        const scale = Math.min(maxWidth / width, maxHeight / height);
-        width = Math.round(width * scale);
-        height = Math.round(height * scale);
-      }
+    const reader = new FileReader();
 
-      const newImgShape: ImageShape = {
-        id: `img-${Date.now()}`,
-        type: "image",
-        x: (maxWidth - width) / 2,
-        y: (maxHeight - height) / 2,
-        fill: "",
-        src: url,
-        width,
-        height,
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      const img = new window.Image();
+      img.onload = () => {
+        const stage = stageRef.current;
+        const maxWidth = stage?.width() || 800;
+        const maxHeight = stage?.height() || 550;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          const scale = Math.min(maxWidth / width, maxHeight / height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+
+        const newImgShape: ImageShape = {
+          id: `img-${Date.now()}`,
+          type: "image",
+          x: (maxWidth - width) / 2,
+          y: (maxHeight - height) / 2,
+          fill: "",
+          src: base64, // ⬅️ sekarang pakai base64
+          width,
+          height,
+        };
+
+        onShapesChange([newImgShape, ...shapes]);
       };
-
-      onShapesChange([newImgShape, ...shapes]);
+      img.src = base64;
     };
-    img.src = url;
+
+    reader.readAsDataURL(file);
     e.target.value = "";
   };
 
@@ -306,13 +333,23 @@ const ImageMapView = ({
       const y = (pointer.y - stage.y()) / stage.scaleY();
 
       if (currentPolyPoints.length >= 6 && isCloseToFirstPoint(x, y)) {
+        const baseX = currentPolyPoints[0];
+        const baseY = currentPolyPoints[1];
+
+        const relativePoints = [];
+
+        for (let i = 0; i < currentPolyPoints.length; i += 2) {
+          relativePoints.push(currentPolyPoints[i] - baseX);
+          relativePoints.push(currentPolyPoints[i + 1] - baseY);
+        }
+
         const newPoly: PolygonShape = {
           id: `polygon-${Date.now()}`,
           type: "polygon",
           fill: "#22c55e",
-          x: currentPolyPoints[0],
-          y: currentPolyPoints[1],
-          points: currentPolyPoints,
+          x: baseX,
+          y: baseY,
+          points: relativePoints,
         };
 
         const targetId = activeArtboardId;
@@ -599,6 +636,11 @@ const ImageMapView = ({
     return () => window.removeEventListener("resize", updateSize);
   }, []);
 
+  useEffect(() => {
+    setStageScale(1);
+    setStagePos({ x: 0, y: 0 });
+  }, [activeArtboardId]);
+
   return (
     <div>
       <div className="flex h-auto py-2 bg-sidebar mb-4 pl-2 border border-b-inherit border-l-0 border-r-0">
@@ -709,14 +751,30 @@ const ImageMapView = ({
           </Tooltip> */}
 
           <div className="grid w-full max-w-sm items-center gap-3">
-            <Input
-              id="picture"
-              type="file"
-              className="bg-white read-only:bg-white rounded-xl shadow-xs"
-              onChange={handleFileChange}
-              ref={fileInputRef}
-            />
+            <Tooltip>
+              <TooltipTrigger>
+                <input
+                  id="picture"
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  ref={fileInputRef}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+                >
+                  <Upload className="w-4 h-4 group-hover:text-black" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Upload Image</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -759,6 +817,16 @@ const ImageMapView = ({
             >
               <Play fill="#fff" className="w-4 h-4" />{" "}
               {isPreviewMode ? "Exit Preview" : "Preview"}
+            </Button>
+          </div>
+          <div className="grid items-center gap-3 mx-2">
+            <Button
+              size="md"
+              type="button"
+              onClick={onSave}
+              className="bg-green-600 flex gap-2 hover:bg-green-700 hover:ring-transparent text-sm"
+            >
+              <Save className="w-4 h-4" /> Save
             </Button>
           </div>
         </div>

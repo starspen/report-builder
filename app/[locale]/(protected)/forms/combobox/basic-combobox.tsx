@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Trash } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,11 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface ComboboxOption {
   label: string;
@@ -28,6 +33,7 @@ export interface BasicComboboxProps {
   options: ComboboxOption[];
   value: string;
   onChange: (value: string) => void;
+  onDelete?: (id: string) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
@@ -44,10 +50,18 @@ const BasicCombobox: React.FC<BasicComboboxProps> = ({
   className,
   emptyText = "No options found.",
   searchPlaceholder = "Search...",
+  onDelete,
 }) => {
   const [open, setOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const selectedLabel = options.find((o) => o.value === value)?.label;
+
+  const filteredOptions = (options || []).filter((option) =>
+    (option.label || "")
+      .toLowerCase()
+      .includes((searchQuery || "").toLowerCase())
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -64,26 +78,59 @@ const BasicCombobox: React.FC<BasicComboboxProps> = ({
       </PopoverTrigger>
       <PopoverContent className={cn("w-full p-0", className)}>
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput
+            placeholder={searchPlaceholder}
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
-            <CommandEmpty>{emptyText}</CommandEmpty>
+            {filteredOptions.length === 0 && (
+              <CommandEmpty>{emptyText}</CommandEmpty>
+            )}
             <CommandGroup>
-              {options.map((option) => (
+              {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={(val) => {
-                    onChange(val);
+                  value={option.label}
+                  onSelect={() => {
+                    onChange(option.value);
                     setOpen(false);
                   }}
+                  className="flex justify-between items-center"
                 >
-                  <Check
-                    className={cn(
-                      "me-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {option.label}
+                  <div className="flex items-center">
+                    <Check
+                      className={cn(
+                        "me-2 h-4 w-4",
+                        value === option.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {option.label}
+                  </div>
+
+                  {onDelete && (
+                    <Tooltip>
+                      <TooltipTrigger>
+                        {" "}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="ml-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpen(false);
+                            onDelete?.(option.value);
+                          }}
+                        >
+                          <Trash />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Delete Masterplan</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -48,6 +48,11 @@ export type ArtboardMenuItem = {
   children: ArtboardChild[];
 };
 
+interface MasterplanType {
+  masterplan_no: string;
+  masterplan_name: string;
+}
+
 interface ArtBoardProps {
   activeArtboardId: string;
   setActiveArtboardId: (id: string) => void;
@@ -60,6 +65,7 @@ interface ArtBoardProps {
   setSelectedId: (id: string | null) => void;
   selectedId: string | null;
   leftSidebarOpen: boolean;
+  selectedMasterplan: MasterplanType | null;
 }
 
 export type Lot = {
@@ -92,6 +98,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
   setSelectedId,
   selectedId,
   leftSidebarOpen,
+  selectedMasterplan,
 }) => {
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const [artboardCount, setArtboardCount] = useState(2);
@@ -128,7 +135,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
     }, 0);
 
     const newId = (lastId + 1).toString();
-    const newTitle = `Artboard ${lastId + 1}`;
+    const newTitle = `Masterplan ${lastId + 1}`;
     // Tambahkan item baru
     setMenuItems((prev) => [
       ...prev,
@@ -233,9 +240,11 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
     <div className="flex">
       <Sidebar className="mr-0">
         <SidebarGroup>
-          <SidebarGroupLabel>Artboard</SidebarGroupLabel>
+          <SidebarGroupLabel>
+            {selectedMasterplan?.masterplan_name || "Masterplan"}
+          </SidebarGroupLabel>
           <SidebarGroupAction
-            title="Add new artboard"
+            title="Add new masterplan"
             onClick={handleAddArtboard}
           >
             <Tooltip>
@@ -243,7 +252,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                 <Plus />
               </TooltipTrigger>
               <TooltipContent>
-                <p>Add new artboard</p>
+                <p>Add new masterplan</p>
               </TooltipContent>
             </Tooltip>
           </SidebarGroupAction>
@@ -359,101 +368,238 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                 </SidebarMenuItem>
 
                 {/* Render shapes & groups */}
-                {openMenus[item.title] &&
-                  shapes.map((shape) => {
-                    const isActive = selectedId === shape.id;
-
-                    // Group (collapsible)
-                    if (shape.type === "group") {
-                      const isGroupOpen = openMenus[shape.id] ?? true;
-
-                      return (
-                        <React.Fragment key={shape.id}>
-                          <SidebarMenuItem
-                            className="pl-4"
-                            onClick={() => {
+                {openMenus[item.title] && (
+                  <>
+                    {/* Collapsible Block Group */}
+                    {shapes.some((s) => s.category === "block") && (
+                      <>
+                        <SidebarMenuItem className="pl-4 font-semibold text-xs uppercase opacity-70">
+                          <SidebarMenuButton
+                            className="w-full flex justify-between px-3 py-1 text-sm"
+                            onClick={() =>
                               setOpenMenus((prev) => ({
                                 ...prev,
-                                [shape.id]: !prev[shape.id],
-                              }));
-                            }}
+                                [`block-group-${item.id}`]:
+                                  !prev[`block-group-${item.id}`],
+                              }))
+                            }
                           >
-                            <SidebarMenuButton className="w-full flex justify-between px-3 py-1 text-sm">
-                              <span className="flex items-center gap-2">
-                                <Layout className="w-4 h-4" />
-                                {shape.title || "Group"}
-                              </span>
+                            <span className="flex items-center gap-2">
+                              Block
+                            </span>
+                            {openMenus[`block-group-${item.id}`] !== false ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
 
-                              {isGroupOpen ? (
-                                <ChevronDown className="w-4 h-4" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4" />
-                              )}
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-
-                          {isGroupOpen &&
-                            shape.children.map((child: any) => {
-                              const isChildActive = selectedId === child.id;
+                        {openMenus[`block-group-${item.id}`] !== false &&
+                          shapes
+                            .filter(
+                              (shape) =>
+                                shape.category === "block" &&
+                                shape.type !== "group"
+                            )
+                            .map((shape) => {
+                              const isActive = selectedId === shape.id;
                               return (
-                                <SidebarMenuItem
-                                  key={child.id}
-                                  className="pl-8 flex gap-2"
-                                >
+                                <SidebarMenuItem key={shape.id}>
                                   <a
-                                    href={`#${child.id}`}
+                                    href={`#${shape.id}`}
                                     onClick={(e) => {
                                       e.preventDefault();
                                       setActiveArtboardId(item.id);
-                                      setSelectedId(child.id);
+                                      setSelectedId(shape.id);
                                     }}
-                                    className={`block w-full rounded px-3 py-1 text-sm ${
-                                      isChildActive
+                                    className={`block w-full rounded px-3 py-1 text-sm pl-12 ${
+                                      isActive
                                         ? "bg-primary-100 text-primary font-semibold"
                                         : "text-muted-foreground hover:text-primary"
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
                                       {React.createElement(
-                                        getShapeIcon(child.type),
-                                        { className: "w-4 h-4" }
+                                        getShapeIcon(shape.type),
+                                        {
+                                          className: "w-4 h-4",
+                                        }
                                       )}
-                                      {child.name || child.type}
+                                      {shape.title || shape.type}
                                     </div>
                                   </a>
                                 </SidebarMenuItem>
                               );
                             })}
-                        </React.Fragment>
-                      );
-                    }
+                      </>
+                    )}
 
-                    // Non-group shape
-                    return (
-                      <SidebarMenuItem key={shape.id}>
-                        <a
-                          href={`#${shape.id}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setActiveArtboardId(item.id);
-                            setSelectedId(shape.id);
-                          }}
-                          className={`block w-full rounded px-3 py-1 text-sm pl-7 ${
-                            isActive
-                              ? "bg-primary-100 text-primary font-semibold"
-                              : "text-muted-foreground hover:text-primary"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            {React.createElement(getShapeIcon(shape.type), {
-                              className: "w-4 h-4",
+                    {/* Collapsible Unit Group */}
+                    {shapes.some((s) => s.category === "unit") && (
+                      <>
+                        <SidebarMenuItem className="pl-4 font-semibold text-xs uppercase opacity-70">
+                          <SidebarMenuButton
+                            className="w-full flex justify-between px-3 py-1 text-sm"
+                            onClick={() =>
+                              setOpenMenus((prev) => ({
+                                ...prev,
+                                [`unit-group-${item.id}`]:
+                                  !prev[`unit-group-${item.id}`],
+                              }))
+                            }
+                          >
+                            <span className="flex items-center gap-2">
+                              Unit
+                            </span>
+                            {openMenus[`unit-group-${item.id}`] !== false ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+
+                        {openMenus[`unit-group-${item.id}`] !== false &&
+                          shapes
+                            .filter(
+                              (shape) =>
+                                shape.category === "unit" &&
+                                shape.type !== "group"
+                            )
+                            .map((shape) => {
+                              const isActive = selectedId === shape.id;
+                              return (
+                                <SidebarMenuItem key={shape.id}>
+                                  <a
+                                    href={`#${shape.id}`}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setActiveArtboardId(item.id);
+                                      setSelectedId(shape.id);
+                                    }}
+                                    className={`block w-full rounded px-3 py-1 text-sm pl-12 ${
+                                      isActive
+                                        ? "bg-primary-100 text-primary font-semibold"
+                                        : "text-muted-foreground hover:text-primary"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      {React.createElement(
+                                        getShapeIcon(shape.type),
+                                        {
+                                          className: "w-4 h-4",
+                                        }
+                                      )}
+                                      {shape.title || shape.type}
+                                    </div>
+                                  </a>
+                                </SidebarMenuItem>
+                              );
                             })}
-                            {shape.title || shape.type}
-                          </div>
-                        </a>
-                      </SidebarMenuItem>
-                    );
-                  })}
+                      </>
+                    )}
+
+                    {/* Ungrouped Shapes */}
+                    {shapes
+                      .filter((s) => !s.category && s.type !== "group")
+                      .map((shape) => {
+                        const isActive = selectedId === shape.id;
+                        return (
+                          <SidebarMenuItem key={shape.id}>
+                            <a
+                              href={`#${shape.id}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setActiveArtboardId(item.id);
+                                setSelectedId(shape.id);
+                              }}
+                              className={`block w-full rounded px-3 py-1 text-sm pl-7 ${
+                                isActive
+                                  ? "bg-primary-100 text-primary font-semibold"
+                                  : "text-muted-foreground hover:text-primary"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {React.createElement(getShapeIcon(shape.type), {
+                                  className: "w-4 h-4",
+                                })}
+                                {shape.title || shape.type}
+                              </div>
+                            </a>
+                          </SidebarMenuItem>
+                        );
+                      })}
+
+                    {/* Group Shapes (Collapsible existing) */}
+                    {shapes
+                      .filter((shape) => shape.type === "group")
+                      .map((shape) => {
+                        const isGroupOpen = openMenus[shape.id] ?? true;
+                        return (
+                          <React.Fragment key={shape.id}>
+                            <SidebarMenuItem
+                              className="pl-4"
+                              onClick={() => {
+                                setOpenMenus((prev) => ({
+                                  ...prev,
+                                  [shape.id]: !prev[shape.id],
+                                }));
+                              }}
+                            >
+                              <SidebarMenuButton className="w-full flex justify-between px-3 py-1 text-sm">
+                                <span className="flex items-center gap-2">
+                                  <Layout className="w-4 h-4" />
+                                  {shape.title || "Group"}
+                                </span>
+
+                                {isGroupOpen ? (
+                                  <ChevronDown className="w-4 h-4" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4" />
+                                )}
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            {isGroupOpen &&
+                              shape.children.map((child: any) => {
+                                const isChildActive = selectedId === child.id;
+                                return (
+                                  <SidebarMenuItem
+                                    key={child.id}
+                                    className="pl-8 flex gap-2"
+                                  >
+                                    <a
+                                      href={`#${child.id}`}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        setActiveArtboardId(item.id);
+                                        setSelectedId(child.id);
+                                      }}
+                                      className={`block w-full rounded px-3 py-1 text-sm ${
+                                        isChildActive
+                                          ? "bg-primary-100 text-primary font-semibold"
+                                          : "text-muted-foreground hover:text-primary"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        {React.createElement(
+                                          getShapeIcon(child.type),
+                                          {
+                                            className: "w-4 h-4",
+                                          }
+                                        )}
+                                        {child.name || child.type}
+                                      </div>
+                                    </a>
+                                  </SidebarMenuItem>
+                                );
+                              })}
+                          </React.Fragment>
+                        );
+                      })}
+                  </>
+                )}
               </React.Fragment>
             );
           })}
