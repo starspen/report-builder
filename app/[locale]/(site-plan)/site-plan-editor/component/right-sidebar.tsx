@@ -31,7 +31,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getLotData } from "@/action/getLot";
 import BasicCombobox from "@/app/[locale]/(protected)/forms/combobox/basic-combobox";
 
-interface Shape {
+export interface Shape {
   id: string;
   type: string;
   x?: number;

@@ -48,7 +48,7 @@ export type StretchableShapeProps = {
   onChange: (
     newAttrs: Partial<RectShape | CircleShape | EllipseShape | ImageShape>
   ) => void;
-  mode: "default" | "drawPolygon" | "drawRect" | "drawCircle" | "drawEllipse";
+  mode?: "default" | "drawPolygon" | "drawRect" | "drawCircle" | "drawEllipse";
   /** optional, untuk multi-select support */
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   selectedIds?: string[];
