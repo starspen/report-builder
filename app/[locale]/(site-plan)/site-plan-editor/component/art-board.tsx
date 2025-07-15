@@ -238,7 +238,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
 
   return (
     <div className="flex">
-      <Sidebar className="mr-0">
+      <Sidebar className="mr-0 overflow-y-auto max-h-screen">
         <SidebarGroup>
           <SidebarGroupLabel>
             {selectedMasterplan?.masterplan_name || "Masterplan"}

@@ -76,7 +76,13 @@ const BasicCombobox: React.FC<BasicComboboxProps> = ({
           <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className={cn("w-full p-0", className)}>
+      <PopoverContent
+        align="center"
+        className={cn(
+          "min-w-[--radix-popover-trigger-width] max-w-fit w-auto p-0",
+          className
+        )}
+      >
         <Command>
           <CommandInput
             placeholder={searchPlaceholder}

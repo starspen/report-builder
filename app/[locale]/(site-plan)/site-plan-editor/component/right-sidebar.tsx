@@ -119,14 +119,13 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
     queryFn: () => getLotData(entityCode, projectCode),
     enabled: !!entityCode && !!projectCode,
   });
-  const usedLotsAll = Object
-    .values(allShapes)            // get arrays of shapes per artboard
-    .flat()                       // flatten into one big Shape[]
-    .filter((s: any) => s.lotId)         // keep only those with a lotId
-    .map((s: any) => s.lotId!)           // extract the lotId string
-    .filter((v, i, a) => a.indexOf(v) === i);  // dedupe
+  const usedLotsAll = Object.values(allShapes) // get arrays of shapes per artboard
+    .flat() // flatten into one big Shape[]
+    .filter((s: any) => s.lotId) // keep only those with a lotId
+    .map((s: any) => s.lotId!) // extract the lotId string
+    .filter((v, i, a) => a.indexOf(v) === i); // dedupe
 
-  console.log(usedLotsAll)
+  console.log(usedLotsAll);
   useEffect(() => {
     console.log("lotOptions result:", lotOptions);
   }, [lotOptions]);
@@ -359,13 +358,15 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
 
                           // 2) Fallback for selectedShape.lotId if it isn’t in lotOptions
                           ...(selectedShape?.lotId &&
-                            !lotOptions.some((lot: any) => lot.lot_no === selectedShape.lotId)
+                          !lotOptions.some(
+                            (lot: any) => lot.lot_no === selectedShape.lotId
+                          )
                             ? [
-                              {
-                                label: selectedShape.lotId,
-                                value: selectedShape.lotId,
-                              },
-                            ]
+                                {
+                                  label: selectedShape.lotId,
+                                  value: selectedShape.lotId,
+                                },
+                              ]
                             : []),
                         ]}
                         placeholder="Select Lot"
@@ -375,8 +376,23 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           handleUpdateShape(selectedShape.id, { lotId: val });
                         }}
                       />
-
-
+                    </div>
+                  )}
+                  {selectedShape?.fill !== undefined && selectedShape?.id && (
+                    <div className="space-y-2">
+                      <Label htmlFor="fillColor">Fill Color</Label>
+                      <Input
+                        id="fillColor"
+                        type="color"
+                        value={selectedShape.fill || "#000000"}
+                        onChange={(e) => {
+                          if (selectedShape?.id) {
+                            handleUpdateShape(selectedShape.id, {
+                              fill: e.target.value,
+                            });
+                          }
+                        }}
+                      />
                     </div>
                   )}
                 </form>
