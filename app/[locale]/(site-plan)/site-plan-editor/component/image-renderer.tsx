@@ -48,7 +48,7 @@ export type StretchableShapeProps = {
   onChange: (
     newAttrs: Partial<RectShape | CircleShape | EllipseShape | ImageShape>
   ) => void;
-  mode?: "default" | "drawPolygon" | "drawRect" | "drawCircle" | "drawEllipse";
+  mode?: "default" | "drawPolygon" | "drawRect" | "drawCircle" | "drawEllipse" | "viewOnly";
   /** optional, untuk multi-select support */
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   selectedIds?: string[];
@@ -83,6 +83,9 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     }
   }, [isSelected]);
 
+  const isViewOnly = mode === "viewOnly";
+
+
   const common = {
     ref,
     x: shape.x,
@@ -90,7 +93,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     fill: shape.fill,
     opacity: 0.5,
     listening: true,
-    draggable: !isInGroup,
+    draggable: !isViewOnly && !isInGroup,
     onClick: onSelect,
     onTap: onSelect,
   } as const;
@@ -307,8 +310,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           e.cancelBubble = true;
           onSelect(e);
         }}
-        draggable={isSelected && mode === "default"}
-        listening={mode === "default"} // 🔑 ini penting
+        draggable={!isViewOnly && isSelected && mode === "default"}
+        listening={mode !== "drawPolygon"}
         onDblClick={(e) => {
           e.cancelBubble = true;
           onDoubleClick?.(e); // 🟡 optional

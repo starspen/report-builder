@@ -100,6 +100,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                   isSelected={false}
                   onSelect={() => onShapeClick?.(shape)}
                   onChange={() => {}}
+                  mode="viewOnly"
                 />
               );
             }

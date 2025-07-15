@@ -643,6 +643,7 @@ const Editor = () => {
                 activeArtboardId={activeArtboardId || ""}
                 setActiveArtboardId={setActiveArtboardId}
                 shapes={artboardShapes[activeArtboardId]}
+                allShapes={artboardShapes}
                 artboardShapes={artboardShapes}
                 setArtboardShapes={setArtboardShapes}
                 updateMenuTitle={updateMenuTitle}

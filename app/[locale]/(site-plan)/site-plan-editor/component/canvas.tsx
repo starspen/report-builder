@@ -45,7 +45,7 @@ export type DrawMode =
   | "default"
   | "drawPolygon"
   | "drawRect"
-  | "drawCircle"
+  | "drawCircle" | "viewOnly"
   | "drawEllipse";
 interface ImageMapViewProps {
   shapes: any[];

@@ -56,6 +56,7 @@ interface RightSideBarProps {
   activeArtboardId: string;
   setActiveArtboardId: (id: string) => void;
   shapes: Shape[];
+  allShapes: any;
   artboardShapes: { [id: string]: any[] };
   setArtboardShapes: React.Dispatch<
     React.SetStateAction<{ [id: string]: any[] }>
@@ -74,6 +75,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   activeArtboardId,
   setActiveArtboardId,
   shapes,
+  allShapes,
   setArtboardShapes,
   updateMenuTitle,
   menuItems,
@@ -110,12 +112,21 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
 
   console.log("entityCode:", entityCode, "projectCode:", projectCode);
 
+  // console.log(allShapes)
+  // console.log(shapes)
   const { data: lotOptions, isLoading: isLoadingLots } = useQuery({
     queryKey: ["lots", entityCode, projectCode],
     queryFn: () => getLotData(entityCode, projectCode),
     enabled: !!entityCode && !!projectCode,
   });
+  const usedLotsAll = Object
+    .values(allShapes)            // get arrays of shapes per artboard
+    .flat()                       // flatten into one big Shape[]
+    .filter((s: any) => s.lotId)         // keep only those with a lotId
+    .map((s: any) => s.lotId!)           // extract the lotId string
+    .filter((v, i, a) => a.indexOf(v) === i);  // dedupe
 
+  console.log(usedLotsAll)
   useEffect(() => {
     console.log("lotOptions result:", lotOptions);
   }, [lotOptions]);
@@ -334,20 +345,27 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       <Label htmlFor="lot">Assign Lot</Label>
                       <BasicCombobox
                         options={[
-                          ...lotOptions.map((lot: any) => ({
-                            label: lot.lot_no,
-                            value: lot.lot_no,
-                          })),
+                          // 1) All lotOptions except those in usedLotsAll (unless it's the selectedShape’s lot)
+                          ...lotOptions
+                            .map((lot: any) => ({
+                              label: lot.lot_no,
+                              value: lot.lot_no,
+                            }))
+                            .filter((opt: any) => {
+                              const isUsed = usedLotsAll.includes(opt.value);
+                              const isMine = opt.value === selectedShape?.lotId;
+                              return !isUsed || isMine;
+                            }),
+
+                          // 2) Fallback for selectedShape.lotId if it isn’t in lotOptions
                           ...(selectedShape?.lotId &&
-                          !lotOptions.some(
-                            (lot: any) => lot.lot_no === selectedShape.lotId
-                          )
+                            !lotOptions.some((lot: any) => lot.lot_no === selectedShape.lotId)
                             ? [
-                                {
-                                  label: selectedShape.lotId,
-                                  value: selectedShape.lotId,
-                                },
-                              ]
+                              {
+                                label: selectedShape.lotId,
+                                value: selectedShape.lotId,
+                              },
+                            ]
                             : []),
                         ]}
                         placeholder="Select Lot"
@@ -357,6 +375,8 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           handleUpdateShape(selectedShape.id, { lotId: val });
                         }}
                       />
+
+
                     </div>
                   )}
                 </form>
