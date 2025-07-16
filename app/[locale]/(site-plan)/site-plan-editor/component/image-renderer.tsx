@@ -48,12 +48,20 @@ export type StretchableShapeProps = {
   onChange: (
     newAttrs: Partial<RectShape | CircleShape | EllipseShape | ImageShape>
   ) => void;
-  mode?: "default" | "drawPolygon" | "drawRect" | "drawCircle" | "drawEllipse" | "viewOnly";
+  mode?:
+    | "default"
+    | "drawPolygon"
+    | "drawRect"
+    | "drawCircle"
+    | "drawEllipse"
+    | "viewOnly";
   /** optional, untuk multi-select support */
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   selectedIds?: string[];
   isInGroup?: boolean;
   onDoubleClick?: (e: Konva.KonvaEventObject<Event>) => void;
+  onContextMenu?: (e: any) => void;
+  onClick?: (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => void;
 };
 
 // -----------------------------
@@ -70,6 +78,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   selectedIds,
   isInGroup,
   onDoubleClick,
+  onContextMenu,
+  onClick,
 }) => {
   const ref = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -84,7 +94,6 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   }, [isSelected]);
 
   const isViewOnly = mode === "viewOnly";
-
 
   const common = {
     ref,
@@ -122,6 +131,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         y: node.y(),
         width: node.width() * scaleX,
         height: node.height() * scaleY,
+        fill: shape.fill,
       });
     } else if (shape.type === "ellipse") {
       onChange({
@@ -129,12 +139,14 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         y: node.y(),
         radiusX: node.radiusX() * scaleX,
         radiusY: node.radiusY() * scaleY,
+        fill: shape.fill,
       });
     } else if (shape.type === "circle") {
       onChange({
         x: node.x(),
         y: node.y(),
         radius: node.radius() * scaleX,
+        fill: shape.fill,
       });
     } else {
       onChange({
@@ -178,6 +190,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
 
           // Panggil onSelect satu kali, cukup
           onSelect(e);
+          onClick?.(e);
         }}
         onTap={(e) => {
           e.cancelBubble = true;
@@ -195,6 +208,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           onDoubleClick?.(e);
           onSelect(e); // 🟡 for touch
         }}
+        onContextMenu={onContextMenu}
       />
     );
   } else if (shape.type === "ellipse") {
@@ -221,6 +235,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
 
           // Panggil onSelect satu kali, cukup
           onSelect(e);
+          onClick?.(e);
         }}
         onTap={(e) => {
           e.cancelBubble = true;
@@ -237,6 +252,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           onDoubleClick?.(e); // 🟡 for touch
           onSelect(e);
         }}
+        onContextMenu={onContextMenu}
       />
     );
   } else if (shape.type === "circle") {
@@ -262,6 +278,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
 
           // Panggil onSelect satu kali, cukup
           onSelect(e);
+          onClick?.(e);
         }}
         onTap={(e) => {
           e.cancelBubble = true;
@@ -271,6 +288,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           e.cancelBubble = true;
           onDoubleClick?.(e); // 🟡 optional
           onSelect(e);
+          onClick?.(e);
+
           console.log("click count:", e.evt.detail);
         }}
         onDblTap={(e) => {
@@ -278,6 +297,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           onDoubleClick?.(e); // 🟡 for touch
           onSelect(e);
         }}
+        onContextMenu={onContextMenu}
       />
     );
   } else {

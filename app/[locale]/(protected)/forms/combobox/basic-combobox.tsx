@@ -39,6 +39,7 @@ export interface BasicComboboxProps {
   className?: string;
   emptyText?: string;
   searchPlaceholder?: string;
+  buttonClassName?: string;
 }
 
 const BasicCombobox: React.FC<BasicComboboxProps> = ({
@@ -51,11 +52,14 @@ const BasicCombobox: React.FC<BasicComboboxProps> = ({
   emptyText = "No options found.",
   searchPlaceholder = "Search...",
   onDelete,
+  buttonClassName,
 }) => {
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  const selectedLabel = options.find((o) => o.value === value)?.label;
+  const selectedLabel = options.find(
+    (o) => o.value === value || o.label === value
+  )?.label;
 
   const filteredOptions = (options || []).filter((option) =>
     (option.label || "")
@@ -70,7 +74,7 @@ const BasicCombobox: React.FC<BasicComboboxProps> = ({
           variant="outline"
           role="combobox"
           disabled={disabled}
-          className={cn("w-full justify-between", className)}
+          className={cn("w-full justify-between", buttonClassName)}
         >
           {selectedLabel || placeholder}
           <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />

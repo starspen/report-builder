@@ -30,6 +30,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { getLotData } from "@/action/getLot";
 import BasicCombobox from "@/app/[locale]/(protected)/forms/combobox/basic-combobox";
+import { LOT_COLOR_MAP } from "./canvas";
 
 export interface Shape {
   id: string;
@@ -347,8 +348,9 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           // 1) All lotOptions except those in usedLotsAll (unless it's the selectedShape’s lot)
                           ...lotOptions
                             .map((lot: any) => ({
-                              label: lot.lot_no,
+                              label: `${lot.lot_no} (${lot.status})`,
                               value: lot.lot_no,
+                              status: lot.status, // tambahkan ini untuk akses cepat saat onChange
                             }))
                             .filter((opt: any) => {
                               const isUsed = usedLotsAll.includes(opt.value);
@@ -363,8 +365,9 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           )
                             ? [
                                 {
-                                  label: selectedShape.lotId,
+                                  label: `${selectedShape.lotId} (Unknown)`,
                                   value: selectedShape.lotId,
+                                  status: "Unknown",
                                 },
                               ]
                             : []),
@@ -373,11 +376,31 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         value={selectedShape?.lotId || ""}
                         onChange={(val) => {
                           if (!selectedShape) return;
-                          handleUpdateShape(selectedShape.id, { lotId: val });
+
+                          // Ambil status dari lotOptions atau dari options
+                          const lotInfo = lotOptions.find(
+                            (lot: any) => lot.lot_no === val
+                          );
+
+                          let fill = LOT_COLOR_MAP.DEFAULT; // default abu
+                          if (lotInfo?.status === "A") fill = LOT_COLOR_MAP.A;
+                          else if (lotInfo?.status === "B")
+                            fill = LOT_COLOR_MAP.B;
+
+                          handleUpdateShape(selectedShape.id, {
+                            lotId: val,
+                            fill:
+                              lotInfo?.status === "A"
+                                ? LOT_COLOR_MAP.A
+                                : lotInfo?.status === "B"
+                                ? LOT_COLOR_MAP.B
+                                : LOT_COLOR_MAP.DEFAULT,
+                          });
                         }}
                       />
                     </div>
                   )}
+
                   {selectedShape?.fill !== undefined && selectedShape?.id && (
                     <div className="space-y-2">
                       <Label htmlFor="fillColor">Fill Color</Label>

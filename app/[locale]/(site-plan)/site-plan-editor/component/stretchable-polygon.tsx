@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { Line, Transformer, Circle as KonvaCircle } from "react-konva";
 import Konva from "konva";
 import type { PolygonShape } from "./toolbar";
+import { LOT_COLOR_MAP } from "./canvas";
 
 interface StretchablePolygonProps {
   shape: PolygonShape;
@@ -84,7 +85,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
         x={shape.x}
         y={shape.y}
         points={shape.points}
-        fill={shape.fill}
+        fill={shape.fill || LOT_COLOR_MAP.DEFAULT}
         closed
         opacity={0.5}
         draggable={!isInGroup}

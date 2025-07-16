@@ -45,7 +45,8 @@ export type DrawMode =
   | "default"
   | "drawPolygon"
   | "drawRect"
-  | "drawCircle" | "viewOnly"
+  | "drawCircle"
+  | "viewOnly"
   | "drawEllipse";
 interface ImageMapViewProps {
   shapes: any[];
@@ -73,6 +74,12 @@ interface ImageMapViewProps {
   onSave: () => void;
   session: any;
 }
+
+export const LOT_COLOR_MAP = {
+  A: "#22c55e", // Available
+  B: "#ef4444", // Booked
+  DEFAULT: "#9ca3af",
+};
 
 const ImageMapView = ({
   shapes,
@@ -236,7 +243,7 @@ const ImageMapView = ({
         y,
         width,
         height,
-        fill: "#ef4444",
+        fill: LOT_COLOR_MAP.DEFAULT,
       };
     } else if (drawingShape.type === "drawCircle") {
       const radius = Math.max(width, height) / 2;
@@ -246,7 +253,7 @@ const ImageMapView = ({
         x: x + radius,
         y: y + radius,
         radius,
-        fill: "#3b82f6",
+        fill: LOT_COLOR_MAP.DEFAULT,
       };
     } else if (drawingShape.type === "drawEllipse") {
       newShape = {
@@ -256,7 +263,7 @@ const ImageMapView = ({
         y: y + height / 2,
         radiusX: width / 2,
         radiusY: height / 2,
-        fill: "#3b82f6",
+        fill: LOT_COLOR_MAP.DEFAULT,
       };
     }
 
@@ -346,7 +353,7 @@ const ImageMapView = ({
         const newPoly: PolygonShape = {
           id: `polygon-${Date.now()}`,
           type: "polygon",
-          fill: "#22c55e",
+          fill: LOT_COLOR_MAP.DEFAULT,
           x: baseX,
           y: baseY,
           points: relativePoints,
@@ -382,7 +389,10 @@ const ImageMapView = ({
   };
 
   const updateShape = (id: string, attrs: Partial<Shape>) => {
-    onShapesChange(shapes.map((s) => (s.id === id ? { ...s, ...attrs } : s)));
+    const nextShapes = shapes.map((s) =>
+      s.id === id ? { ...s, ...attrs } : s
+    );
+    pushHistory(nextShapes);
   };
 
   const deleteSelected = () => {
@@ -635,6 +645,32 @@ const ImageMapView = ({
     window.addEventListener("resize", updateSize);
     return () => window.removeEventListener("resize", updateSize);
   }, []);
+
+  // useEffect(() => {
+  //   if (selectedMasterplan?.shapes && selectedMasterplan?.lots) {
+  //     const lots = selectedMasterplan.lots;
+
+  //     const shapesWithFill = selectedMasterplan.shapes.map((shape: any) => {
+  //       let fill = "#9ca3af"; // default abu-abu
+
+  //       if (shape.lotId) {
+  //         const lot = lots.find((l: any) => l.lot_no === shape.lotId);
+  //         if (lot?.status === "A") {
+  //           fill = "#78de80";
+  //         } else if (lot?.status === "B") {
+  //           fill = "#ef4444";
+  //         }
+  //       }
+
+  //       return {
+  //         ...shape,
+  //         fill,
+  //       };
+  //     });
+
+  //     onShapesChange(shapesWithFill);
+  //   }
+  // }, [selectedMasterplan]);
 
   useEffect(() => {
     setStageScale(1);
@@ -963,7 +999,7 @@ const ImageMapView = ({
                   {currentPolyPoints.length >= 6 && (
                     <Line
                       points={currentPolyPoints}
-                      fill="#22c55e55"
+                      fill={LOT_COLOR_MAP.DEFAULT}
                       stroke="#22c55e"
                       strokeWidth={1}
                       closed={true}

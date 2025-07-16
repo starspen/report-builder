@@ -12,6 +12,7 @@ export type ShapeBase = {
   fill: string;
   x: number;
   y: number;
+  lotId?: string;
 };
 
 export type RectShape = ShapeBase & {
