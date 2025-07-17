@@ -85,6 +85,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   const trRef = useRef<any>(null);
   const [img] =
     shape.type === "image" ? useImage((shape as ImageShape).src) : [undefined];
+    const [isHovered, setIsHovered] = useState(false);
+
 
   useEffect(() => {
     if (isSelected && ref.current && trRef.current) {
@@ -100,12 +102,24 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     x: shape.x,
     y: shape.y,
     fill: shape.fill,
-    opacity: 0.5,
+    opacity: isHovered ? 0.8 : 0.5,
+
     listening: true,
     draggable: !isViewOnly && !isInGroup,
     onClick: onSelect,
     onTap: onSelect,
+    onMouseEnter: () => {
+    setIsHovered(true);
+    const container = ref.current?.getStage()?.container();
+    if (container) container.style.cursor = "pointer";
+  },
+  onMouseLeave: () => {
+    setIsHovered(false);
+    const container = ref.current?.getStage()?.container();
+    if (container) container.style.cursor = "default";
+  },
   } as const;
+  
 
   const commonForImage = {
     ref,
@@ -191,6 +205,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           // Panggil onSelect satu kali, cukup
           onSelect(e);
           onClick?.(e);
+          
         }}
         onTap={(e) => {
           e.cancelBubble = true;

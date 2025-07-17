@@ -49,6 +49,7 @@ export interface Shape {
   linkToShapeId?: string;
   category?: "block" | "unit";
   lotId?: string;
+  status?: string;
 }
 
 interface RightSideBarProps {

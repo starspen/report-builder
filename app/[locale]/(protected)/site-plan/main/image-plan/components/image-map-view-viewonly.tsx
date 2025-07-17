@@ -13,6 +13,7 @@ import {
 import { Shape } from "@/app/[locale]/(site-plan)/site-plan-editor/component/right-sidebar";
 import Konva from "konva";
 import { useRouter } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 
 interface ViewOnlyCanvasProps {
   shapes: Shape[];
@@ -41,6 +42,8 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
     x: 0,
     y: 0,
   });
+  const [showSubMenu, setShowSubMenu] = useState(false);
+  const [hoveredShapeId, setHoveredShapeId] = useState<string | null>(null);
 
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
@@ -92,10 +95,15 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
   const router = useRouter();
 
   const handleShapeClick = (shape: Shape) => {
+    if (shape.status === "B") {
+      return;
+    }
     if (shape.lotId) {
       router.push("/en/site-plan/form");
     }
   };
+
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -164,6 +172,24 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
       document.removeEventListener("contextmenu", preventDefaultMenu);
   }, [contextMenu.visible]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      // Jika contextMenu atau submenu terbuka
+      if (
+        contextMenuRef.current &&
+        !contextMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowSubMenu(false);
+        setContextMenu({ ...contextMenu, visible: false });
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [contextMenu]);
+
   return (
     <div ref={containerRef} className="relative w-full h-[550px] z-0">
       <Stage
@@ -192,8 +218,19 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                   fill={s.fill}
                   closed
                   draggable={false}
-                  opacity={0.5}
+                  opacity={hoveredShapeId === s.id ? 0.8 : 0.5}
                   lotId={s.lotId}
+                  status={s.status}
+                  onMouseEnter={() => {
+                    setHoveredShapeId(s.id);
+                    const container = stageRef.current?.container();
+                    if (container) container.style.cursor = "pointer";
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredShapeId(null);
+                    const container = stageRef.current?.container();
+                    if (container) container.style.cursor = "default";
+                  }}
                   onClick={(e) => {
                     if (e.evt instanceof MouseEvent && e.evt.button === 2) {
                       return; // Ignore right click
@@ -202,7 +239,6 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                   }}
                   onContextMenu={(e) => {
                     e.evt.preventDefault();
-                    console.log("Right click on polygon id:", s.id);
 
                     const stage = e.target.getStage();
                     if (!stage) return;
@@ -216,7 +252,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                         visible: true,
                         x: e.evt.clientX,
                         y: e.evt.clientY,
-                        shape: s,
+                        shape: { ...s },
                       });
                     }
                   }}
@@ -251,7 +287,6 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                   mode="viewOnly"
                   onContextMenu={(e) => {
                     e.evt.preventDefault();
-                    console.log("Right click on shape id:", shape.id);
                     if ("lotId" in shape && shape.lotId) {
                       const pointer = stageRef.current.getPointerPosition();
                       setContextMenu({
@@ -273,6 +308,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
 
       {contextMenu.visible && contextMenu.shape && (
         <div
+          ref={contextMenuRef}
           className={`${
             contextMenu.shape.type === "polygon" ? "fixed" : "absolute"
           } bg-white shadow-md border rounded z-50`}
@@ -282,23 +318,97 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
             padding: "0.5rem",
           }}
         >
-          <p
-            className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
-            onClick={() => {
-              alert(`View Specification for ${contextMenu.shape?.lotId}`);
-              setContextMenu({ ...contextMenu, visible: false });
-            }}
-          >
-            View Specification
-          </p>
-          <p
-            className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
-            onClick={() => {
-              window.location.href = `/en/site-plan/form`;
-            }}
-          >
-            Go to Booking Form
-          </p>
+          {"status" in contextMenu.shape && contextMenu.shape.status === "B" ? (
+            <>
+              <p
+                className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded w-auto"
+                onClick={() => {
+                  setContextMenu({ ...contextMenu, visible: false });
+                  setShowSubMenu(false);
+                  router.push("/en/site-plan/view-spec")
+                }}
+              >
+                Lot Specification
+              </p>
+
+              <div className="relative">
+                {/* <p
+                  className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
+                  onClick={() => setShowSubMenu(!showSubMenu)}
+                >
+                  Sales/Reservation
+                </p> */}
+
+                <p
+                  className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded flex justify-between items-center gap-2 w-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSubMenu((prev) => !prev);
+                  }}
+                >
+                  Sales/Reservation <ChevronRight className="w-5 h-5" />
+                </p>
+
+                {showSubMenu && (
+                  <div
+                    className="absolute left-full top-0 ml-2 bg-white border rounded shadow-md z-50 w-auto"
+                    style={{ minWidth: "200px" }}
+                  >
+                    <p
+                      className="cursor-pointer hover:bg-gray-100 px-2 py-1"
+                      onClick={() => {
+                        alert("Sales/Reserve History clicked");
+                        setContextMenu({ ...contextMenu, visible: false });
+                        setShowSubMenu(false);
+                      }}
+                    >
+                      Sales/Reserve History
+                    </p>
+                    <p
+                      className="cursor-pointer hover:bg-gray-100 px-2 py-1"
+                      onClick={() => {
+                        alert("A/c Summary clicked");
+                        setContextMenu({ ...contextMenu, visible: false });
+                        setShowSubMenu(false);
+                      }}
+                    >
+                      A/c Summary
+                    </p>
+                    <p
+                      className="cursor-pointer hover:bg-gray-100 px-2 py-1"
+                      onClick={() => {
+                        alert("Schedule Billing clicked");
+                        setContextMenu({ ...contextMenu, visible: false });
+                        setShowSubMenu(false);
+                      }}
+                    >
+                      Schedule Billing
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <p
+                className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
+                onClick={() => {
+                  setContextMenu({ ...contextMenu, visible: false });
+                  router.push("/en/site-plan/view-spec")
+                }}
+              >
+                Lot Specification
+              </p>
+              <p
+                className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
+                onClick={() => {
+                  window.location.href = `/en/site-plan/form`;
+                }}
+              >
+                Go to Booking Form
+              </p>
+            </>
+          )}
         </div>
       )}
     </div>

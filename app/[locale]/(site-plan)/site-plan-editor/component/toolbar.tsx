@@ -39,6 +39,7 @@ export type EllipseShape = {
 export type PolygonShape = ShapeBase & {
   type: "polygon";
   points: number[]; // [x1, y1, x2, y2, ...]
+  status: string
 };
 
 export type ImageShape = ShapeBase & {

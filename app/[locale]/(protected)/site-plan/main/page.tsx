@@ -83,6 +83,7 @@ export default function Page() {
               .map((s: any) => ({
                 ...s,
                 lotId: s.lot_no || "",
+                status: s.status || "A",
               }))
           : [];
 
@@ -158,6 +159,7 @@ export default function Page() {
       {masterplanCode && (
         <BasicCombobox
           className="mb-4 w-1/4 bg-white"
+          buttonClassName="mb-4 w-1/4 bg-white"
           options={menuItems.map((item) => ({
             label: item.title,
             value: item.id,

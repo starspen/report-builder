@@ -14,7 +14,7 @@ const FormView = () => {
 
   const handleFinalSubmit = () => {
     console.log("All steps selesai");
-    router.push("/main"); // contoh redirect
+    router.push("/en"); // contoh redirect
   };
 
   return (
