@@ -36,6 +36,16 @@ export default function Page() {
     []
   );
 
+  useEffect(() => {
+    const storedEntity = localStorage.getItem("selected_entity_cd");
+    const storedProject = localStorage.getItem("selected_project_no");
+    const storedMasterplan = localStorage.getItem("selected_masterplan_id");
+
+    if (storedEntity) setEntityCode(storedEntity);
+    if (storedProject) setProjectCode(storedProject);
+    if (storedMasterplan) setMasterplanCode(storedMasterplan);
+  }, []);
+
   // Load Entities
   useEffect(() => {
     getEntities().then(setEntities);
@@ -119,6 +129,7 @@ export default function Page() {
                 placeholder="Select Entity"
                 value={entityCode}
                 onChange={(val) => {
+                  localStorage.setItem("selected_entity_cd", val);
                   setEntityCode(val);
                   setProjectCode("");
                   setMasterplanCode("");
@@ -137,6 +148,7 @@ export default function Page() {
                 placeholder="Select Project"
                 value={projectCode}
                 onChange={(val) => {
+                  localStorage.setItem("selected_project_no", val);
                   setProjectCode(val);
                   setMasterplanCode("");
                   setArtboardShapes({});
@@ -152,7 +164,10 @@ export default function Page() {
                 }))}
                 placeholder="Select Masterplan"
                 value={masterplanCode}
-                onChange={setMasterplanCode}
+                onChange={(val) => {
+                  localStorage.setItem("selected_masterplan_id", val); // ✅ Tambahkan ini
+                  setMasterplanCode(val);
+                }}
                 disabled={!projectCode}
               />
             </CardContent>
