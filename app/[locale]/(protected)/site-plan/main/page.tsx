@@ -84,6 +84,9 @@ export default function Page() {
                 ...s,
                 lotId: s.lot_no || "",
                 status: s.status || "A",
+                entity_cd: data.entity_cd, // ✅ Inject dari masterplan
+                project_no: data.project_no, // ✅ Inject dari masterplan
+                artboard_id: ab.id, // ✅ Tambahan opsional
               }))
           : [];
 

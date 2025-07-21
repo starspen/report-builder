@@ -13,6 +13,7 @@ export type ShapeBase = {
   x: number;
   y: number;
   lotId?: string;
+  locked?: boolean;
 };
 
 export type RectShape = ShapeBase & {
@@ -39,7 +40,8 @@ export type EllipseShape = {
 export type PolygonShape = ShapeBase & {
   type: "polygon";
   points: number[]; // [x1, y1, x2, y2, ...]
-  status: string
+  status?: string;
+  locked?: boolean;
 };
 
 export type ImageShape = ShapeBase & {

@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PanelRight, Plus } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArtboardMenuItem } from "./art-board";
 import {
@@ -50,6 +50,11 @@ export interface Shape {
   category?: "block" | "unit";
   lotId?: string;
   status?: string;
+  locked?: boolean;
+  lot_img?: string;
+  entity_cd?: string;
+  project_no?: string;
+  lot_no?: string;
 }
 
 interface RightSideBarProps {
@@ -69,6 +74,8 @@ interface RightSideBarProps {
   setRightSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   entityCode: string;
   projectCode: string;
+  isLocked: boolean;
+  setIsLocked: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const RightSideBar: React.FC<RightSideBarProps> = ({
@@ -85,12 +92,15 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   setRightSidebarOpen,
   entityCode,
   projectCode,
+  isLocked,
+  setIsLocked,
 }) => {
   const selectedShape = shapes?.find((s) => s.id === selectedId);
   console.log(selectedShape, "selectedShape");
   const [localTitle, setLocalTitle] = React.useState(
     selectedShape?.title || selectedShape?.type || ""
   );
+
   const { toggleSidebar } = useSidebar();
 
   const handleUpdateShape = (id: string, updates: Partial<Shape>) => {
@@ -108,6 +118,24 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
       return {
         ...prev,
         [activeArtboardId]: nextShapes,
+      };
+    });
+  };
+
+  const handleLockToggle = () => {
+    if (!selectedShape) return;
+
+    // Update the shape's locked state
+    const updatedShape = { ...selectedShape, locked: !selectedShape.locked };
+
+    // Update the shape in the artboard shapes state
+    setArtboardShapes((prev) => {
+      const updatedShapes = prev[activeArtboardId].map((s) =>
+        s.id === selectedShape.id ? updatedShape : s
+      );
+      return {
+        ...prev,
+        [activeArtboardId]: updatedShapes,
       };
     });
   };
@@ -154,6 +182,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       <Label htmlFor="title">Title</Label>
                       <Input
                         id="title"
+                        disabled={selectedShape.locked}
                         value={localTitle}
                         onChange={(e) => setLocalTitle(e.target.value)}
                         onKeyDown={(e) => {
@@ -179,6 +208,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         <Label htmlFor="x">X</Label>
                         <Input
                           id="x"
+                          disabled={selectedShape.locked}
                           type="number"
                           value={selectedShape.x ?? 0}
                           onChange={(e) =>
@@ -195,6 +225,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         <Label htmlFor="y">Y</Label>
                         <Input
                           id="y"
+                          disabled={selectedShape.locked}
                           type="number"
                           value={selectedShape.y ?? 0}
                           onChange={(e) =>
@@ -210,6 +241,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       <div className="space-y-1 col-span-1 mr-2 mt-2">
                         <Label htmlFor="width">Width</Label>
                         <Input
+                          disabled={selectedShape.locked}
                           id="width"
                           type="number"
                           value={selectedShape.width ?? 0}
@@ -227,6 +259,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         <Label htmlFor="height">Height</Label>
                         <Input
                           id="height"
+                          disabled={selectedShape.locked}
                           type="number"
                           value={selectedShape.height ?? 0}
                           onChange={(e) =>
@@ -243,6 +276,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         <Label htmlFor="radius">Radius</Label>
                         <Input
                           id="radius"
+                          disabled={selectedShape.locked}
                           type="number"
                           value={selectedShape.radius ?? 0}
                           onChange={(e) =>
@@ -259,6 +293,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         <Label htmlFor="radiusX">Radius X</Label>
                         <Input
                           id="radiusX"
+                          disabled={selectedShape.locked}
                           type="number"
                           value={selectedShape.radiusX ?? 0}
                           onChange={(e) =>
@@ -275,6 +310,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         <Label htmlFor="radiusY">Radius Y</Label>
                         <Input
                           id="radiusY"
+                          disabled={selectedShape.locked}
                           type="number"
                           value={selectedShape.radiusY ?? 0}
                           onChange={(e) =>
@@ -291,6 +327,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         <Label htmlFor="points">Points</Label>
                         <Input
                           id="points"
+                          disabled={selectedShape.locked}
                           type="text"
                           value={selectedShape.points.join(", ")}
                           onChange={(e) => {
@@ -303,6 +340,18 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         />
                       </div>
                     )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      onClick={handleLockToggle}
+                      className="w-full mb-4"
+                    >
+                      {selectedShape.locked
+                        ? "Unlock Position"
+                        : "Lock Position"}
+                    </Button>
                   </div>
 
                   <div className="space-y-2">
@@ -397,6 +446,32 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                                 ? LOT_COLOR_MAP.B
                                 : LOT_COLOR_MAP.DEFAULT,
                           });
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {selectedShape?.lotId && (
+                    <div className="space-y-2">
+                      <Label>Lot Image</Label>
+                      <Input
+                        type="file"
+                        className="read-only:bg-white"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !selectedShape) return;
+
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            const base64 = reader.result as string;
+
+                            // Simpan lot image ke shape
+                            handleUpdateShape(selectedShape.id, {
+                              lot_img: base64,
+                            });
+                          };
+                          reader.readAsDataURL(file);
                         }}
                       />
                     </div>

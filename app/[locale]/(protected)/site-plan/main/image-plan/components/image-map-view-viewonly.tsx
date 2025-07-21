@@ -9,7 +9,7 @@ import {
   CircleShape,
   ImageShape,
   EllipseShape,
-} from "@/app/[locale]/(site-plan)/site-plan-editor/component/toolbar";
+} from "@/app/[locale]/(protected)/site-plan/main/image-plan/components/shape-types";
 import { Shape } from "@/app/[locale]/(site-plan)/site-plan-editor/component/right-sidebar";
 import Konva from "konva";
 import { useRouter } from "next/navigation";
@@ -26,6 +26,8 @@ interface ViewOnlyCanvasProps {
 const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
   shapes,
   onShapeClick,
+  activeArtboardId,
+  setActiveArtboardId,
 }) => {
   const stageRef = useRef<any>(null);
   const [scale, setScale] = useState(1);
@@ -98,6 +100,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
     if (shape.status === "B") {
       return;
     }
+
     if (shape.lotId) {
       router.push("/en/site-plan/form");
     }
@@ -231,12 +234,21 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                     const container = stageRef.current?.container();
                     if (container) container.style.cursor = "default";
                   }}
+                  mode="viewOnly"
                   onClick={(e) => {
                     if (e.evt instanceof MouseEvent && e.evt.button === 2) {
                       return; // Ignore right click
                     }
+                    if (shape.linkToArtboard) {
+                      setActiveArtboardId(shape.linkToArtboard);
+                    }
                     handleShapeClick(s);
                   }}
+                  // onSelect={() => {
+                  //   if (shape.linkToArtboard) {
+                  //     setActiveArtboardId(shape.linkToArtboard);
+                  //   }
+                  // }}
                   onContextMenu={(e) => {
                     e.evt.preventDefault();
 
@@ -297,6 +309,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                       });
                     }
                   }}
+                  isLocked={!!shape.locked}
                 />
               );
             }
@@ -325,7 +338,20 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                 onClick={() => {
                   setContextMenu({ ...contextMenu, visible: false });
                   setShowSubMenu(false);
-                  router.push("/en/site-plan/view-spec")
+                  const shape = contextMenu.shape;
+
+                  // Pastikan semua parameter tersedia
+                  if (shape?.lot_no && shape?.entity_cd && shape?.project_no) {
+                    const query = new URLSearchParams({
+                      lot_no: shape.lot_no,
+                      entity_cd: shape.entity_cd,
+                      project_no: shape.project_no,
+                    }).toString();
+
+                    router.push(`/en/site-plan/view-spec?${query}`);
+                  } else {
+                    console.warn("Shape missing required fields", shape);
+                  }
                 }}
               >
                 Lot Specification
@@ -357,9 +383,9 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                     <p
                       className="cursor-pointer hover:bg-gray-100 px-2 py-1"
                       onClick={() => {
-                        alert("Sales/Reserve History clicked");
                         setContextMenu({ ...contextMenu, visible: false });
                         setShowSubMenu(false);
+                        router.push("/en/site-plan/sales-reserve-history");
                       }}
                     >
                       Sales/Reserve History
@@ -367,9 +393,9 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                     <p
                       className="cursor-pointer hover:bg-gray-100 px-2 py-1"
                       onClick={() => {
-                        alert("A/c Summary clicked");
                         setContextMenu({ ...contextMenu, visible: false });
                         setShowSubMenu(false);
+                        router.push("/en/site-plan/ac-summary");
                       }}
                     >
                       A/c Summary
@@ -377,9 +403,9 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                     <p
                       className="cursor-pointer hover:bg-gray-100 px-2 py-1"
                       onClick={() => {
-                        alert("Schedule Billing clicked");
                         setContextMenu({ ...contextMenu, visible: false });
                         setShowSubMenu(false);
+                        router.push("/en/site-plan/schedule-billing");
                       }}
                     >
                       Schedule Billing
@@ -394,7 +420,21 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                 className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
                 onClick={() => {
                   setContextMenu({ ...contextMenu, visible: false });
-                  router.push("/en/site-plan/view-spec")
+
+                  const shape = contextMenu.shape;
+
+                  // Pastikan semua parameter tersedia
+                  if (shape?.lot_no && shape?.entity_cd && shape?.project_no) {
+                    const query = new URLSearchParams({
+                      lot_no: shape.lot_no,
+                      entity_cd: shape.entity_cd,
+                      project_no: shape.project_no,
+                    }).toString();
+
+                    router.push(`/en/site-plan/view-spec?${query}`);
+                  } else {
+                    console.warn("Shape missing required fields", shape);
+                  }
                 }}
               >
                 Lot Specification

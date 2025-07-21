@@ -59,6 +59,7 @@ const Editor = () => {
   const [pendingDeleteLabel, setPendingDeleteLabel] = useState<string | null>(
     null
   );
+  const [isLocked, setIsLocked] = useState(false);
 
   const { data: session } = useSession();
   const auditUser = session?.user?.email ?? "";
@@ -623,6 +624,8 @@ const Editor = () => {
               artboardShapes={artboardShapes}
               onSave={handleSave}
               session={session}
+              isLocked={isLocked}
+              setIsLocked={setIsLocked}
             />
           </div>
 
@@ -652,6 +655,8 @@ const Editor = () => {
                 rightSidebarOpen={rightSidebarOpen}
                 entityCode={entityCode}
                 projectCode={projectCode}
+                isLocked={isLocked}
+                setIsLocked={setIsLocked}
               />
             </div>
           </div>

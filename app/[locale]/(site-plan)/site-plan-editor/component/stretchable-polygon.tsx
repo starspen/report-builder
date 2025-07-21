@@ -14,6 +14,7 @@ interface StretchablePolygonProps {
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   selectedIds?: string[];
   isInGroup?: boolean;
+  isLocked: boolean;
 }
 
 const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
@@ -25,6 +26,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
   setSelectedIds,
   selectedIds,
   isInGroup = false,
+  isLocked,
 }) => {
   const shapeRef = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -40,6 +42,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
   }, [isSelected]);
 
   const handlePointDrag = (idx: number, e: any) => {
+    if (shape.locked) return;
     const newPoints = [...shape.points];
     const stage = shapeRef.current.getStage();
     const pointer = stage.getPointerPosition();
@@ -55,6 +58,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
   };
 
   const handleDragEnd = (e: any) => {
+    if (shape.locked) return;
     const node = e.target;
     const absPos = node.absolutePosition();
 
@@ -88,7 +92,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
         fill={shape.fill || LOT_COLOR_MAP.DEFAULT}
         closed
         opacity={0.5}
-        draggable={!isInGroup}
+        draggable={!shape.locked}
         onDragEnd={isInGroup ? undefined : handleDragEnd}
         onClick={(e) => {
           e.cancelBubble = true;
@@ -125,7 +129,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
               fill="#facc15"
               stroke="#333"
               strokeWidth={1 / stageScale}
-              draggable
+              draggable={!shape.locked}
               onDragMove={(e) => handlePointDrag(idx / 2, e)}
               onClick={(e) => {
                 e.cancelBubble = true;

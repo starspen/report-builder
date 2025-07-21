@@ -73,6 +73,8 @@ interface ImageMapViewProps {
   artboardShapes: { [id: string]: Shape[] };
   onSave: () => void;
   session: any;
+  isLocked: boolean;
+  setIsLocked: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const LOT_COLOR_MAP = {
@@ -104,6 +106,8 @@ const ImageMapView = ({
   artboardShapes,
   onSave,
   session,
+  isLocked,
+  setIsLocked,
 }: ImageMapViewProps) => {
   const stageRef = useRef<any>(null);
   const [isDrawingPoly, setIsDrawingPoly] = useState(false);
@@ -960,6 +964,7 @@ const ImageMapView = ({
                       selectedIds={selectedIds}
                       setSelectedIds={setSelectedIds}
                       isInGroup={false}
+                      isLocked={isLocked}
                     />
                   );
                 }
@@ -983,6 +988,7 @@ const ImageMapView = ({
                     setSelectedIds={setSelectedIds}
                     selectedIds={selectedIds}
                     isInGroup={false}
+                    isLocked={isLocked}
                   />
                 );
               })}
@@ -1009,19 +1015,25 @@ const ImageMapView = ({
               )}
               {isDrawingPoly &&
                 currentPolyPoints.map((val, idx) => {
-                  if (idx % 2 === 1) return null;
+                  if (idx % 2 === 1) return null; // Ambil hanya koordinat X dan Y
+
                   const x = currentPolyPoints[idx];
                   const y = currentPolyPoints[idx + 1];
+
+                  // Menyesuaikan radius dengan skala stage
+                  const radius = 4 / stageScale; // Radius yang disesuaikan dengan skala stage
+
                   return (
                     <Circle
                       key={`dot-${idx}`}
                       x={x}
                       y={y}
-                      radius={4}
+                      radius={radius} // Radius yang disesuaikan
                       fill="#ef4444"
                     />
                   );
                 })}
+
               {drawingShape?.endX !== undefined &&
                 drawingShape?.endY !== undefined &&
                 (() => {

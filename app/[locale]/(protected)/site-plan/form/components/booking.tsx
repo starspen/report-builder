@@ -32,6 +32,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Check, X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getMasterData, MasterDataResponse } from "@/action/get-booking";
+import { useQuery } from "@tanstack/react-query";
 
 export const formSchema = z.object({
   class: z.string(),
@@ -69,15 +71,16 @@ const Booking = () => {
   const router = useRouter();
 
   const [date, setDate] = React.useState<Date | undefined>(new Date());
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      class: "I-01",
+      class: "I-01 (01)",
       company: "X",
       salutation: "Mr.",
       name: "Muhammad Rafi Fauzhan",
       address: "Jl. Pintu Ledeng RT 01 RW 05 KP. Sinar",
-      city: "Ciomas, KAB BOGOR",
+      city: "Aceh Barat",
       telephone: "021871827887",
       hp1st: "6285167261717",
       hp2nd: "6287870082711",
@@ -103,12 +106,23 @@ const Booking = () => {
       additionalName: "",
     },
   });
+
+  const {
+    data: masterData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["master-data"],
+    queryFn: getMasterData,
+  });
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     toast.success("Form submitted successfully!");
     router.push("main");
     console.log(values);
   }
 
+  console.log(masterData?.city, "masterData city:");
   return (
     <>
       <div className="text-lg font-bold mb-4">Lot: 21</div>
@@ -126,7 +140,18 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Class</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <BasicCombobox
+                    buttonClassName="h-9 bg-white"
+                    options={
+                      masterData?.classOptions.map((opt) => ({
+                        label: `${opt.class_cd} (${opt.entity_cd})`, // tampil jelas
+                        value: `${opt.class_cd}|${opt.entity_cd}`, // tetap unik
+                      })) || []
+                    }
+                    placeholder="Select Class"
+                    value={field.value}
+                    onChange={(selectedValue) => field.onChange(selectedValue)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -140,7 +165,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Company</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md bg-white border-default"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -177,7 +205,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -191,7 +222,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Address</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -207,17 +241,13 @@ const Booking = () => {
                 <FormControl>
                   <BasicCombobox
                     buttonClassName="h-9 bg-white"
-                    options={[
-                      {
-                        label: "Ciomas, KAB BOGOR",
-                        value: "Ciomas, KAB BOGOR",
-                      },
-                      {
-                        label: "Ciomas, KAB BOGOR",
-                        value: "Ciomas, KAB BOGOR",
-                      },
-                    ]}
-                    placeholder="Select Salutation"
+                    options={
+                      masterData?.city.map((ct) => ({
+                        label: ct.descs,
+                        value: ct.cd,
+                      })) || []
+                    }
+                    placeholder="Select City"
                     value={field.value}
                     onChange={(selectedValue) => field.onChange(selectedValue)}
                   />
@@ -234,7 +264,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Telephone</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -248,7 +281,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>HP 1st</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -262,7 +298,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>HP 2nd</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -276,7 +315,11 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" {...field} className="rounded-md" />
+                  <Input
+                    type="email"
+                    {...field}
+                    className="rounded-md  border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -295,6 +338,30 @@ const Booking = () => {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="religion"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Religion</FormLabel>
+                <FormControl>
+                  <BasicCombobox
+                    buttonClassName="h-9 bg-white"
+                    options={
+                      masterData?.religion.map((t) => ({
+                        label: `${t.cd} - ${t.descs}`,
+                        value: t.cd,
+                      })) || []
+                    }
+                    placeholder="Select Terms"
+                    value={field.value}
+                    onChange={(selectedValue) => field.onChange(selectedValue)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
@@ -303,7 +370,16 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Gender</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <RadioGroup className="flex">
+                    <div className="flex items-center gap-3 mt-2">
+                      <RadioGroupItem value="male" id="r1" />
+                      <Label htmlFor="r1">Male</Label>
+                    </div>
+                    <div className="flex items-center gap-3 mt-2">
+                      <RadioGroupItem value="female" id="r2" />
+                      <Label htmlFor="r2">Female</Label>
+                    </div>
+                  </RadioGroup>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -317,7 +393,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Company</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -331,7 +410,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Contract</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -345,7 +427,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Position</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -415,7 +500,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>NPWP</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -456,7 +544,12 @@ const Booking = () => {
                 <FormControl>
                   <BasicCombobox
                     buttonClassName="h-9 bg-white"
-                    options={[{ label: "01", value: "01" }]}
+                    options={
+                      masterData?.term.map((t) => ({
+                        label: `${t.cd} - ${t.descs}`,
+                        value: t.cd,
+                      })) || []
+                    }
                     placeholder="Select Terms"
                     value={field.value}
                     onChange={(selectedValue) => field.onChange(selectedValue)}
@@ -476,7 +569,12 @@ const Booking = () => {
                 <FormControl>
                   <BasicCombobox
                     buttonClassName="h-9 bg-white"
-                    options={[{ label: "01", value: "01" }]}
+                    options={
+                      masterData?.taxTrx.map((t) => ({
+                        label: `${t.cd} - ${t.descs}`,
+                        value: t.cd,
+                      })) || []
+                    }
                     placeholder="Select Tax Transaction Code"
                     value={field.value}
                     onChange={(selectedValue) => field.onChange(selectedValue)}
@@ -494,7 +592,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Id No</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -510,7 +611,12 @@ const Booking = () => {
                 <FormControl>
                   <BasicCombobox
                     buttonClassName="h-9 bg-white"
-                    options={[{ label: "01", value: "01" }]}
+                    options={
+                      masterData?.occupation.map((o) => ({
+                        label: `${o.cd} - ${o.descs}`,
+                        value: o.cd,
+                      })) || []
+                    }
                     placeholder="Select Occupation"
                     value={field.value}
                     onChange={(selectedValue) => field.onChange(selectedValue)}
@@ -530,7 +636,12 @@ const Booking = () => {
                 <FormControl>
                   <BasicCombobox
                     buttonClassName="h-9 bg-white"
-                    options={[{ label: "01", value: "01" }]}
+                    options={
+                      masterData?.occupationDt.map((o) => ({
+                        label: `${o.cd} - ${o.descs}`,
+                        value: o.cd,
+                      })) || []
+                    }
                     placeholder="Select Occupation Detail"
                     value={field.value}
                     onChange={(selectedValue) => field.onChange(selectedValue)}
@@ -548,7 +659,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>BPJS</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -562,7 +676,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Gender</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -579,7 +696,7 @@ const Booking = () => {
                   <BasicCombobox
                     buttonClassName="h-9 bg-white"
                     options={[{ label: "01", value: "01" }]}
-                    placeholder="Select Terms"
+                    placeholder="Select Area"
                     value={field.value}
                     onChange={(selectedValue) => field.onChange(selectedValue)}
                   />
@@ -596,7 +713,10 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Additional name</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rounded-md" />
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
