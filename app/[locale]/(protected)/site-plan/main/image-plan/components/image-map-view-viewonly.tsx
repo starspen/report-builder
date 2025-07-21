@@ -252,6 +252,8 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                   onContextMenu={(e) => {
                     e.evt.preventDefault();
 
+                    if (!s.lotId) return;
+
                     const stage = e.target.getStage();
                     if (!stage) return;
 
