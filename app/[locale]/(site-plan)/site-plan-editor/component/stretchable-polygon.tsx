@@ -15,6 +15,7 @@ interface StretchablePolygonProps {
   selectedIds?: string[];
   isInGroup?: boolean;
   isLocked: boolean;
+  listening?: boolean;
 }
 
 const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
@@ -27,11 +28,13 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
   selectedIds,
   isInGroup = false,
   isLocked,
+  listening,
 }) => {
   const shapeRef = useRef<any>(null);
   const trRef = useRef<any>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Transformer support
   useEffect(() => {
@@ -91,9 +94,21 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
         points={shape.points}
         fill={shape.fill || LOT_COLOR_MAP.DEFAULT}
         closed
-        opacity={0.5}
+        stroke="#333"
+        strokeWidth={1}
+        opacity={isHovered ? 0.8 : 0.5}
         draggable={!shape.locked}
         onDragEnd={isInGroup ? undefined : handleDragEnd}
+        onMouseEnter={() => {
+          setIsHovered(true);
+          const container = shapeRef.current?.getStage()?.container();
+          if (container) container.style.cursor = "pointer";
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          const container = shapeRef.current?.getStage()?.container();
+          if (container) container.style.cursor = "default";
+        }}
         onClick={(e) => {
           e.cancelBubble = true;
           if (setSelectedIds && selectedIds) {
@@ -111,6 +126,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
           e.cancelBubble = true;
           onSelect(e);
         }}
+        listening={listening}
       />
       {/* Points hanya muncul jika polygon tidak di dalam group */}
       {!isInGroup &&

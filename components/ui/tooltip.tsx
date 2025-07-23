@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as TooltipPrimitive from "@radix-ui/react-tooltip"
+import * as React from "react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { color } from "@/lib/type";
 
@@ -27,46 +27,42 @@ const tooltipVariants = cva(
   }
 );
 
-interface ToolTipProps extends React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>, VariantProps<typeof tooltipVariants> {
-  color?: color
+interface ToolTipProps
+  extends React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>,
+    VariantProps<typeof tooltipVariants> {
+  color?: color;
 }
-const Tooltip = TooltipPrimitive.Root
-const TooltipTrigger = TooltipPrimitive.Trigger
+const Tooltip = TooltipPrimitive.Root;
+const TooltipTrigger = TooltipPrimitive.Trigger;
 const TooltipArrow = TooltipPrimitive.Arrow;
 
 const TooltipProvider = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Provider>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Provider>
->(
-  ({ delayDuration = 0, ...props }, ref) => (
-    <TooltipPrimitive.Provider
-
-      {...props}
-      delayDuration={delayDuration}
-    />
-  )
-);
+>(({ delayDuration = 0, ...props }, ref) => (
+  <TooltipPrimitive.Provider {...props} delayDuration={delayDuration} />
+));
 TooltipProvider.displayName = TooltipPrimitive.Provider.displayName;
 
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
   ToolTipProps
->(
-  ({ className, sideOffset = 4, color, children, ...props }, ref) => (
-    <TooltipPrimitive.Content
-      ref={ref}
-      sideOffset={sideOffset}
-      className={cn(tooltipVariants({ color }), className, {})}
-      {...props}
-    >
-      {children}
-    </TooltipPrimitive.Content>
-  )
-);
+>(({ className, sideOffset = 4, color, children, ...props }, ref) => (
+  <TooltipPrimitive.Content
+    ref={ref}
+    sideOffset={sideOffset}
+    className={cn(tooltipVariants({ color }), className, {})}
+    {...props}
+  >
+    {children}
+  </TooltipPrimitive.Content>
+));
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, TooltipArrow }
-
-
-
-
+export {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+  TooltipArrow,
+};

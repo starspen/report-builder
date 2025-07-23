@@ -64,6 +64,7 @@ export type StretchableShapeProps = {
   onContextMenu?: (e: any) => void;
   onClick?: (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => void;
   isLocked: boolean;
+  listening?: boolean;
 };
 
 // -----------------------------
@@ -83,6 +84,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   onContextMenu,
   onClick,
   isLocked,
+  listening,
 }) => {
   const ref = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -105,8 +107,9 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     y: shape.y,
     fill: shape.fill,
     opacity: isHovered ? 0.8 : 0.5,
-
-    listening: true,
+    stroke: "#333",
+    strokeWidth: 1,
+    listening: listening ?? true,
     draggable: !isViewOnly && !isInGroup && !shape.locked,
     onClick: onSelect,
     onTap: onSelect,
@@ -130,6 +133,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     draggable: !isInGroup && !shape.locked,
     onClick: onSelect,
     onTap: onSelect,
+    listening: listening ?? true,
   } as const;
 
   const handleTransformEnd = () => {
@@ -217,8 +221,6 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           e.cancelBubble = true;
           onDoubleClick?.(e); // 🟡 optional
           onSelect(e);
-          console.log("click count:", e.evt.detail);
-          console.log("CLICKED CHILD", shape.id);
         }}
         onDblTap={(e) => {
           e.cancelBubble = true;
@@ -350,7 +352,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         draggable={
           !isViewOnly && isSelected && mode === "default" && !shape.locked
         }
-        listening={mode !== "drawPolygon"}
+        listening={listening}
         onDblClick={(e) => {
           e.cancelBubble = true;
           onDoubleClick?.(e); // 🟡 optional

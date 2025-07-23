@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PanelRight, Plus } from "lucide-react";
+import { PanelRight, Plus, Undo2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArtboardMenuItem } from "./art-board";
@@ -169,7 +169,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   return (
     <div className="relative">
       {rightSidebarOpen && (
-        <Sidebar variant="sidebar" side="right">
+        <Sidebar variant="sidebar" side="right" className="overflow-y-auto">
           <SidebarGroup>
             <SidebarGroupContent>
               {selectedShape ? (
@@ -355,7 +355,31 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="category">Shape Group</Label>
+                    <Label className="flex items-center gap-2 justify-between">
+                      Shape Group
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          {selectedShape.category && (
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                handleUpdateShape(selectedShape.id, {
+                                  category: undefined,
+                                });
+                              }}
+                              className="text-sm text-red-600 hover:underline"
+                              variant="ghost"
+                              size="sm"
+                            >
+                              <Undo2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Reset Image</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
                     <BasicCombobox
                       options={[
                         { label: "Block", value: "block" },
@@ -373,7 +397,34 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="linkTo">Link to Artboard</Label>
+                    <Label
+                      htmlFor="linkTo"
+                      className="flex items-center gap-2 justify-between"
+                    >
+                      Link to Artboard{" "}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          {selectedShape.linkToArtboard && (
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                handleUpdateShape(selectedShape.id, {
+                                  linkToArtboard: "",
+                                });
+                              }}
+                              className="text-sm text-red-600 hover:underline"
+                              variant="ghost"
+                              size="sm"
+                            >
+                              <Undo2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Reset Image</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
                     <BasicCombobox
                       options={menuItems.map((item) => ({
                         label: item.title,
@@ -392,7 +443,37 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
 
                   {lotOptions && (
                     <div className="space-y-2">
-                      <Label htmlFor="lot">Assign Lot</Label>
+                      <Label
+                        htmlFor="lot"
+                        className="flex items-center gap-2 justify-between"
+                      >
+                        Assign Lot{" "}
+                        {selectedShape.lotId && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                onClick={() => {
+                                  if (!selectedShape) return;
+
+                                  handleUpdateShape(selectedShape.id, {
+                                    lotId: "",
+                                    fill: LOT_COLOR_MAP.DEFAULT,
+                                  });
+                                }}
+                                className="text-sm text-red-600 hover:underline"
+                                variant="ghost"
+                                size="sm"
+                              >
+                                <Undo2 className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Reset Lot</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </Label>
                       <BasicCombobox
                         options={[
                           // 1) All lotOptions except those in usedLotsAll (unless it's the selectedShape’s lot)
@@ -453,7 +534,31 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
 
                   {selectedShape?.lotId && (
                     <div className="space-y-2">
-                      <Label>Lot Image</Label>
+                      <Label className="flex items-center gap-2 justify-between">
+                        Lot Image{" "}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            {selectedShape.lot_img && (
+                              <Button
+                                type="button"
+                                onClick={() => {
+                                  handleUpdateShape(selectedShape.id, {
+                                    lot_img: "",
+                                  });
+                                }}
+                                className="text-sm text-red-600 hover:underline"
+                                variant="ghost"
+                                size="sm"
+                              >
+                                <Undo2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Reset Image</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </Label>
                       <Input
                         type="file"
                         className="read-only:bg-white"
@@ -474,6 +579,15 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           reader.readAsDataURL(file);
                         }}
                       />
+                      {selectedShape.lot_img && (
+                        <div className="mt-2">
+                          <img
+                            src={selectedShape.lot_img}
+                            alt="Lot Preview"
+                            className="max-h-40 rounded border"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 

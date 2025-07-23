@@ -155,14 +155,14 @@ const LotSpec = ({ data }: { data: LotSpecData }) => {
                     className="rounded-md w-full"
                     value={data.lot_no}
                   />
-                  <div className="flex justify-center items-center gap-2">
+                  {/* <div className="flex justify-center items-center gap-2">
                     Sale
                     <Checkbox defaultChecked disabled />
                   </div>
                   <div className="flex justify-center items-center gap-2">
                     Rent
                     <Checkbox disabled />
-                  </div>
+                  </div> */}
                 </div>
               </div>
               <div className="flex flex-col col-span-1 space-y-2">

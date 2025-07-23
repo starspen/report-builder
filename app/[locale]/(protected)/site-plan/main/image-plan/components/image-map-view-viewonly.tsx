@@ -21,6 +21,13 @@ interface ViewOnlyCanvasProps {
   menuItems: { id: string; title: string }[];
   activeArtboardId: string;
   setActiveArtboardId: (id: string) => void;
+  mode:
+    | "default"
+    | "drawPolygon"
+    | "drawRect"
+    | "drawCircle"
+    | "viewOnly"
+    | "drawEllipse";
 }
 
 const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
@@ -28,6 +35,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
   onShapeClick,
   activeArtboardId,
   setActiveArtboardId,
+  mode,
 }) => {
   const stageRef = useRef<any>(null);
   const [scale, setScale] = useState(1);
@@ -46,6 +54,8 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
   });
   const [showSubMenu, setShowSubMenu] = useState(false);
   const [hoveredShapeId, setHoveredShapeId] = useState<string | null>(null);
+  const submenuRef = useRef<HTMLDivElement>(null);
+  const [submenuLeft, setSubmenuLeft] = useState<"100%" | "-100%">("100%");
 
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
@@ -107,6 +117,37 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
   };
 
   const contextMenuRef = useRef<HTMLDivElement>(null);
+
+  const openContextMenu = (e: any, shape: Shape) => {
+    if (!shape.lotId) return;
+    const container = containerRef.current;
+    const rect = container?.getBoundingClientRect();
+    if (!rect) return;
+
+    e.evt.preventDefault();
+
+    const estimatedMenuWidth = 220;
+    const estimatedMenuHeight = 150;
+    const padding = 8;
+
+    let x = e.evt.clientX - rect.left;
+    let y = e.evt.clientY - rect.top;
+
+    if (x + estimatedMenuWidth > rect.width) {
+      x = rect.width - estimatedMenuWidth - padding;
+    }
+
+    if (y + estimatedMenuHeight > rect.height) {
+      y = rect.height - estimatedMenuHeight - padding;
+    }
+
+    setContextMenu({
+      visible: true,
+      x,
+      y,
+      shape: { ...shape },
+    });
+  };
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -193,6 +234,20 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
     };
   }, [contextMenu]);
 
+  useEffect(() => {
+    if (!showSubMenu || !submenuRef.current || !containerRef.current) return;
+
+    const submenuWidth = submenuRef.current.offsetWidth || 200;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const submenuX = contextMenu.x + 200 + submenuWidth; // 200 = lebar menu utama
+
+    if (submenuX > containerRect.width) {
+      setSubmenuLeft("-100%"); // tampil ke kiri
+    } else {
+      setSubmenuLeft("100%"); // tampil normal ke kanan
+    }
+  }, [showSubMenu, contextMenu.x]);
+
   return (
     <div ref={containerRef} className="relative w-full h-[550px] z-0">
       <Stage
@@ -234,7 +289,8 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                     const container = stageRef.current?.container();
                     if (container) container.style.cursor = "default";
                   }}
-                  mode="viewOnly"
+                  stroke="#333"
+                  strokeWidth={1}
                   onClick={(e) => {
                     if (e.evt instanceof MouseEvent && e.evt.button === 2) {
                       return; // Ignore right click
@@ -249,27 +305,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                   //     setActiveArtboardId(shape.linkToArtboard);
                   //   }
                   // }}
-                  onContextMenu={(e) => {
-                    e.evt.preventDefault();
-
-                    if (!s.lotId) return;
-
-                    const stage = e.target.getStage();
-                    if (!stage) return;
-
-                    const pointer = stage.getPointerPosition();
-                    const container = stage.container();
-                    const rect = container?.getBoundingClientRect();
-
-                    if (pointer && rect) {
-                      setContextMenu({
-                        visible: true,
-                        x: e.evt.clientX,
-                        y: e.evt.clientY,
-                        shape: { ...s },
-                      });
-                    }
-                  }}
+                  onContextMenu={(e) => openContextMenu(e, s)}
                 />
               );
             }
@@ -299,18 +335,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                   }}
                   onChange={() => {}}
                   mode="viewOnly"
-                  onContextMenu={(e) => {
-                    e.evt.preventDefault();
-                    if ("lotId" in shape && shape.lotId) {
-                      const pointer = stageRef.current.getPointerPosition();
-                      setContextMenu({
-                        visible: true,
-                        x: pointer?.x || 0,
-                        y: pointer?.y || 0,
-                        shape,
-                      });
-                    }
-                  }}
+                  onContextMenu={(e) => openContextMenu(e, shape)}
                   isLocked={!!shape.locked}
                 />
               );
@@ -324,9 +349,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
       {contextMenu.visible && contextMenu.shape && (
         <div
           ref={contextMenuRef}
-          className={`${
-            contextMenu.shape.type === "polygon" ? "fixed" : "absolute"
-          } bg-white shadow-md border rounded z-50`}
+          className="absolute bg-white shadow-md border rounded z-50"
           style={{
             top: contextMenu.y,
             left: contextMenu.x,
@@ -379,8 +402,13 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
 
                 {showSubMenu && (
                   <div
-                    className="absolute left-full top-0 ml-2 bg-white border rounded shadow-md z-50 w-auto"
-                    style={{ minWidth: "200px" }}
+                    ref={submenuRef}
+                    className="absolute top-0 bg-white border rounded shadow-md z-50 w-auto"
+                    style={{
+                      minWidth: "200px",
+                      left: submenuLeft,
+                      marginLeft: "0.5rem",
+                    }}
                   >
                     <p
                       className="cursor-pointer hover:bg-gray-100 px-2 py-1"

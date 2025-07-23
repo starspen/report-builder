@@ -301,16 +301,13 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
           <SidebarGroupLabel>
             {selectedMasterplan?.masterplan_name || "Masterplan"}
           </SidebarGroupLabel>
-          <SidebarGroupAction
-            title="Add new masterplan"
-            onClick={handleAddArtboard}
-          >
+          <SidebarGroupAction onClick={handleAddArtboard}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Plus />
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Add new masterplan</p>
+              <TooltipContent className="mr-16">
+                <p>Add new artboard</p>
               </TooltipContent>
             </Tooltip>
           </SidebarGroupAction>
@@ -341,10 +338,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                           activeArtboardId === item.id ? "bg-gray-100" : ""
                         }
                       >
-                        <SidebarMenuButton
-                          onClick={() => handleToggle(item.id)}
-                          className="flex items-center w-full justify-between"
-                        >
+                        <SidebarMenuButton className="flex items-center w-full justify-between">
                           <span className="flex items-center">
                             <item.icon className="mr-2" />
                             {editingId === item.id ? (
@@ -431,9 +425,21 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                           <span className="flex items-center">
                             {shapes.length > 0 &&
                               (openMenus[item.id] ? (
-                                <ChevronDown className="ml-2 h-4 w-4" />
+                                <ChevronDown
+                                  className="ml-2 h-4 w-4"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggle(item.id);
+                                  }}
+                                />
                               ) : (
-                                <ChevronRight className="ml-2 h-4 w-4" />
+                                <ChevronRight
+                                  className="ml-2 h-4 w-4"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggle(item.id);
+                                  }}
+                                />
                               ))}
                           </span>
                         </SidebarMenuButton>

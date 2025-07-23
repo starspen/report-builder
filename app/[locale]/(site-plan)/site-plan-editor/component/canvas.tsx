@@ -40,6 +40,7 @@ import {
   SaveMasterplanPayload,
 } from "@/action/save-masterplan";
 import { useMutation } from "@tanstack/react-query";
+import Konva from "konva";
 
 export type DrawMode =
   | "default"
@@ -131,10 +132,20 @@ const ImageMapView = ({
   }>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isDraggingGroup, setIsDraggingGroup] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [drawingMode, setDrawingMode] = useState<
+    null | "rect" | "ellipse" | "circle" | "polygon"
+  >(null);
   const [isolatedGroup, setIsolatedGroup] = useState<{
     originalGroup: GroupShape;
     fromGroupId: string;
   } | null>(null);
+  const isDrawMode =
+    mode === "drawPolygon" ||
+    mode === "drawRect" ||
+    mode === "drawCircle" ||
+    mode === "drawEllipse";
 
   const pushHistory = (next: any[]) => {
     undoStack.current.push(shapes); // simpan snapshot sebelum berubah
@@ -164,17 +175,19 @@ const ImageMapView = ({
 
   const startDrawRect = () => {
     ensureArtboardExists();
-    setMode("drawRect");
+    setMode(mode === "drawRect" ? "default" : "drawRect");
   };
 
   const startDrawCircle = () => {
     ensureArtboardExists();
     setMode("drawCircle");
+    setMode(mode === "drawCircle" ? "default" : "drawCircle");
   };
 
   const startDrawEllipse = () => {
     ensureArtboardExists();
     setMode("drawEllipse");
+    setMode(mode === "drawEllipse" ? "default" : "drawEllipse");
   };
 
   const startPolygon = () => {
@@ -272,7 +285,7 @@ const ImageMapView = ({
     }
 
     if (newShape) {
-      onShapesChange([...shapes, newShape]);
+      pushHistory([...shapes, newShape]);
       setSelectedId(newShape.id);
     }
 
@@ -323,7 +336,7 @@ const ImageMapView = ({
           height,
         };
 
-        onShapesChange([newImgShape, ...shapes]);
+        pushHistory([newImgShape, ...shapes]);
       };
       img.src = base64;
     };
@@ -376,6 +389,7 @@ const ImageMapView = ({
         setMode("default");
         setCurrentPolyPoints([]);
         setSelectedId(newPoly.id);
+        pushHistory([...shapes, newPoly]);
         return;
       }
 
@@ -497,7 +511,7 @@ const ImageMapView = ({
   }, [shapes, selectedId, copiedShape]);
 
   const clearAll = () => {
-    onShapesChange([]);
+    pushHistory([]);
     setIsDrawingPoly(false);
     setCurrentPolyPoints([]);
   };
@@ -636,18 +650,56 @@ const ImageMapView = ({
     setSelectedIds([]);
   };
 
+  const fitStageToShapes = () => {
+    if (!stageRef.current || shapes.length === 0) return;
+
+    const stage = stageRef.current;
+    const group = new Konva.Group();
+    shapes.forEach((shape) => {
+      const dummy = new Konva.Rect({
+        x: shape.x || 0,
+        y: shape.y || 0,
+        width: "width" in shape ? shape.width || 10 : 10,
+        height: "height" in shape ? shape.height || 10 : 10,
+      });
+      group.add(dummy);
+    });
+
+    const box = group.getClientRect();
+    const stageWidth = stage.width();
+    const stageHeight = stage.height();
+
+    const scaleX = stageWidth / box.width;
+    const scaleY = stageHeight / box.height;
+    const fitScale = Math.min(scaleX, scaleY) * 0.9; // 90% supaya ada margin
+
+    const centerX = stageWidth / 2 - (box.x + box.width / 2) * fitScale;
+    const centerY = stageHeight / 2 - (box.y + box.height / 2) * fitScale;
+
+    setStageScale(fitScale);
+    setStagePos({ x: centerX, y: centerY });
+  };
+
   useEffect(() => {
-    const updateSize = () => {
-      const container = containerRef.current;
-      if (container) {
-        const width = container.offsetWidth;
-        const height = container.offsetHeight; // 16:9 aspect ratio
-        setStageSize({ width, height });
+    const timeout = setTimeout(() => {
+      fitStageToShapes();
+    }, 100); // Delay sedikit untuk memastikan ukuran sudah stabil
+    return () => clearTimeout(timeout);
+  }, [shapes]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        setStageSize({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight,
+        });
       }
     };
-    updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // useEffect(() => {
@@ -689,43 +741,70 @@ const ImageMapView = ({
             <TooltipTrigger asChild>
               <Button
                 onClick={startDrawRect}
+                style={{
+                  background: mode === "drawRect" ? "#facc15" : undefined,
+                }}
                 variant="ghost"
                 className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
               >
-                <Square className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                {mode === "drawRect" ? (
+                  "Finish / Cancel"
+                ) : (
+                  <Square className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Draw Rectangle</p>
-            </TooltipContent>
+            {mode !== "drawRect" && (
+              <TooltipContent>
+                <p>Draw Rectangle</p>
+              </TooltipContent>
+            )}
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 onClick={startDrawEllipse}
+                style={{
+                  background: mode === "drawEllipse" ? "#facc15" : undefined,
+                }}
                 variant="ghost"
                 className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
               >
-                <CircleDashed className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                {mode === "drawEllipse" ? (
+                  "Finish / Cancel"
+                ) : (
+                  <CircleDashed className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Draw Ellipse</p>
-            </TooltipContent>
+            {mode !== "drawEllipse" && (
+              <TooltipContent>
+                <p>Draw Ellipse</p>
+              </TooltipContent>
+            )}
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 onClick={startDrawCircle}
+                style={{
+                  background: mode === "drawCircle" ? "#facc15" : undefined,
+                }}
                 variant="ghost"
                 className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
               >
-                <CircleIcon className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                {mode === "drawCircle" ? (
+                  "Finish / Cancel"
+                ) : (
+                  <CircleIcon className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Draw Circle</p>
-            </TooltipContent>
+            {mode !== "drawCircle" && (
+              <TooltipContent>
+                <p>Draw Circle</p>
+              </TooltipContent>
+            )}
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -849,25 +928,42 @@ const ImageMapView = ({
           </Tooltip>
 
           <div className="grid items-center gap-3 mx-2">
-            <Button
-              size="md"
-              type="button"
-              onClick={() => setIsPreviewMode((prev) => !prev)}
-              className="bg-[#f59f0a] flex gap-2 hover:bg-[#ffb83c] hover:ring-transparent text-sm"
-            >
-              <Play fill="#fff" className="w-4 h-4" />{" "}
-              {isPreviewMode ? "Exit Preview" : "Preview"}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="md"
+                  type="button"
+                  onClick={() => setIsPreviewMode((prev) => !prev)}
+                  className="bg-[#f59f0a] flex gap-2 hover:bg-[#ffb83c] hover:ring-transparent text-sm"
+                >
+                  {isPreviewMode ? (
+                    "Exit Preview"
+                  ) : (
+                    <Play fill="#fff" className="w-4 h-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Preview</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           <div className="grid items-center gap-3 mx-2">
-            <Button
-              size="md"
-              type="button"
-              onClick={onSave}
-              className="bg-green-600 flex gap-2 hover:bg-green-700 hover:ring-transparent text-sm"
-            >
-              <Save className="w-4 h-4" /> Save
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="md"
+                  type="button"
+                  onClick={onSave}
+                  className="bg-green-600 flex gap-2 hover:bg-green-700 hover:ring-transparent text-sm"
+                >
+                  <Save className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Save</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </div>
@@ -965,6 +1061,7 @@ const ImageMapView = ({
                       setSelectedIds={setSelectedIds}
                       isInGroup={false}
                       isLocked={isLocked}
+                      listening={!isDrawMode}
                     />
                   );
                 }
@@ -989,6 +1086,7 @@ const ImageMapView = ({
                     selectedIds={selectedIds}
                     isInGroup={false}
                     isLocked={isLocked}
+                    listening={!isDrawMode}
                   />
                 );
               })}
@@ -1009,6 +1107,7 @@ const ImageMapView = ({
                       stroke="#22c55e"
                       strokeWidth={1}
                       closed={true}
+                      opacity={0.5}
                     />
                   )}
                 </>

@@ -18,9 +18,13 @@ const SpecPage = () => {
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["lotSpec", entity_cd, project_no, lot_no],
-    queryFn: () => getLotSpecData(entity_cd, project_no, lot_no),
+    queryFn: async () => {
+      const result = await getLotSpecData(entity_cd, project_no, lot_no);
+      return result[0]; // hanya ambil satu object pertama
+    },
     enabled: !!entity_cd && !!project_no && !!lot_no,
   });
+  console.log(data, "data:");
 
   if (isLoading)
     return (
