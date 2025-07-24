@@ -7,30 +7,22 @@ import { SalesReserveColumns } from "./components/columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface SalesReserveHistoryProps {
-  debtorAcct: string;
-  debtorName: string;
-  salesDate: string;
-  ppjbDate: string;
-  ajbDate: string;
-  keyCollection: string;
-  sellPrice: string;
+  entity_cd: string;
+  project_no: string;
+  debtor_acct: string;
+  debtor_name: string;
+  sales_date: string;
+  ppjb_date: string;
+  ajb_date: string;
+  key_collection_date: string;
+  sell_price: string;
 }
 
-const SalesReserveHistory = () => {
-  const salesReserveHistoryData = (): SalesReserveHistoryProps[] => {
-    return [
-      {
-        debtorAcct: "FE-04",
-        debtorName: "PT. Aneka Bina Lestari",
-        salesDate: "25/03/2003",
-        ppjbDate: "00/00/0000",
-        ajbDate: "00/00/0000",
-        keyCollection: "00/00/0000",
-        sellPrice: "552.000.000,00",
-      },
-    ];
-  };
-
+const SalesReserveHistory = ({
+  data,
+}: {
+  data: SalesReserveHistoryProps[];
+}) => {
   return (
     <div>
       <Card>
@@ -38,10 +30,7 @@ const SalesReserveHistory = () => {
           <CardTitle>Sales Reserve History</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={SalesReserveColumns}
-            data={salesReserveHistoryData()}
-          />
+          <DataTable columns={SalesReserveColumns} data={data} />
         </CardContent>
       </Card>
     </div>

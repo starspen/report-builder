@@ -2,7 +2,7 @@
 
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { boolean, date, z } from "zod";
 import {
   Form,
@@ -32,72 +32,21 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Check, X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { billingSchema } from "../combined-schema";
+import { MasterDataResponse } from "@/action/get-booking";
 
-export const formSchema = z.object({
-  salesDate: z.string(),
-  vvip: z.string(),
-  lotNo: z.string(),
-  payment: z.string(),
-  specialCommision: z.string(),
-  package: z.string(),
-  packageTaxcode: z.string(),
-  planDiscount: z.string(),
-  specialDiscount: z.string(),
-  taxCode: z.string(),
-  contractPrice: z.string(),
-  debtorAc: z.string(),
-  debtorType: z.string(),
-  planHandOverDate: z.string(),
-  salesEvent: z.string(),
-  currency: z.string(),
-  sChannel: z.string(),
-  salesMan: z.string(),
-  requisitionFormNo: z.string(),
-  staffId: z.string(),
-  bookingNo: z.string(),
-  numberSp: z.string(),
-  terms: z.string(),
-  taxTrxCd: z.string(),
-  idNo: z.string(),
-  occupation: z.string(),
-  occupationDetail: z.string(),
-  bpjs: z.string(),
-  area: z.string(),
-  additionalName: z.string(),
-});
-
-const Billing = () => {
+const Billing = ({
+  form,
+  masterData,
+}: {
+  form: UseFormReturn<any>;
+  masterData: MasterDataResponse;
+}) => {
   const router = useRouter();
 
   const [date, setDate] = React.useState<Date | undefined>(new Date());
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      salesDate: "2025-07-02",
-      vvip: "", // Kolom ini tidak terisi di Excel
-      lotNo: "PHB-01",
-      payment: "P002 - Installment Residential 12x",
-      specialCommision: "", // Tidak ada nilai di Excel
-      package: "NA",
-      packageTaxcode: "NTO",
-      planDiscount: "5.000.000,00",
-      specialDiscount: "10000000",
-      taxCode: "1001",
-      contractPrice: "3153118170",
-      debtorAc: "PHB-01",
-      debtorType: "02",
-      planHandOverDate: "2026-09-02",
-      salesEvent: "NA",
-      currency: "IDR",
-      sChannel: "I00001",
-      salesMan: "I000010004",
-      requisitionFormNo: "", // Kosong di Excel
-      staffId: "Rossa",
-      bookingNo: "10001-007",
-      numberSp: "001/CGH/SPUK/AMR/VII/2025",
-    },
-  });
-  function onSubmit(values: z.infer<typeof formSchema>) {
+
+  function onSubmit(values: z.infer<typeof billingSchema>) {
     toast.success("Form submitted successfully!");
     router.push("main");
     console.log(values);
@@ -121,7 +70,15 @@ const Billing = () => {
                 <FormItem>
                   <FormLabel>Sales Date</FormLabel>
                   <FormControl>
-                    <Calendar22 buttonClassName="w-full justify-between h-9 bg-white" />
+                    <Calendar22
+                      buttonClassName="w-full justify-between h-9 bg-white"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) => {
+                        field.onChange(
+                          date ? date.toISOString().split("T")[0] : ""
+                        );
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -222,16 +179,12 @@ const Billing = () => {
                   <FormControl>
                     <BasicCombobox
                       buttonClassName="h-9 bg-white"
-                      options={[
-                        {
-                          label: "Ciomas, KAB BOGOR",
-                          value: "Ciomas, KAB BOGOR",
-                        },
-                        {
-                          label: "Ciomas, KAB BOGOR",
-                          value: "Ciomas, KAB BOGOR",
-                        },
-                      ]}
+                      options={
+                        masterData?.packageOptions.map((po, index) => ({
+                          label: `${po.descs} `,
+                          value: `${po.cd}`,
+                        })) || []
+                      }
                       placeholder="Select Salutation"
                       value={field.value}
                       onChange={(selectedValue) =>
@@ -353,16 +306,12 @@ const Billing = () => {
                   <FormControl>
                     <BasicCombobox
                       buttonClassName="h-9 bg-white"
-                      options={[
-                        {
-                          label: "Ciomas, KAB BOGOR",
-                          value: "Ciomas, KAB BOGOR",
-                        },
-                        {
-                          label: "Ciomas, KAB BOGOR",
-                          value: "Ciomas, KAB BOGOR",
-                        },
-                      ]}
+                      options={
+                        masterData?.debtorType.map((db, index) => ({
+                          label: `${db.descs} `,
+                          value: `${db.cd}`,
+                        })) || []
+                      }
                       placeholder="Select Salutation"
                       value={field.value}
                       onChange={(selectedValue) =>
@@ -382,23 +331,14 @@ const Billing = () => {
                 <FormItem>
                   <FormLabel>Plan Hand Over Date</FormLabel>
                   <FormControl>
-                    <BasicCombobox
-                      buttonClassName="h-9 bg-white"
-                      options={[
-                        {
-                          label: "Ciomas, KAB BOGOR",
-                          value: "Ciomas, KAB BOGOR",
-                        },
-                        {
-                          label: "Ciomas, KAB BOGOR",
-                          value: "Ciomas, KAB BOGOR",
-                        },
-                      ]}
-                      placeholder="Select Salutation"
-                      value={field.value}
-                      onChange={(selectedValue) =>
-                        field.onChange(selectedValue)
-                      }
+                    <Calendar22
+                      buttonClassName="w-full justify-between h-9 bg-white"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) => {
+                        field.onChange(
+                          date ? date.toISOString().split("T")[0] : ""
+                        );
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -446,20 +386,12 @@ const Billing = () => {
                   <FormControl>
                     <BasicCombobox
                       buttonClassName="h-9 bg-white"
-                      options={[
-                        {
-                          label: "Home",
-                          value: "Home",
-                        },
-                        {
-                          label: "Company",
-                          value: "Company",
-                        },
-                        {
-                          label: "Other",
-                          value: "Other",
-                        },
-                      ]}
+                      options={
+                        masterData?.currency.map((c, index) => ({
+                          label: `${c.descs} `,
+                          value: `${c.cd}`,
+                        })) || []
+                      }
                       placeholder="Select Mailing"
                       value={field.value}
                       onChange={(selectedValue) =>
@@ -545,7 +477,12 @@ const Billing = () => {
                   <FormControl>
                     <BasicCombobox
                       buttonClassName="h-9 bg-white"
-                      options={[{ label: "01", value: "01" }]}
+                      options={
+                        masterData?.staff.map((s, index) => ({
+                          label: `${s.descs} `,
+                          value: `${s.cd}`,
+                        })) || []
+                      }
                       placeholder="Select Terms"
                       value={field.value}
                       onChange={(selectedValue) =>

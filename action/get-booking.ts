@@ -1,8 +1,8 @@
 // File: types/master-data.ts
 
 export interface City {
-  descs: string;
-  cd: string;
+  city: string;
+  district: string;
 }
 
 export interface Religion {
@@ -41,6 +41,18 @@ export interface Currency {
   cd: string;
   descs: string;
 }
+export interface PackageOptions {
+  cd: string;
+  descs: string;
+}
+export interface DebtorType {
+  cd: string;
+  descs: string;
+}
+export interface StaffId {
+  cd: string;
+  descs: string;
+}
 
 export interface MasterDataResponse {
   city: City[];
@@ -52,6 +64,9 @@ export interface MasterDataResponse {
   occupation: Occupation[];
   occupationDt: OccupationDt[];
   gender: Gender[];
+  packageOptions: PackageOptions[];
+  debtorType: DebtorType[];
+  staff: StaffId[];
 }
 
 export interface JsonResponse {
@@ -60,7 +75,10 @@ export interface JsonResponse {
   data: MasterDataResponse;
 }
 
-export const getMasterData = async (): Promise<JsonResponse["data"]> => {
+export const getMasterData = async (
+  entity_cd: string,
+  project_no: string
+): Promise<JsonResponse["data"]> => {
   const mode = process.env.NEXT_PUBLIC_ENV_MODE;
   const baseUrl =
     mode === "sandbox"
@@ -68,6 +86,8 @@ export const getMasterData = async (): Promise<JsonResponse["data"]> => {
       : process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL;
 
   const url = new URL(`${baseUrl}/api/booking/options`);
+  url.searchParams.append("entity_cd", entity_cd);
+  url.searchParams.append("project_no", project_no);
 
   const response = await fetch(url.toString(), {
     method: "GET",

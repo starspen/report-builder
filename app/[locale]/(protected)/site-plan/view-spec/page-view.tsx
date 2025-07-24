@@ -128,6 +128,7 @@ export interface LotSpecData {
   zone_descs: string;
   direction_descs: string;
   level_descs: string;
+  lot_img: string;
 }
 
 const LotSpec = ({ data }: { data: LotSpecData }) => {
@@ -307,7 +308,7 @@ const LotSpec = ({ data }: { data: LotSpecData }) => {
         </CardContent>
       </Card>
       <div className="flex items-center justify-center col-span-2">
-        <img src="/images/masterplan_room.jpg" />
+        <img src={data.lot_img} />
       </div>
     </div>
   );

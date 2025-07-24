@@ -111,8 +111,16 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
       return;
     }
 
-    if (shape.lotId) {
-      router.push("/en/site-plan/form");
+    if (shape.lotId && shape.entity_cd && shape.project_no) {
+      const query = new URLSearchParams({
+        lot_no: shape.lotId,
+        entity_cd: shape.entity_cd,
+        project_no: shape.project_no,
+      }).toString();
+
+      router.push(`/en/site-plan/form?${query}`);
+    } else {
+      console.warn("Shape missing lotId, entity_cd, or project_no", shape);
     }
   };
 
@@ -277,7 +285,6 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                   closed
                   draggable={false}
                   opacity={hoveredShapeId === s.id ? 0.8 : 0.5}
-                  lotId={s.lotId}
                   status={s.status}
                   onMouseEnter={() => {
                     setHoveredShapeId(s.id);
@@ -415,7 +422,29 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                       onClick={() => {
                         setContextMenu({ ...contextMenu, visible: false });
                         setShowSubMenu(false);
-                        router.push("/en/site-plan/sales-reserve-history");
+
+                        const shape = contextMenu.shape;
+
+                        // Pastikan semua parameter tersedia
+                        if (
+                          shape?.lot_no &&
+                          shape?.entity_cd &&
+                          shape?.project_no
+                        ) {
+                          const query = new URLSearchParams({
+                            lot_no: shape.lot_no ?? shape.lotId,
+                            entity_cd: shape.entity_cd,
+                            project_no: shape.project_no,
+                          }).toString();
+
+                          console.log("Navigating to:", query);
+
+                          router.push(
+                            `/en/site-plan/sales-reserve-history?${query}`
+                          );
+                        } else {
+                          console.warn("Shape missing required fields", shape);
+                        }
                       }}
                     >
                       Sales/Reserve History
@@ -425,7 +454,26 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                       onClick={() => {
                         setContextMenu({ ...contextMenu, visible: false });
                         setShowSubMenu(false);
-                        router.push("/en/site-plan/ac-summary");
+                        const shape = contextMenu.shape;
+
+                        // Pastikan semua parameter tersedia
+                        if (
+                          shape?.lot_no &&
+                          shape?.entity_cd &&
+                          shape?.project_no
+                        ) {
+                          const query = new URLSearchParams({
+                            lot_no: shape.lot_no ?? shape.lotId,
+                            entity_cd: shape.entity_cd,
+                            project_no: shape.project_no,
+                          }).toString();
+
+                          console.log("Navigating to:", query);
+
+                          router.push(`/en/site-plan/ac-summary?${query}`);
+                        } else {
+                          console.warn("Shape missing required fields", shape);
+                        }
                       }}
                     >
                       A/c Summary
@@ -435,7 +483,29 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                       onClick={() => {
                         setContextMenu({ ...contextMenu, visible: false });
                         setShowSubMenu(false);
-                        router.push("/en/site-plan/schedule-billing");
+
+                        const shape = contextMenu.shape;
+
+                        // Pastikan semua parameter tersedia
+                        if (
+                          shape?.lot_no &&
+                          shape?.entity_cd &&
+                          shape?.project_no
+                        ) {
+                          const query = new URLSearchParams({
+                            lot_no: shape.lot_no ?? shape.lotId,
+                            entity_cd: shape.entity_cd,
+                            project_no: shape.project_no,
+                          }).toString();
+
+                          console.log("Navigating to:", query);
+
+                          router.push(
+                            `/en/site-plan/schedule-billing?${query}`
+                          );
+                        } else {
+                          console.warn("Shape missing required fields", shape);
+                        }
                       }}
                     >
                       Schedule Billing
@@ -460,6 +530,8 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                       entity_cd: shape.entity_cd,
                       project_no: shape.project_no,
                     }).toString();
+
+                    console.log("Navigating to spec:", query);
 
                     router.push(`/en/site-plan/view-spec?${query}`);
                   } else {

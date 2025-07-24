@@ -205,6 +205,7 @@ export default function Page() {
             menuItems={menuItems}
             activeArtboardId={activeArtboardId}
             setActiveArtboardId={setActiveArtboardId}
+            mode="default"
           />
         )}
       </div>

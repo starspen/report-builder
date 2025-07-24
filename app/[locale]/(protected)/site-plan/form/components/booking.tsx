@@ -2,7 +2,7 @@
 
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { boolean, date, z } from "zod";
 import {
   Form,
@@ -34,95 +34,26 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getMasterData, MasterDataResponse } from "@/action/get-booking";
 import { useQuery } from "@tanstack/react-query";
+import { bookingSchema } from "../combined-schema";
+import { SelectWithSearch } from "@/components/ui/select-with-search";
 
-export const formSchema = z.object({
-  class: z.string(),
-  company: z.string(),
-  salutation: z.string(),
-  name: z.string(),
-  address: z.string(),
-  city: z.string(),
-  telephone: z.string(),
-  hp1st: z.string(),
-  hp2nd: z.string(),
-  email: z.string(),
-  dob: z.string(),
-  married: z.string(),
-  gender: z.string(),
-  religion: z.string(),
-  companyName: z.string(),
-  contract: z.string(),
-  position: z.string(),
-  mailing: z.string(),
-  stat: z.string(),
-  npwp: z.string(),
-  interest: z.string(),
-  terms: z.string(),
-  taxTrxCd: z.string(),
-  idNo: z.string(),
-  occupation: z.string(),
-  occupationDetail: z.string(),
-  bpjs: z.string(),
-  area: z.string(),
-  additionalName: z.string(),
-});
-
-const Booking = () => {
+const Booking = ({
+  form,
+  masterData,
+}: {
+  form: UseFormReturn<any>;
+  masterData: MasterDataResponse;
+}) => {
   const router = useRouter();
 
   const [date, setDate] = React.useState<Date | undefined>(new Date());
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      class: "I-01 (01)",
-      company: "X",
-      salutation: "Mr.",
-      name: "Muhammad Rafi Fauzhan",
-      address: "Jl. Pintu Ledeng RT 01 RW 05 KP. Sinar",
-      city: "Aceh Barat",
-      telephone: "021871827887",
-      hp1st: "6285167261717",
-      hp2nd: "6287870082711",
-      email: "muhammad.rafi@gmail.com",
-      dob: "37074",
-      married: "X",
-      gender: "Male",
-      religion: "01",
-      companyName: "PT IFCA PROPERTY365 INDONESIA",
-      contract: "Muhammad Rafi Fauzhan",
-      position: "Application Consultant",
-      mailing: "Home",
-      stat: "Individual",
-      npwp: "11.021.010.2-110.000",
-      interest: "Reminder",
-      terms: "01",
-      taxTrxCd: "01",
-      idNo: "327106020701010001",
-      occupation: "01",
-      occupationDetail: "0101",
-      bpjs: "",
-      area: "",
-      additionalName: "",
-    },
-  });
-
-  const {
-    data: masterData,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["master-data"],
-    queryFn: getMasterData,
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof bookingSchema>) {
     toast.success("Form submitted successfully!");
     router.push("main");
     console.log(values);
   }
 
-  console.log(masterData?.city, "masterData city:");
   return (
     <>
       <div className="text-lg font-bold mb-4">Lot: 21</div>
@@ -239,17 +170,36 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>City</FormLabel>
                 <FormControl>
-                  <BasicCombobox
-                    buttonClassName="h-9 bg-white"
+                  <SelectWithSearch
                     options={
                       masterData?.city.map((ct) => ({
-                        label: ct.descs,
-                        value: ct.cd,
+                        label: `${ct.district}, ${ct.city}`,
+                        value: `${ct.district}, ${ct.city}`,
                       })) || []
                     }
                     placeholder="Select City"
                     value={field.value}
-                    onChange={(selectedValue) => field.onChange(selectedValue)}
+                    onValueChange={(selectedValue: any) =>
+                      field.onChange(selectedValue)
+                    }
+                    optimizeForLargeDataset={true}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="post_cd"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Post Code</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    className="rounded-md border-default bg-white"
                   />
                 </FormControl>
                 <FormMessage />
@@ -332,7 +282,37 @@ const Booking = () => {
               <FormItem>
                 <FormLabel>Date of Birth</FormLabel>
                 <FormControl>
-                  <Calendar22 buttonClassName="w-full justify-between h-9 bg-white" />
+                  <Calendar22
+                    buttonClassName="w-full justify-between h-9 bg-white"
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => {
+                      field.onChange(
+                        date ? date.toISOString().split("T")[0] : ""
+                      );
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="married"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Marital Status</FormLabel>
+                <FormControl>
+                  <BasicCombobox
+                    buttonClassName="h-9 bg-white"
+                    options={[
+                      { label: "Yes", value: "Y" },
+                      { label: "No", value: "N" },
+                    ]}
+                    placeholder="Select Marital Status"
+                    value={field.value}
+                    onChange={(selectedValue) => field.onChange(selectedValue)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -405,10 +385,10 @@ const Booking = () => {
 
           <FormField
             control={form.control}
-            name="contract"
+            name="contact"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Contract</FormLabel>
+                <FormLabel>Contact</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -449,15 +429,15 @@ const Booking = () => {
                     options={[
                       {
                         label: "Home",
-                        value: "Home",
+                        value: "H",
                       },
                       {
                         label: "Company",
-                        value: "Company",
+                        value: "C",
                       },
                       {
                         label: "Other",
-                        value: "Other",
+                        value: "O",
                       },
                     ]}
                     placeholder="Select Mailing"
@@ -480,8 +460,8 @@ const Booking = () => {
                   <BasicCombobox
                     buttonClassName="h-9 bg-white"
                     options={[
-                      { label: "Individual", value: "Individual" },
-                      { label: "Combined", value: "Combined" },
+                      { label: "Individual", value: "I" },
+                      { label: "Combined", value: "C" },
                     ]}
                     placeholder="Select Stat"
                     value={field.value}
@@ -510,30 +490,47 @@ const Booking = () => {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="interest"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Interest & Reminder</FormLabel>
-                <FormControl>
-                  <>
-                    <div className="flex gap-2">
-                      <div className="flex items-center gap-3">
-                        <Checkbox id="interest" />
-                        <Label htmlFor="terms">Interest</Label>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Checkbox id="reminder" />
-                        <Label htmlFor="terms">Reminder</Label>
-                      </div>
-                    </div>
-                  </>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="col-span-1 flex gap-2 items-center">
+            <FormField
+              control={form.control}
+              name="interest"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center gap-3 mt-2">
+                    <Label htmlFor="interest">Interest</Label>
+                    <Checkbox
+                      id="interest"
+                      checked={field.value === "Y"}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked ? "Y" : "N")
+                      }
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="reminder"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center gap-3 mt-2">
+                    <Label htmlFor="reminder">Reminder</Label>
+                    <Checkbox
+                      id="reminder"
+                      checked={field.value === "Y"}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked ? "Y" : "N")
+                      }
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <FormField
             control={form.control}
@@ -658,23 +655,6 @@ const Booking = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>BPJS</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    className="rounded-md border-default bg-white"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="gender"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Gender</FormLabel>
                 <FormControl>
                   <Input
                     {...field}

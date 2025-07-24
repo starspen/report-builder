@@ -1,9 +1,42 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React from "react";
 
-const AcSummary = () => {
+export interface AcSummaryProps {
+  entity_cd: string;
+  project_no: string;
+  lot_no: string;
+  invoice: string;
+  interest: string;
+  debit_note: string;
+  tax: string;
+  credit_note: string;
+  receipt: string;
+  forex: string;
+  balance: string;
+  deposit: string;
+}
+
+const AcSummary = ({ data }: { data: AcSummaryProps[] }) => {
+  if (!data || data.length === 0) {
+    return <p>No data available</p>;
+  }
+
+  const summary = data[0];
+
+  if (!summary) return <p>No data available</p>; // handle jika kosong
+
+  const formatCurrency = (value: string | null | undefined) => {
+    const number = Number(value ?? "0");
+    return `Rp ${number.toLocaleString("id-ID", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
   return (
     <>
       <div className="grid grid-cols-2 gap-2">
@@ -16,39 +49,71 @@ const AcSummary = () => {
             <div className="w-full  space-y-2">
               <div>
                 <Label htmlFor="invoice">Invoice</Label>
-                <Input id="invoice" value="5.000.000,00" readOnly />
+                <Input
+                  id="invoice"
+                  value={formatCurrency(summary.invoice)}
+                  readOnly
+                />
               </div>
               <div>
                 <Label htmlFor="interest">Interest</Label>
-                <Input id="interest" value="0,00" readOnly />
+                <Input
+                  id="interest"
+                  value={formatCurrency(summary.interest)}
+                  readOnly
+                />
               </div>
               <div>
                 <Label htmlFor="debitNote">Debit Note</Label>
-                <Input id="debitNote" value="0,00" readOnly />
+                <Input
+                  id="debitNote"
+                  value={formatCurrency(summary.debit_note)}
+                  readOnly
+                />
               </div>
               <div>
                 <Label htmlFor="tax">Tax</Label>
-                <Input id="tax" value="0,00" readOnly />
+                <Input id="tax" value={formatCurrency(summary.tax)} readOnly />
               </div>
               <div>
                 <Label htmlFor="creditNote">Credit Note</Label>
-                <Input id="creditNote" value="0,00" readOnly />
+                <Input
+                  id="creditNote"
+                  value={formatCurrency(summary.credit_note)}
+                  readOnly
+                />
               </div>
               <div>
                 <Label htmlFor="receipt">Receipt</Label>
-                <Input id="receipt" value="0,00" readOnly />
+                <Input
+                  id="receipt"
+                  value={formatCurrency(summary.receipt)}
+                  readOnly
+                />
               </div>
               <div>
                 <Label htmlFor="forex">Forex Gain/Loss</Label>
-                <Input id="forex" value="0,00" readOnly />
+                <Input
+                  id="forex"
+                  value={formatCurrency(summary.forex)}
+                  readOnly
+                />
               </div>
               <div>
                 <Label htmlFor="balance">Balance</Label>
-                <Input id="balance" value="5.000.000,00" readOnly />
+                <Input
+                  id="balance"
+                  value={formatCurrency(summary.balance)}
+                  readOnly
+                />
               </div>
               <div>
                 <Label htmlFor="deposit">Deposit</Label>
-                <Input id="deposit" value="0,00" readOnly />
+                <Input
+                  id="deposit"
+                  value={formatCurrency(summary.deposit)}
+                  readOnly
+                />
               </div>
             </div>
           </CardContent>
