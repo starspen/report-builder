@@ -9,9 +9,15 @@ interface ClickableSteps {
   steps: string[];
   stepsContent: React.ReactNode[];
   onSubmit?: () => void;
+  direction?: "horizontal" | "vertical";
 }
 
-const ClickableStep = ({ steps, stepsContent, onSubmit }: ClickableSteps) => {
+const ClickableStep = ({
+  steps,
+  stepsContent,
+  onSubmit,
+  direction,
+}: ClickableSteps) => {
   const [activestep, setActiveStep] = React.useState<number>(0);
   const [skipped, setSkipped] = React.useState<Set<number>>(new Set());
   //   const steps: string[] = ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"];
@@ -73,8 +79,8 @@ const ClickableStep = ({ steps, stepsContent, onSubmit }: ClickableSteps) => {
       <div className="flex justify-center items-center">
         <Stepper
           current={activestep}
-          direction={isTablet ? "vertical" : "horizontal"}
-          className="w-1/4 flex"
+          direction={direction || isTablet ? "horizontal" : "horizontal"}
+          className="flex w-1/4"
         >
           {steps.map((label: any, index: any) => {
             const stepProps: { completed?: boolean } = {};

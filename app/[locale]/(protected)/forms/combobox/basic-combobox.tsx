@@ -27,6 +27,7 @@ import {
 export interface ComboboxOption {
   label: string;
   value: string;
+  key?: string;
 }
 
 export interface BasicComboboxProps {
@@ -40,6 +41,8 @@ export interface BasicComboboxProps {
   emptyText?: string;
   searchPlaceholder?: string;
   buttonClassName?: string;
+  onSearchChange?: (query: string) => void;
+  onScrollBottom?: () => void;
 }
 
 const BasicCombobox: React.FC<BasicComboboxProps> = ({
@@ -53,6 +56,8 @@ const BasicCombobox: React.FC<BasicComboboxProps> = ({
   searchPlaceholder = "Search...",
   onDelete,
   buttonClassName,
+  onSearchChange,
+  onScrollBottom,
 }) => {
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -91,16 +96,29 @@ const BasicCombobox: React.FC<BasicComboboxProps> = ({
           <CommandInput
             placeholder={searchPlaceholder}
             value={searchQuery}
-            onValueChange={setSearchQuery}
+            onValueChange={(val) => {
+              setSearchQuery(val);
+              onSearchChange?.(val);
+            }}
           />
-          <CommandList>
+          <CommandList
+            onScroll={(e) => {
+              const target = e.currentTarget;
+              if (
+                target.scrollTop + target.clientHeight >=
+                target.scrollHeight - 50
+              ) {
+                onScrollBottom?.();
+              }
+            }}
+          >
             {filteredOptions.length === 0 && (
               <CommandEmpty>{emptyText}</CommandEmpty>
             )}
             <CommandGroup>
-              {filteredOptions.map((option) => (
+              {filteredOptions.map((option, idx) => (
                 <CommandItem
-                  key={option.value}
+                  key={option.key ?? option.value + "-" + idx}
                   value={option.label}
                   onSelect={() => {
                     onChange(option.value);

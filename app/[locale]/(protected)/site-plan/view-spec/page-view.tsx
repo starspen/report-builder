@@ -133,13 +133,13 @@ export interface LotSpecData {
 
 const LotSpec = ({ data }: { data: LotSpecData }) => {
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="lg:grid lg:grid-cols-2 gap-2">
       <div className="flex flex-col col-span-1 space-y-3">
         <div className="text-lg font-bold">Specification</div>
-        <Card className="h-full">
+        <Card className="gap-2 lg:h-full">
           <CardHeader></CardHeader>
           <CardContent className="">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="lg:grid lg:grid-cols-2 gap-2 space-y-2 lg:space-y-0">
               <div className="flex flex-col col-span-1 space-y-2">
                 <Label>Property Type</Label>
                 <Input
@@ -186,10 +186,10 @@ const LotSpec = ({ data }: { data: LotSpecData }) => {
           </CardContent>
         </Card>
       </div>
-      <Card className="flex flex-col col-span-1 space-y-2 mt-10">
+      <Card className="flex flex-col col-span-1 space-y-2 mt-2 lg:mt-10">
         <CardHeader></CardHeader>
         <CardContent className="">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="lg:grid lg:grid-cols-2 gap-2 space-y-2 lg:space-y-0">
             <div className="flex flex-col col-span-1 space-y-2">
               <Label>Lot Type</Label>
               <Input
@@ -257,10 +257,10 @@ const LotSpec = ({ data }: { data: LotSpecData }) => {
           </div>
         </CardContent>
       </Card>
-      <Card className="flex flex-col col-span-1 space-y-2">
+      <Card className="flex flex-col col-span-1 space-y-2 mt-2 lg:mt-0">
         <CardHeader></CardHeader>
         <CardContent className="">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="lg:grid lg:grid-cols-2 gap-2 space-y-2 lg:space-y-0">
             <div className="flex flex-col col-span-1 space-y-2">
               <Label>Theme</Label>
               <Input
@@ -284,10 +284,10 @@ const LotSpec = ({ data }: { data: LotSpecData }) => {
           </div>
         </CardContent>
       </Card>
-      <Card className="flex flex-col col-span-1 space-y-2">
+      <Card className="flex flex-col col-span-1 space-y-2 mt-2 lg:mt-0">
         <CardHeader></CardHeader>
         <CardContent className="">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="lg:grid lg:grid-cols-2 gap-2 space-y-2 lg:space-y-0">
             <div className="flex flex-col col-span-1 space-y-2">
               <Label>Reference No.</Label>
               <Input

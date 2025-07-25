@@ -1,10 +1,5 @@
 // File: types/master-data.ts
 
-export interface City {
-  city: string;
-  district: string;
-}
-
 export interface Religion {
   cd: string;
   descs: string;
@@ -55,7 +50,6 @@ export interface StaffId {
 }
 
 export interface MasterDataResponse {
-  city: City[];
   religion: Religion[];
   term: Term[];
   classOptions: ClassOption[];

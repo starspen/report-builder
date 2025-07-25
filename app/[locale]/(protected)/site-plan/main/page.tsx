@@ -115,12 +115,12 @@ export default function Page() {
   return (
     <>
       <div className="w-full flex flex-col items-center bg-gray-100">
-        <div className="flex flex-row gap-4 max-w-6xl w-full justify-center items-center mb-4">
-          <Card>
+        <div className="flex flex-row gap-4 w-full justify-center items-center mb-4">
+          <Card className="w-full">
             <CardHeader>
               <CardTitle>Select Entity, Project, and Masterplan</CardTitle>
             </CardHeader>
-            <CardContent className="flex items-start justify-center gap-2">
+            <CardContent className="flex flex-col lg:flex-row lg:items-start lg:justify-center gap-2 w-full">
               <BasicCombobox
                 options={entities.map((e) => ({
                   label: e.entity_name,

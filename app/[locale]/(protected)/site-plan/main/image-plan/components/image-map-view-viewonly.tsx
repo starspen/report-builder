@@ -108,10 +108,18 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
 
   const handleShapeClick = (shape: Shape) => {
     if (shape.status === "B") {
-      return;
-    }
+      if (shape.lotId && shape.entity_cd && shape.project_no) {
+        const query = new URLSearchParams({
+          lot_no: shape.lotId,
+          entity_cd: shape.entity_cd,
+          project_no: shape.project_no,
+        }).toString();
 
-    if (shape.lotId && shape.entity_cd && shape.project_no) {
+        router.push(`/en/site-plan/view-spec?${query}`);
+      } else {
+        console.warn("Shape missing lotId, entity_cd, or project_no", shape);
+      }
+    } else if (shape.lotId && shape.entity_cd && shape.project_no) {
       const query = new URLSearchParams({
         lot_no: shape.lotId,
         entity_cd: shape.entity_cd,
@@ -302,6 +310,12 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                     if (e.evt instanceof MouseEvent && e.evt.button === 2) {
                       return; // Ignore right click
                     }
+                    if (shape.linkToArtboard) {
+                      setActiveArtboardId(shape.linkToArtboard);
+                    }
+                    handleShapeClick(s);
+                  }}
+                  onTap={() => {
                     if (shape.linkToArtboard) {
                       setActiveArtboardId(shape.linkToArtboard);
                     }
@@ -544,7 +558,22 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
               <p
                 className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
                 onClick={() => {
-                  window.location.href = `/en/site-plan/form`;
+                  setContextMenu({ ...contextMenu, visible: false });
+
+                  const shape = contextMenu.shape;
+
+                  // Pastikan semua parameter tersedia
+                  if (shape?.lot_no && shape?.entity_cd && shape?.project_no) {
+                    const query = new URLSearchParams({
+                      lot_no: shape.lot_no,
+                      entity_cd: shape.entity_cd,
+                      project_no: shape.project_no,
+                    }).toString();
+
+                    router.push(`/en/site-plan/form?${query}`);
+                  } else {
+                    console.warn("Shape missing required fields", shape);
+                  }
                 }}
               >
                 Go to Booking Form
