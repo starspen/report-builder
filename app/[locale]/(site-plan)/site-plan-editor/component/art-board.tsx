@@ -82,6 +82,10 @@ interface ArtBoardProps {
   selectedId: string | null;
   leftSidebarOpen: boolean;
   selectedMasterplan: MasterplanType | null;
+  openMenus: { [key: string]: boolean };
+  setOpenMenus: React.Dispatch<
+    React.SetStateAction<{ [key: string]: boolean }>
+  >;
 }
 
 export type Lot = {
@@ -115,8 +119,9 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
   selectedId,
   leftSidebarOpen,
   selectedMasterplan,
+  openMenus,
+  setOpenMenus,
 }) => {
-  const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
   const [artboardCount, setArtboardCount] = useState(2);
   const [artboardId, setArtboardId] = useState("2");
   const [hoveredMenuId, setHoveredMenuId] = useState<string | null>(null);
@@ -137,15 +142,19 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
   };
 
   useEffect(() => {
-    const newOpenMenus: { [key: string]: boolean } = {};
+    setOpenMenus((prev) => {
+      const updated = { ...prev };
 
-    menuItems.forEach((item) => {
-      if (item.children && item.children.length > 0) {
-        newOpenMenus[item.id] = true; // otomatis buka jika ada child
-      }
+      menuItems.forEach((item) => {
+        if (item.children && item.children.length > 0) {
+          if (updated[item.id] === undefined) {
+            updated[item.id] = true; // hanya set auto open kalau belum ada state
+          }
+        }
+      });
+
+      return updated;
     });
-
-    setOpenMenus((prev) => ({ ...prev, ...newOpenMenus }));
   }, [menuItems]);
 
   const handleDragStart = (event: any) => {
@@ -291,7 +300,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
     setMenuItems((items) => arrayMove(items, oldIndex, newIndex));
 
     // Tutup semua dropdown setelah reorder
-    setOpenMenus({ [activeArtboardId]: true });
+    setOpenMenus((prev) => ({ ...prev }));
   };
 
   return (

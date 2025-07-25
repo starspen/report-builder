@@ -61,6 +61,8 @@ const Editor = () => {
   );
   const [isLocked, setIsLocked] = useState(false);
 
+  const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
+
   const { data: session } = useSession();
   const auditUser = session?.user?.email ?? "";
 
@@ -595,6 +597,8 @@ const Editor = () => {
                 selectedId={selectedId}
                 leftSidebarOpen={leftSidebarOpen}
                 selectedMasterplan={selectedMasterplan}
+                openMenus={openMenus}
+                setOpenMenus={setOpenMenus}
               />
             </div>
           </div>
@@ -626,6 +630,8 @@ const Editor = () => {
               session={session}
               isLocked={isLocked}
               setIsLocked={setIsLocked}
+              openMenus={openMenus}
+              setOpenMenus={setOpenMenus}
             />
           </div>
 

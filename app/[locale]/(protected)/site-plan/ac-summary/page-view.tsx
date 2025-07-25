@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSearchParams } from "next/navigation";
 import React from "react";
 
 export interface AcSummaryProps {
@@ -38,8 +39,12 @@ const AcSummary = ({ data }: { data: AcSummaryProps[] }) => {
     })}`;
   };
 
+  const searchParams = useSearchParams();
+  const lotNoFromQuery = searchParams?.get("lot_no") || "";
+
   return (
     <>
+      <div className="text-lg font-semibold mb-2">{`Lot: ${lotNoFromQuery}`}</div>
       <div className="lg:grid lg:grid-cols-2 gap-2 space-y-2 lg:space-y-0">
         <Card className="col-span-1">
           <CardHeader>

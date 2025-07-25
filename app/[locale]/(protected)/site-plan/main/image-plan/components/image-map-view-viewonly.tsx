@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Stage, Layer, Line } from "react-konva";
+import {
+  Stage,
+  Layer,
+  Line,
+  Label,
+  Text as KonvaText,
+  Tag as Tags,
+} from "react-konva";
 import StretchableShape from "@/app/[locale]/(site-plan)/site-plan-editor/component/image-renderer";
 import {
   PolygonShape,
@@ -56,6 +63,11 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
   const [hoveredShapeId, setHoveredShapeId] = useState<string | null>(null);
   const submenuRef = useRef<HTMLDivElement>(null);
   const [submenuLeft, setSubmenuLeft] = useState<"100%" | "-100%">("100%");
+  const [tooltip, setTooltip] = useState<{
+    x: number;
+    y: number;
+    text: string;
+  } | null>(null);
 
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
@@ -134,20 +146,29 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
 
   const contextMenuRef = useRef<HTMLDivElement>(null);
 
-  const openContextMenu = (e: any, shape: Shape) => {
-    if (!shape.lotId) return;
+  const openContextMenu = (
+    e: any,
+    shape: Shape,
+    override?: { clientX: number; clientY: number }
+  ) => {
+    if (!shape.lot_no) {
+      return;
+    }
     const container = containerRef.current;
     const rect = container?.getBoundingClientRect();
     if (!rect) return;
 
     e.evt.preventDefault();
 
+    const clientX = override?.clientX ?? e.evt.clientX;
+    const clientY = override?.clientY ?? e.evt.clientY;
+
     const estimatedMenuWidth = 220;
     const estimatedMenuHeight = 150;
     const padding = 8;
 
-    let x = e.evt.clientX - rect.left;
-    let y = e.evt.clientY - rect.top;
+    let x = clientX - rect.left;
+    let y = clientY - rect.top;
 
     if (x + estimatedMenuWidth > rect.width) {
       x = rect.width - estimatedMenuWidth - padding;
@@ -210,8 +231,9 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
         const pointer = stage.getPointerPosition();
         setContextMenu({
           visible: true,
-          x: pointer?.x || 0,
-          y: pointer?.y || 0,
+          x: Number(pointer?.x) ?? 0,
+          y: Number(pointer?.y) ?? 0,
+
           shape: attrs as Shape,
         });
       }
@@ -264,6 +286,9 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
     }
   }, [showSubMenu, contextMenu.x]);
 
+  const holdTimeoutRef = useRef<any>(null);
+  const isHoldingRef = useRef(false);
+
   return (
     <div ref={containerRef} className="relative w-full h-[550px] z-0">
       <Stage
@@ -298,11 +323,40 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                     setHoveredShapeId(s.id);
                     const container = stageRef.current?.container();
                     if (container) container.style.cursor = "pointer";
+
+                    const stage = stageRef.current;
+                    if (!stage) return;
+                    const pos = stage.getPointerPosition();
+                    if (!pos) return;
+
+                    if (s.lot_no) {
+                      // ✅ hanya kalau ada lot_no
+                      setTooltip({
+                        x: pos.x + 10,
+                        y: pos.y + 10,
+                        text: `Lot No: ${s.lot_no}`,
+                      });
+                    } else {
+                      setTooltip(null); // ✅ kalau tidak ada lot_no, tooltip dihapus
+                    }
                   }}
+                  // ✅ Tooltip ikut bergerak bersama cursor
+                  onMouseMove={() => {
+                    const stage = stageRef.current;
+                    if (!stage) return;
+                    const pos = stage.getPointerPosition();
+                    if (!pos) return;
+
+                    setTooltip((prev) =>
+                      prev ? { ...prev, x: pos.x + 10, y: pos.y + 10 } : null
+                    );
+                  }}
+                  // ✅ Tooltip hilang saat mouse keluar
                   onMouseLeave={() => {
                     setHoveredShapeId(null);
                     const container = stageRef.current?.container();
                     if (container) container.style.cursor = "default";
+                    setTooltip(null);
                   }}
                   stroke="#333"
                   strokeWidth={1}
@@ -316,6 +370,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                     handleShapeClick(s);
                   }}
                   onTap={() => {
+                    if (isHoldingRef.current) return;
                     if (shape.linkToArtboard) {
                       setActiveArtboardId(shape.linkToArtboard);
                     }
@@ -327,6 +382,27 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                   //   }
                   // }}
                   onContextMenu={(e) => openContextMenu(e, s)}
+                  onTouchStart={(e) => {
+                    const touch = e.evt.touches?.[0];
+                    if (!touch) return;
+
+                    const clientX = touch.clientX;
+                    const clientY = touch.clientY;
+
+                    isHoldingRef.current = false;
+
+                    holdTimeoutRef.current = setTimeout(() => {
+                      isHoldingRef.current = true;
+                      openContextMenu(e, s, { clientX, clientY }); // ✅ Param ke-2 adalah `s`
+                    }, 600);
+                  }}
+                  onTouchEnd={() => {
+                    clearTimeout(holdTimeoutRef.current);
+
+                    setTimeout(() => {
+                      isHoldingRef.current = false;
+                    }, 50);
+                  }}
                 />
               );
             }
@@ -354,16 +430,39 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
 
                     handleShapeClick(shape);
                   }}
+                  onTap={() => {
+                    handleShapeClick(shape); // ✅ treat tap like click
+                  }}
                   onChange={() => {}}
                   mode="viewOnly"
-                  onContextMenu={(e) => openContextMenu(e, shape)}
+                  onContextMenu={(e, coords) =>
+                    openContextMenu(e, shape, coords)
+                  }
                   isLocked={!!shape.locked}
+                  showTooltip={true}
+                  getTooltipContent={(s) =>
+                    s.lot_no ? `Lot No: ${s.lot_no}` : null
+                  }
+                  containerWidth={300} // ✅ ukuran div container
+                  containerHeight={300}
+                  backgroundColor="#f0f0f0" // ✅ warna background
                 />
               );
             }
 
             return null;
           })}
+          {tooltip && (
+            <Label x={tooltip.x} y={tooltip.y}>
+              <Tags fill="black" opacity={0.75} cornerRadius={4} />
+              <KonvaText
+                text={tooltip.text}
+                fill="white"
+                fontSize={12}
+                padding={5}
+              />
+            </Label>
+          )}
         </Layer>
       </Stage>
 
@@ -372,8 +471,8 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
           ref={contextMenuRef}
           className="absolute bg-white shadow-md border rounded z-50"
           style={{
-            top: contextMenu.y,
-            left: contextMenu.x,
+            top: Number.isFinite(contextMenu.y) ? contextMenu.y : 0,
+            left: Number.isFinite(contextMenu.x) ? contextMenu.x : 0,
             padding: "0.5rem",
           }}
         >

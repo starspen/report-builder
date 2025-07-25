@@ -7,6 +7,9 @@ import {
   Image as KonvaImage,
   Ellipse as KonvaEllipse,
   Transformer,
+  Text as KonvaText,
+  Label,
+  Tag,
 } from "react-konva";
 import useImage from "use-image";
 
@@ -61,10 +64,20 @@ export type StretchableShapeProps = {
   selectedIds?: string[];
   isInGroup?: boolean;
   onDoubleClick?: (e: Konva.KonvaEventObject<Event>) => void;
-  onContextMenu?: (e: any) => void;
+  onContextMenu?: (
+    e: any,
+    coords?: { clientX: number; clientY: number }
+  ) => void;
+
   onClick?: (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => void;
   isLocked: boolean;
   listening?: boolean;
+  onTap?: (e: Konva.KonvaEventObject<TouchEvent>) => void;
+  showTooltip?: boolean;
+  getTooltipContent?: (shape: any) => string | null;
+  containerWidth?: number;
+  containerHeight?: number;
+  backgroundColor?: string;
 };
 
 // -----------------------------
@@ -85,6 +98,12 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   onClick,
   isLocked,
   listening,
+  onTap,
+  showTooltip,
+  getTooltipContent,
+  containerWidth,
+  containerHeight,
+  backgroundColor = "transparent",
 }) => {
   const ref = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -100,6 +119,11 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   }, [isSelected]);
 
   const isViewOnly = mode === "viewOnly";
+  const [tooltip, setTooltip] = useState<{
+    x: number;
+    y: number;
+    text: string;
+  } | null>(null);
 
   const common = {
     ref,
@@ -111,17 +135,72 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     strokeWidth: 1,
     listening: listening ?? true,
     draggable: !isViewOnly && !isInGroup && !shape.locked,
-    onClick: onSelect,
-    onTap: onSelect,
-    onMouseEnter: () => {
-      setIsHovered(true);
-      const container = ref.current?.getStage()?.container();
-      if (container) container.style.cursor = "pointer";
+    onClick: (e: any) => {
+      e.cancelBubble = true;
+      onSelect(e);
+      onClick?.(e); // ✅ Panggil juga handler parent
     },
+    onTap: (e: any) => {
+      e.cancelBubble = true;
+      onSelect(e);
+      onTap?.(e); // ✅ Panggil handler parent
+    },
+    onMouseEnter: (evt: any) => {
+      try {
+        setIsHovered(true);
+
+        const node = ref.current;
+        if (!node) return;
+
+        const stage = node.getStage?.();
+        if (!stage) return;
+
+        // ubah cursor menjadi pointer
+        stage.container().style.cursor = "pointer";
+
+        // kalau tooltip diaktifkan
+        if (showTooltip && getTooltipContent) {
+          const pos = stage.getPointerPosition?.();
+          if (!pos) return;
+
+          const text = getTooltipContent(shape);
+          if (!text) return;
+
+          // ✅ gunakan koordinat Konva, bukan DOM
+          setTooltip({
+            x: pos.x + 10, // geser sedikit biar tooltip tidak tepat di atas cursor
+            y: pos.y + 10,
+            text,
+          });
+        }
+      } catch (err) {
+        console.warn("Tooltip error ignored:", err);
+      }
+    },
+
+    onMouseMove: (evt: any) => {
+      try {
+        const stage = ref.current?.getStage?.();
+        if (!stage) return;
+
+        const pos = stage.getPointerPosition?.();
+        if (!pos) return;
+
+        // update posisi tooltip supaya ikut cursor
+        setTooltip((prev) =>
+          prev ? { ...prev, x: pos.x + 10, y: pos.y + 10 } : null
+        );
+      } catch (err) {
+        console.warn("Tooltip move error ignored:", err);
+      }
+    },
+
     onMouseLeave: () => {
       setIsHovered(false);
-      const container = ref.current?.getStage()?.container();
-      if (container) container.style.cursor = "default";
+      setTooltip(null);
+
+      const stage = ref.current?.getStage?.();
+      if (stage) stage.container().style.cursor = "default";
     },
   } as const;
 
@@ -186,49 +265,80 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     onChange({ x, y });
   };
 
+  const holdTimeoutRef = useRef<any>(null);
+  const isHoldingRef = useRef(false);
+
   let element = null;
   if (shape.type === "rect") {
     element = (
-      <KonvaRect
-        {...common}
-        width={(shape as RectShape).width}
-        height={(shape as RectShape).height}
-        onDragEnd={isInGroup ? undefined : handleDragEnd}
-        onTransformEnd={handleTransformEnd}
-        onClick={(e) => {
-          e.cancelBubble = true;
+      <>
+        <KonvaRect
+          {...common}
+          width={(shape as RectShape).width}
+          height={(shape as RectShape).height}
+          onDragEnd={isInGroup ? undefined : handleDragEnd}
+          onTransformEnd={handleTransformEnd}
+          onClick={(e) => {
+            e.cancelBubble = true;
 
-          // Biarkan shape langsung di-select tanpa klik tambahan
-          if (setSelectedIds && selectedIds) {
-            if (e.evt.shiftKey) {
-              setSelectedIds((prev) =>
-                prev.includes(shape.id) ? prev : [...prev, shape.id]
-              );
-            } else {
-              setSelectedIds([shape.id]);
+            // Biarkan shape langsung di-select tanpa klik tambahan
+            if (setSelectedIds && selectedIds) {
+              if (e.evt.shiftKey) {
+                setSelectedIds((prev) =>
+                  prev.includes(shape.id) ? prev : [...prev, shape.id]
+                );
+              } else {
+                setSelectedIds([shape.id]);
+              }
             }
-          }
 
-          // Panggil onSelect satu kali, cukup
-          onSelect(e);
-          onClick?.(e);
-        }}
-        onTap={(e) => {
-          e.cancelBubble = true;
-          onSelect(e);
-        }}
-        onDblClick={(e) => {
-          e.cancelBubble = true;
-          onDoubleClick?.(e); // 🟡 optional
-          onSelect(e);
-        }}
-        onDblTap={(e) => {
-          e.cancelBubble = true;
-          onDoubleClick?.(e);
-          onSelect(e); // 🟡 for touch
-        }}
-        onContextMenu={onContextMenu}
-      />
+            // Panggil onSelect satu kali, cukup
+            onSelect(e);
+            onClick?.(e);
+          }}
+          onTap={(e) => {
+            e.cancelBubble = true;
+            onSelect(e);
+          }}
+          onDblClick={(e) => {
+            e.cancelBubble = true;
+            onDoubleClick?.(e); // 🟡 optional
+            onSelect(e);
+          }}
+          onDblTap={(e) => {
+            e.cancelBubble = true;
+            onDoubleClick?.(e);
+            onSelect(e); // 🟡 for touch
+          }}
+          onContextMenu={onContextMenu}
+          onTouchStart={(e) => {
+            const touch = e.evt.touches?.[0];
+            if (!touch) return;
+
+            isHoldingRef.current = false;
+
+            const clientX = touch.clientX;
+            const clientY = touch.clientY;
+
+            holdTimeoutRef.current = setTimeout(() => {
+              isHoldingRef.current = true;
+              onContextMenu?.(e, { clientX, clientY });
+            }, 600);
+          }}
+          onTouchEnd={(e) => {
+            clearTimeout(holdTimeoutRef.current);
+
+            // Cegah tap setelah hold
+            if (!isHoldingRef.current) {
+              onTap?.(e);
+            }
+
+            setTimeout(() => {
+              isHoldingRef.current = false;
+            }, 50);
+          }}
+        />
+      </>
     );
   } else if (shape.type === "ellipse") {
     element = (
@@ -272,6 +382,32 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           onSelect(e);
         }}
         onContextMenu={onContextMenu}
+        onTouchStart={(e) => {
+          const touch = e.evt.touches?.[0];
+          if (!touch) return;
+
+          isHoldingRef.current = false;
+
+          const clientX = touch.clientX;
+          const clientY = touch.clientY;
+
+          holdTimeoutRef.current = setTimeout(() => {
+            isHoldingRef.current = true;
+            onContextMenu?.(e, { clientX, clientY });
+          }, 600);
+        }}
+        onTouchEnd={(e) => {
+          clearTimeout(holdTimeoutRef.current);
+
+          // Cegah tap setelah hold
+          if (!isHoldingRef.current) {
+            onTap?.(e);
+          }
+
+          setTimeout(() => {
+            isHoldingRef.current = false;
+          }, 50);
+        }}
       />
     );
   } else if (shape.type === "circle") {
@@ -317,6 +453,32 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           onSelect(e);
         }}
         onContextMenu={onContextMenu}
+        onTouchStart={(e) => {
+          const touch = e.evt.touches?.[0];
+          if (!touch) return;
+
+          isHoldingRef.current = false;
+
+          const clientX = touch.clientX;
+          const clientY = touch.clientY;
+
+          holdTimeoutRef.current = setTimeout(() => {
+            isHoldingRef.current = true;
+            onContextMenu?.(e, { clientX, clientY });
+          }, 600);
+        }}
+        onTouchEnd={(e) => {
+          clearTimeout(holdTimeoutRef.current);
+
+          // Cegah tap setelah hold
+          if (!isHoldingRef.current) {
+            onTap?.(e);
+          }
+
+          setTimeout(() => {
+            isHoldingRef.current = false;
+          }, 50);
+        }}
       />
     );
   } else {
@@ -367,10 +529,54 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     );
   }
 
+  let elements = null;
+  if (shape.type === "rect") {
+    elements = (
+      <KonvaRect
+        {...common}
+        width={(shape as RectShape).width}
+        height={(shape as RectShape).height}
+      />
+    );
+  } else if (shape.type === "ellipse") {
+    elements = (
+      <KonvaEllipse
+        {...common}
+        radiusX={(shape as EllipseShape).radiusX}
+        radiusY={(shape as EllipseShape).radiusY}
+      />
+    );
+  } else if (shape.type === "circle") {
+    elements = (
+      <KonvaCircle {...common} radius={(shape as CircleShape).radius} />
+    );
+  } else {
+    elements = (
+      <KonvaImage
+        {...common}
+        image={img}
+        width={(shape as ImageShape).width}
+        height={(shape as ImageShape).height}
+      />
+    );
+  }
+
   return (
     <>
       {element}
       {isSelected && <Transformer ref={trRef} rotateEnabled={false} />}
+
+      {tooltip && (
+        <Label x={tooltip.x} y={tooltip.y}>
+          <Tag fill="black" opacity={0.75} cornerRadius={4} />
+          <KonvaText
+            text={tooltip.text}
+            fill="white"
+            fontSize={12}
+            padding={5}
+          />
+        </Label>
+      )}
     </>
   );
 };

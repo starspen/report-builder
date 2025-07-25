@@ -4,6 +4,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/advanced/components/data-table";
 import { ScheduleBillingColumns } from "./components/columns";
+import { useSearchParams } from "next/navigation";
 
 export interface ScheduleBillingProps {
   entity_cd: string;
@@ -18,11 +19,18 @@ export interface ScheduleBillingProps {
 }
 
 const ScheduleBilling = ({ data }: { data: ScheduleBillingProps[] }) => {
+  const searchParams = useSearchParams();
+  const lotNoFromQuery = searchParams?.get("lot_no") || "";
   return (
     <div>
       <Card>
         <CardHeader>
-          <CardTitle>Schedule Billing</CardTitle>
+          <CardTitle>
+            <div className="space-y-2">
+              <div>Schedule Billing</div>
+              <div className="text-lg">{`Lot: ${lotNoFromQuery}`}</div>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <DataTable columns={ScheduleBillingColumns} data={data ?? []} />

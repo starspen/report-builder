@@ -23,7 +23,7 @@ const HeaderLogo = () => {
       ) : (
         <GOBLogo className="h-8 w-8 text-default-900 [&>path:nth-child(2)]:text-background [&>path:nth-child(3)]:text-background" />
       )}
-      <h1 className="hidden text-xl font-semibold text-default-900 lg:block">
+      <h1 className="hidden text-xl font-semibold text-default-900">
         {PROJECT_NAME === "Btid" ? "BTID" : "GOB"}
       </h1>
     </Link>
@@ -36,7 +36,7 @@ const HeaderLogo = () => {
         ) : (
           <GOBLogo className="h-10 w-10 text-default-900 [&>path:nth-child(2)]:text-background [&>path:nth-child(3)]:text-background" />
         )}
-        <h1 className="hidden text-xl font-semibold text-default-900 lg:block">
+        <h1 className="hidden text-xl font-semibold text-default-900">
           {PROJECT_NAME === "Btid" ? "BTID" : "GOB"}
         </h1>
       </Link>

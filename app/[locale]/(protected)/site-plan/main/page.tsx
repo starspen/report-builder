@@ -127,6 +127,7 @@ export default function Page() {
                   value: e.entity_cd,
                 }))}
                 placeholder="Select Entity"
+                className="w-full min-w-fit"
                 value={entityCode}
                 onChange={(val) => {
                   localStorage.setItem("selected_entity_cd", val);
@@ -146,6 +147,7 @@ export default function Page() {
                   value: p.project_no,
                 }))}
                 placeholder="Select Project"
+                className="min-w-fit"
                 value={projectCode}
                 onChange={(val) => {
                   localStorage.setItem("selected_project_no", val);
@@ -163,6 +165,7 @@ export default function Page() {
                   value: m.id,
                 }))}
                 placeholder="Select Masterplan"
+                className="min-w-fit"
                 value={masterplanCode}
                 onChange={(val) => {
                   localStorage.setItem("selected_masterplan_id", val); // ✅ Tambahkan ini
@@ -177,7 +180,7 @@ export default function Page() {
       {masterplanCode && (
         <BasicCombobox
           className="mb-4 w-1/4 bg-white"
-          buttonClassName="mb-4 w-1/4 bg-white"
+          buttonClassName="mb-4 w-1/4 min-w-fit bg-white"
           options={menuItems.map((item) => ({
             label: item.title,
             value: item.id,

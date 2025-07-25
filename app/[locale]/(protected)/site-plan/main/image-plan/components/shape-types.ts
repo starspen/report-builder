@@ -30,6 +30,7 @@ export type PolygonShape = ShapeBase & {
   type: "polygon";
   points: number[];
   status?: string;
+  lot_no: string;
 };
 
 export type ImageShape = ShapeBase & {

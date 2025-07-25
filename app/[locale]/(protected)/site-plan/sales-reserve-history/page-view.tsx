@@ -5,6 +5,7 @@ import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import React from "react";
 import { SalesReserveColumns } from "./components/columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSearchParams } from "next/navigation";
 
 export interface SalesReserveHistoryProps {
   entity_cd: string;
@@ -23,11 +24,19 @@ const SalesReserveHistory = ({
 }: {
   data: SalesReserveHistoryProps[];
 }) => {
+  const searchParams = useSearchParams();
+  const lotNoFromQuery = searchParams?.get("lot_no") || "";
+
   return (
     <div>
       <Card>
         <CardHeader>
-          <CardTitle>Sales Reserve History</CardTitle>
+          <CardTitle>
+            <div className="space-y-2">
+              <div>Sales Reserve History</div>
+              <div className="text-lg">{`Lot: ${lotNoFromQuery}`}</div>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <DataTable columns={SalesReserveColumns} data={data} />

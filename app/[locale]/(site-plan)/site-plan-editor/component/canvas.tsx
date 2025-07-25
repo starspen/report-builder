@@ -76,6 +76,10 @@ interface ImageMapViewProps {
   session: any;
   isLocked: boolean;
   setIsLocked: React.Dispatch<React.SetStateAction<boolean>>;
+  openMenus?: { [key: string]: boolean };
+  setOpenMenus?: React.Dispatch<
+    React.SetStateAction<{ [key: string]: boolean }>
+  >;
 }
 
 export const LOT_COLOR_MAP = {
@@ -109,6 +113,8 @@ const ImageMapView = ({
   session,
   isLocked,
   setIsLocked,
+  openMenus,
+  setOpenMenus,
 }: ImageMapViewProps) => {
   const stageRef = useRef<any>(null);
   const [isDrawingPoly, setIsDrawingPoly] = useState(false);
@@ -290,6 +296,13 @@ const ImageMapView = ({
     }
 
     setDrawingShape(null);
+    if (setOpenMenus) {
+      setOpenMenus((prev) => ({
+        ...prev,
+        [activeArtboardId]: true, // hanya pastikan artboard ini terbuka
+      }));
+    }
+
     setMode("default");
   };
 
@@ -299,6 +312,16 @@ const ImageMapView = ({
     const firstY = currentPolyPoints[1];
     const dx = x - firstX;
     const dy = y - firstY;
+
+    if (Math.sqrt(dx * dx + dy * dy) < TOLERANCE) {
+      if (setOpenMenus) {
+        setOpenMenus((prev) => ({
+          ...prev,
+          [activeArtboardId]: true, // hanya pastikan artboard ini terbuka
+        }));
+      }
+    }
+
     return Math.sqrt(dx * dx + dy * dy) < TOLERANCE;
   };
 
