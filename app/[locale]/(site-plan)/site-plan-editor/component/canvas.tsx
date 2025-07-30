@@ -826,8 +826,8 @@ const ImageMapView = ({
 
   return (
     <div>
-      <div className="flex h-auto py-2 bg-sidebar mb-4 pl-2 border border-b-inherit border-l-0 border-r-0">
-        <div className="ml-4 flex gap-2">
+      <div className="flex h-auto py-2 bg-sidebar mb-4 pl-2 border border-b-inherit border-l-0 border-r-0 overflow-x-auto">
+        <div className="ml-4 flex gap-2 mb-2">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -1000,7 +1000,7 @@ const ImageMapView = ({
             </TooltipContent>
           </Tooltip> */}
 
-          <div className="grid w-full max-w-sm items-center gap-3">
+          <div className="grid w-full max-w-sm items-center gap-3 ">
             <Tooltip>
               <TooltipTrigger>
                 <input
