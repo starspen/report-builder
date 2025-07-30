@@ -92,6 +92,17 @@ const Editor = () => {
 
   const [isCreatingNewSiteplan, setIsCreatingNewSiteplan] = useState(false);
   const [siteplanName, setSiteplanName] = useState("");
+  const [menuItemsHistory, setMenuItemsHistory] = useState<
+    ArtboardMenuItem[][]
+  >([]);
+  const [artboardShapesHistory, setArtboardShapesHistory] = useState<
+    { [id: string]: any[] }[]
+  >([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  const [isUndoRedo, setIsUndoRedo] = useState(false);
+  const [activeArtboardHistory, setActiveArtboardHistory] = useState<string[]>(
+    []
+  );
 
   const queryClient = useQueryClient();
 
@@ -136,6 +147,74 @@ const Editor = () => {
         return { ...item, children: updatedChildren };
       })
     );
+  };
+
+  const handleDeleteArtboard = (id: string) => {
+    // Hitung state baru dulu
+    const newMenuItems = menuItems.filter((item) => item.id !== id);
+    const newArtboardShapes = { ...artboardShapes };
+    delete newArtboardShapes[id];
+
+    setMenuItems(newMenuItems);
+    setArtboardShapes(newArtboardShapes);
+
+    // Reset activeArtboardId jika perlu
+    if (activeArtboardId === id) {
+      setActiveArtboardId(newMenuItems.length > 0 ? newMenuItems[0].id : "");
+    }
+    // Reset selectedId jika perlu
+    if (artboardShapes[id]?.some((shape) => shape.id === selectedId)) {
+      setSelectedId(null);
+    }
+  };
+
+  const handleEditChild = (
+    artboardId: string,
+    childId: string,
+    newTitle: string
+  ) => {
+    setArtboardShapes((prev) => ({
+      ...prev,
+      [artboardId]: prev[artboardId].map((shape) =>
+        shape.id === childId ? { ...shape, title: newTitle } : shape
+      ),
+    }));
+    // Jika ingin update menuItems children juga:
+    setMenuItems((prev) =>
+      prev.map((item) =>
+        item.id === artboardId
+          ? {
+              ...item,
+              children: item.children.map((child) =>
+                child.url === `#${childId}`
+                  ? { ...child, title: newTitle }
+                  : child
+              ),
+            }
+          : item
+      )
+    );
+  };
+
+  const handleDeleteChild = (artboardId: string, childId: string) => {
+    setArtboardShapes((prev) => ({
+      ...prev,
+      [artboardId]: prev[artboardId].filter((shape) => shape.id !== childId),
+    }));
+    setMenuItems((prev) =>
+      prev.map((item) =>
+        item.id === artboardId
+          ? {
+              ...item,
+              children: item.children.filter(
+                (child) => child.url !== `#${childId}`
+              ),
+            }
+          : item
+      )
+    );
+    // Optional: reset selectedId jika child yang dihapus sedang terseleksi
+    if (selectedId === childId) setSelectedId(null);
   };
 
   const {
@@ -217,6 +296,36 @@ const Editor = () => {
       name: siteplanName,
       audit_user: auditUser, // Anda bisa ganti dinamis sesuai user login
     });
+  };
+
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      console.log("▶️ UNDO pressed");
+      console.log("⏪ Current historyIndex:", historyIndex);
+      setIsUndoRedo(true);
+      setMenuItems(menuItemsHistory[historyIndex - 1]);
+      setArtboardShapes(artboardShapesHistory[historyIndex - 1]);
+      setActiveArtboardId(activeArtboardHistory[historyIndex - 1]);
+      setHistoryIndex(historyIndex - 1);
+
+      // Tambahkan ini:
+      setTimeout(() => setIsUndoRedo(false), 0);
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIndex < menuItemsHistory.length - 1) {
+      console.log("▶️ REDO pressed");
+      console.log("⏩ Current historyIndex:", historyIndex);
+      setIsUndoRedo(true);
+      setMenuItems(menuItemsHistory[historyIndex + 1]);
+      setArtboardShapes(artboardShapesHistory[historyIndex + 1]);
+      setActiveArtboardId(activeArtboardHistory[historyIndex + 1]);
+      setHistoryIndex(historyIndex + 1);
+
+      // Tambahkan ini:
+      setTimeout(() => setIsUndoRedo(false), 0);
+    }
   };
 
   const { mutate: saveMasterplanMutate } = useMutation({
@@ -395,6 +504,55 @@ const Editor = () => {
       setIsCreatingNewSiteplan(false);
     }
   }, [masterplanId]);
+
+  useEffect(() => {
+    if (isUndoRedo) {
+      setIsUndoRedo(false);
+      return;
+    }
+
+    // 🚨 cek apakah state terakhir sama dengan state yang akan ditulis
+    const lastMenuState = menuItemsHistory[historyIndex];
+    const lastShapeState = artboardShapesHistory[historyIndex];
+
+    if (
+      JSON.stringify(lastMenuState) === JSON.stringify(menuItems) &&
+      JSON.stringify(lastShapeState) === JSON.stringify(artboardShapes)
+    ) {
+      console.log("⚠️ State sama, tidak push ke history");
+      return;
+    }
+
+    // kalau beda → baru push
+    setMenuItemsHistory([
+      ...menuItemsHistory.slice(0, historyIndex + 1),
+      menuItems,
+    ]);
+    setArtboardShapesHistory([
+      ...artboardShapesHistory.slice(0, historyIndex + 1),
+      artboardShapes,
+    ]);
+    setActiveArtboardHistory((prev) => [
+      ...prev.slice(0, historyIndex + 1),
+      activeArtboardId,
+    ]);
+    setHistoryIndex(historyIndex + 1);
+  }, [menuItems, artboardShapes, activeArtboardId]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "z") {
+        e.preventDefault();
+        handleUndo();
+      }
+      if (e.ctrlKey && e.key === "y") {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [historyIndex, menuItemsHistory, artboardShapesHistory]);
 
   if (!isEditorMode && !isCreatingNewSiteplan) {
     return (
@@ -599,6 +757,9 @@ const Editor = () => {
                 selectedMasterplan={selectedMasterplan}
                 openMenus={openMenus}
                 setOpenMenus={setOpenMenus}
+                handleDeleteArtboard={handleDeleteArtboard}
+                handleEditChild={handleEditChild}
+                handleDeleteChild={handleDeleteChild}
               />
             </div>
           </div>

@@ -131,7 +131,7 @@ const ClickableStep = ({
               size="sm"
               variant="outline"
               color="destructive"
-              className="cursor-pointer"
+              className={activestep === 0 ? "hidden" : "cursor-pointer"}
               disabled={activestep === 0}
               onClick={handleBack}
             >

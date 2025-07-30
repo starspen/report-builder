@@ -16,6 +16,7 @@ interface StretchablePolygonProps {
   isInGroup?: boolean;
   isLocked: boolean;
   listening?: boolean;
+  draggable?: boolean;
 }
 
 const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
@@ -29,6 +30,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
   isInGroup = false,
   isLocked,
   listening,
+  draggable,
 }) => {
   const shapeRef = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -97,7 +99,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
         stroke="#333"
         strokeWidth={1}
         opacity={isHovered ? 0.8 : 0.5}
-        draggable={!shape.locked}
+        draggable={draggable ?? !shape.locked}
         onDragEnd={isInGroup ? undefined : handleDragEnd}
         onMouseEnter={() => {
           setIsHovered(true);
@@ -145,7 +147,7 @@ const StretchablePolygon: React.FC<StretchablePolygonProps> = ({
               fill="#facc15"
               stroke="#333"
               strokeWidth={1 / stageScale}
-              draggable={!shape.locked}
+              draggable={draggable ?? !shape.locked}
               onDragMove={(e) => handlePointDrag(idx / 2, e)}
               onClick={(e) => {
                 e.cancelBubble = true;

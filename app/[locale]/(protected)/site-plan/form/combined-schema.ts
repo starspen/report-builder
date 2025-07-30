@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const bookingSchema = z.object({
+  businessId: z.string(),
   class: z.string(),
   company: z.string(),
   salutation: z.string(),

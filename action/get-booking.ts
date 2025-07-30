@@ -39,6 +39,7 @@ export interface Currency {
 export interface PackageOptions {
   cd: string;
   descs: string;
+  scheme_cd: string;
 }
 export interface DebtorType {
   cd: string;
@@ -47,6 +48,27 @@ export interface DebtorType {
 export interface StaffId {
   cd: string;
   descs: string;
+}
+export interface SalesEvent {
+  cd: string;
+  descs: string;
+}
+export interface SChannel {
+  cd: string;
+  descs: string;
+}
+export interface Salesman {
+  group_cd: string;
+  cd: string;
+  descs: string;
+}
+export interface Nationality {
+  cd: string;
+  descs: string;
+}
+export interface Payment {
+  payment_cd: string;
+  tax_cd: string;
 }
 
 export interface MasterDataResponse {
@@ -61,6 +83,11 @@ export interface MasterDataResponse {
   packageOptions: PackageOptions[];
   debtorType: DebtorType[];
   staff: StaffId[];
+  salesEvent: SalesEvent[];
+  sChannel: SChannel[];
+  salesman: Salesman[];
+  nationality: Nationality[];
+  payment: Payment[];
 }
 
 export interface JsonResponse {
@@ -71,7 +98,8 @@ export interface JsonResponse {
 
 export const getMasterData = async (
   entity_cd: string,
-  project_no: string
+  project_no: string,
+  lot_no: string
 ): Promise<JsonResponse["data"]> => {
   const mode = process.env.NEXT_PUBLIC_ENV_MODE;
   const baseUrl =
@@ -82,6 +110,7 @@ export const getMasterData = async (
   const url = new URL(`${baseUrl}/api/booking/options`);
   url.searchParams.append("entity_cd", entity_cd);
   url.searchParams.append("project_no", project_no);
+  url.searchParams.append("lot_no", lot_no);
 
   const response = await fetch(url.toString(), {
     method: "GET",

@@ -376,7 +376,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           )}
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Reset Image</p>
+                          <p>Reset Group</p>
                         </TooltipContent>
                       </Tooltip>
                     </Label>
@@ -421,7 +421,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           )}
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Reset Image</p>
+                          <p>Reset Destination</p>
                         </TooltipContent>
                       </Tooltip>
                     </Label>

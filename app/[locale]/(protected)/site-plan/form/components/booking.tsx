@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { boolean, date, z } from "zod";
@@ -70,6 +70,17 @@ const Booking = ({
   const searchParams = useSearchParams();
   const lotNoFromQuery = searchParams?.get("lot_no") || "";
 
+  useEffect(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    const suffix = `${yyyy}${mm}${dd}`;
+    if (lotNoFromQuery) {
+      form.setValue("businessId", `${lotNoFromQuery}-${suffix}`);
+    }
+  }, [lotNoFromQuery, form]);
+
   return (
     <>
       <Card>
@@ -86,6 +97,20 @@ const Booking = ({
               className="space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 gap-4"
             >
               {/* Kolom 1 */}
+
+              <FormField
+                control={form.control}
+                name="businessId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business ID</FormLabel>
+                    <FormControl>
+                      <Input {...field} readOnly />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -288,6 +313,32 @@ const Booking = ({
                         {...field}
                         className="rounded-md border-default bg-white"
                         placeholder="Enter HP 2nd"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="Nationality"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nationality</FormLabel>
+                    <FormControl>
+                      <BasicCombobox
+                        buttonClassName="h-9 bg-white"
+                        options={
+                          masterData?.nationality.map((c, index) => ({
+                            label: `${c.descs} `,
+                            value: `${c.cd}`,
+                          })) || []
+                        }
+                        placeholder="Select Nationality"
+                        value={field.value}
+                        onChange={(selectedValue) =>
+                          field.onChange(selectedValue)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -504,7 +555,7 @@ const Booking = ({
                 name="stat"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>stat</FormLabel>
+                    <FormLabel>Stat</FormLabel>
                     <FormControl>
                       <BasicCombobox
                         buttonClassName="h-9 bg-white"

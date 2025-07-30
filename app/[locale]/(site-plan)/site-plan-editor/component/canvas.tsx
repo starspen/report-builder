@@ -30,6 +30,8 @@ import {
   PanelLeft,
   Save,
   Upload,
+  Hand,
+  MousePointer,
 } from "lucide-react";
 import StretchablePolygon from "./stretchable-polygon";
 import { ArtboardMenuItem } from "./art-board";
@@ -48,7 +50,8 @@ export type DrawMode =
   | "drawRect"
   | "drawCircle"
   | "viewOnly"
-  | "drawEllipse";
+  | "drawEllipse"
+  | "panning";
 interface ImageMapViewProps {
   shapes: any[];
   setArtboardShapes: React.Dispatch<
@@ -147,6 +150,8 @@ const ImageMapView = ({
     originalGroup: GroupShape;
     fromGroupId: string;
   } | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const togglePanning = () => setIsPanning((prev) => !prev);
   const isDrawMode =
     mode === "drawPolygon" ||
     mode === "drawRect" ||
@@ -369,6 +374,10 @@ const ImageMapView = ({
   };
 
   const handleStageClick = (e: any) => {
+    if (mode === "panning") {
+      e.cancelBubble = true;
+      return;
+    }
     const clickedOnEmpty = e.target === e.target.getStage();
 
     // ✅ 1. Handle polygon dulu
@@ -477,17 +486,18 @@ const ImageMapView = ({
       const isInput =
         target.tagName === "INPUT" || target.tagName === "TEXTAREA";
       if (isInput) return;
-
       if (e.key === "Delete") {
         deleteSelected();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
-        undo();
-      } else if (
-        (e.ctrlKey || e.metaKey) &&
-        (e.key === "y" || (e.key === "z" && e.shiftKey))
-      ) {
-        redo();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+      }
+      //  else if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+      //   undo();
+      // } else if (
+      //   (e.ctrlKey || e.metaKey) &&
+      //   (e.key === "y" || (e.key === "z" && e.shiftKey))
+      // ) {
+      //   redo();
+      // }
+      else if ((e.ctrlKey || e.metaKey) && e.key === "c") {
         // Copy
         if (selectedId) {
           const shape = shapes.find((s) => s.id === selectedId);
@@ -703,12 +713,55 @@ const ImageMapView = ({
     setStagePos({ x: centerX, y: centerY });
   };
 
+  // ...existing code...
+  const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
+    null
+  );
+  // ...existing code...
+
+  const handleStageMouseDown = (e: any) => {
+    if (mode === "panning") {
+      setIsDraggingCanvas(true);
+      const pointer = stageRef.current.getPointerPosition();
+      if (pointer) setDragStart(pointer);
+    } else {
+      handleDrawStart(e);
+    }
+  };
+
+  const handleStageMouseMove = (e: any) => {
+    if (isDraggingCanvas && dragStart) {
+      const pointer = stageRef.current.getPointerPosition();
+      if (pointer) {
+        setStagePos((prev) => ({
+          x: prev.x + (pointer.x - dragStart.x),
+          y: prev.y + (pointer.y - dragStart.y),
+        }));
+        setDragStart(pointer);
+      }
+    } else {
+      handleDrawMove(e);
+    }
+  };
+
+  const handleStageMouseUp = (e: any) => {
+    if (isDraggingCanvas) {
+      setIsDraggingCanvas(false);
+      setDragStart(null);
+    } else {
+      handleDrawEnd(e);
+    }
+  };
+
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       fitStageToShapes();
-    }, 100); // Delay sedikit untuk memastikan ukuran sudah stabil
+    }, 100);
     return () => clearTimeout(timeout);
-  }, [shapes]);
+  }, [activeArtboardId]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -724,6 +777,21 @@ const ImageMapView = ({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space") setMode("panning");
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space") setMode("default");
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [setMode]);
 
   // useEffect(() => {
   //   if (selectedMasterplan?.shapes && selectedMasterplan?.lots) {
@@ -763,7 +831,38 @@ const ImageMapView = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={startDrawRect}
+                onClick={() =>
+                  setMode(mode === "panning" ? "default" : "panning")
+                }
+                variant={mode === "panning" ? "default" : "ghost"}
+                className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+                style={
+                  mode === "panning" ? { background: "#facc15" } : undefined
+                }
+              >
+                {mode === "panning" ? (
+                  <MousePointer className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                ) : (
+                  <Hand className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                {mode === "panning"
+                  ? "Cancel Drag Canvas"
+                  : "Drag Canvas (Hold Space)"}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+          <div className="h-full w-2 bg-slate-500"></div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => {
+                  setIsPanning(false);
+                  startDrawRect();
+                }}
                 style={{
                   background: mode === "drawRect" ? "#facc15" : undefined,
                 }}
@@ -786,7 +885,10 @@ const ImageMapView = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={startDrawEllipse}
+                onClick={() => {
+                  setIsPanning(false);
+                  startDrawEllipse();
+                }}
                 style={{
                   background: mode === "drawEllipse" ? "#facc15" : undefined,
                 }}
@@ -809,7 +911,10 @@ const ImageMapView = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={startDrawCircle}
+                onClick={() => {
+                  setIsPanning(false);
+                  startDrawCircle();
+                }}
                 style={{
                   background: mode === "drawCircle" ? "#facc15" : undefined,
                 }}
@@ -832,7 +937,10 @@ const ImageMapView = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={startPolygon}
+                onClick={() => {
+                  setIsPanning(false);
+                  startPolygon();
+                }}
                 style={{ background: isDrawingPoly ? "#facc15" : undefined }}
                 variant="ghost"
                 className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
@@ -1013,9 +1121,9 @@ const ImageMapView = ({
             onClick={handleStageClick}
             draggable={mode === "default" && !isDraggingGroup}
             onWheel={handleWheel}
-            onMouseDown={handleDrawStart}
-            onMouseMove={handleDrawMove}
-            onMouseUp={handleDrawEnd}
+            onMouseDown={handleStageMouseDown}
+            onMouseMove={handleStageMouseMove}
+            onMouseUp={handleStageMouseUp}
             onDragMove={(e) => {
               if (e.target === stageRef.current) {
                 setStagePos(e.target.position());
@@ -1033,7 +1141,9 @@ const ImageMapView = ({
             style={{
               background: "#fff",
               cursor:
-                mode === "drawPolygon"
+                mode === "panning"
+                  ? "grab"
+                  : mode === "drawPolygon"
                   ? "crosshair"
                   : ["drawRect", "drawCircle", "drawEllipse"].includes(mode)
                   ? "crosshair"
@@ -1071,7 +1181,11 @@ const ImageMapView = ({
                       key={shape.id}
                       shape={shape}
                       isSelected={shape.id === selectedId}
-                      onSelect={() => {
+                      onSelect={(e) => {
+                        if (mode === "panning") {
+                          e.cancelBubble = true;
+                          return;
+                        }
                         if (isPreviewMode && shape.linkToArtboard) {
                           setActiveArtboardId(shape.linkToArtboard);
                         } else {
@@ -1085,6 +1199,7 @@ const ImageMapView = ({
                       isInGroup={false}
                       isLocked={isLocked}
                       listening={!isDrawMode}
+                      draggable={mode !== "panning" && !shape.locked}
                     />
                   );
                 }
@@ -1093,7 +1208,11 @@ const ImageMapView = ({
                     key={shape.id}
                     shape={shape}
                     isSelected={shape.id === selectedId}
-                    onSelect={() => {
+                    onSelect={(e) => {
+                      if (mode === "panning") {
+                        e.cancelBubble = true; // Konva: stop bubbling
+                        return;
+                      }
                       if (isPreviewMode && shape.linkToArtboard) {
                         setActiveArtboardId(shape.linkToArtboard);
                       } else {
@@ -1110,6 +1229,7 @@ const ImageMapView = ({
                     isInGroup={false}
                     isLocked={isLocked}
                     listening={!isDrawMode}
+                    draggable={mode !== "panning" && !shape.locked}
                   />
                 );
               })}

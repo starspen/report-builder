@@ -96,8 +96,8 @@ const FormView = () => {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["master-data", entity_cd, project_no],
-    queryFn: () => getMasterData(entity_cd, project_no),
+    queryKey: ["master-data", entity_cd, project_no, lot_no],
+    queryFn: () => getMasterData(entity_cd, project_no, lot_no),
     enabled: !!entity_cd && !!project_no, // agar tidak fetch sebelum ready
   });
 

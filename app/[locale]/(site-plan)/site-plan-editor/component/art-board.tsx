@@ -86,6 +86,13 @@ interface ArtBoardProps {
   setOpenMenus: React.Dispatch<
     React.SetStateAction<{ [key: string]: boolean }>
   >;
+  handleDeleteArtboard: (id: string) => void;
+  handleEditChild: (
+    artboardId: string,
+    childId: string,
+    newTitle: string
+  ) => void;
+  handleDeleteChild: (artboardId: string, childId: string) => void;
 }
 
 export type Lot = {
@@ -121,11 +128,17 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
   selectedMasterplan,
   openMenus,
   setOpenMenus,
+  handleDeleteArtboard,
+  handleEditChild,
+  handleDeleteChild,
 }) => {
   const [artboardCount, setArtboardCount] = useState(2);
   const [artboardId, setArtboardId] = useState("2");
   const [hoveredMenuId, setHoveredMenuId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingChildId, setEditingChildId] = useState<string | null>(null);
+  const [editChildValue, setEditChildValue] = useState("");
+  const [hoveredChildId, setHoveredChildId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
   const [wasOpenBeforeDrag, setWasOpenBeforeDrag] = useState<{
@@ -203,31 +216,32 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
     setArtboardId(newId);
   };
 
-  const handleDeleteArtboard = (id: string) => {
-    setMenuItems((prev) => {
-      const updated = prev.filter((item) => item.id !== id);
+  // const handleDeleteArtboard = (id: string) => {
+  //   setMenuItems((prevMenuItems) => {
+  //     const updatedMenuItems = prevMenuItems.filter((item) => item.id !== id);
 
-      // Jika yang dihapus adalah artboard aktif
-      if (activeArtboardId === id && updated.length > 0) {
-        setActiveArtboardId(updated[0].id); // pindahkan ke artboard pertama yang tersisa
-      } else if (updated.length === 0) {
-        setActiveArtboardId(""); // kosongkan
-      }
+  //     // Jika yang dihapus adalah artboard aktif
+  //     if (activeArtboardId === id && updatedMenuItems.length > 0) {
+  //       setActiveArtboardId(updatedMenuItems[0].id);
+  //     } else if (updatedMenuItems.length === 0) {
+  //       setActiveArtboardId("");
+  //     }
 
-      return updated;
-    });
+  //     // Gabungkan update artboardShapes di sini
+  //     setArtboardShapes((prevArtboardShapes) => {
+  //       const newShapes = { ...prevArtboardShapes };
+  //       delete newShapes[id];
+  //       return newShapes;
+  //     });
 
-    setArtboardShapes((prev) => {
-      const newShapes = { ...prev };
-      delete newShapes[id];
-      return newShapes;
-    });
+  //     // Hapus juga selectedId kalau id-nya dari artboard yang dihapus
+  //     if (artboardShapes[id]?.some((shape) => shape.id === selectedId)) {
+  //       setSelectedId(null);
+  //     }
 
-    // Hapus juga selectedId kalau id-nya dari artboard yang dihapus
-    if (artboardShapes[id]?.some((shape) => shape.id === selectedId)) {
-      setSelectedId(null);
-    }
-  };
+  //     return updatedMenuItems;
+  //   });
+  // };
 
   const handleStartEdit = (id: string, currentTitle: string) => {
     setEditingId(id);
@@ -253,7 +267,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
     setEditValue("");
   };
 
-  function truncate(str: string, max: number) {
+  function truncate(str: any, max: number) {
     return str.length > max ? str.slice(0, max) + "..." : str;
   }
 
@@ -335,7 +349,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
             <SidebarMenu>
               {menuItems.map((item) => {
                 const shapes = artboardShapes[item.id] || [];
-
+                console.log(shapes, "shape bro");
                 return (
                   <React.Fragment key={item.id}>
                     <SortableMenuItem id={item.id}>
@@ -400,7 +414,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                               </>
                             ) : (
                               <>
-                                {truncate(item.title, 18)}
+                                {truncate(item.title || "", 18)}
                                 {item.icon === Layout &&
                                   hoveredMenuId === item.id && (
                                     <>
@@ -491,8 +505,18 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                                   )
                                   .map((shape) => {
                                     const isActive = selectedId === shape.id;
+                                    const isEditing =
+                                      editingChildId === shape.id;
                                     return (
-                                      <SidebarMenuItem key={shape.id}>
+                                      <SidebarMenuItem
+                                        key={shape.id}
+                                        onMouseEnter={() =>
+                                          setHoveredChildId(shape.id)
+                                        }
+                                        onMouseLeave={() =>
+                                          setHoveredChildId(null)
+                                        }
+                                      >
                                         <a
                                           href={`#${shape.id}`}
                                           onClick={(e) => {
@@ -513,7 +537,110 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                                                 className: "w-4 h-4",
                                               }
                                             )}
-                                            {shape.title || shape.type}
+                                            {isEditing ? (
+                                              <>
+                                                <input
+                                                  className="border px-1 py-0.5 rounded text-sm w-24"
+                                                  value={editChildValue}
+                                                  autoFocus
+                                                  maxLength={18}
+                                                  onChange={(e) =>
+                                                    setEditChildValue(
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  onBlur={() => {
+                                                    handleEditChild(
+                                                      item.id,
+                                                      shape.id,
+                                                      editChildValue
+                                                    );
+                                                    setEditingChildId(null);
+                                                  }}
+                                                  onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                      handleEditChild(
+                                                        item.id,
+                                                        shape.id,
+                                                        editChildValue
+                                                      );
+                                                      setEditingChildId(null);
+                                                    }
+                                                    if (e.key === "Escape")
+                                                      setEditingChildId(null);
+                                                  }}
+                                                />
+                                                <button
+                                                  type="button"
+                                                  title="Save"
+                                                  className="ml-1 text-green-600 hover:text-green-800"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleEditChild(
+                                                      item.id,
+                                                      shape.id,
+                                                      editChildValue
+                                                    );
+                                                    setEditingChildId(null);
+                                                  }}
+                                                >
+                                                  <Check className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  title="Cancel"
+                                                  className="ml-1 text-gray-400 hover:text-gray-600"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setEditingChildId(null);
+                                                  }}
+                                                >
+                                                  <X className="w-4 h-4" />
+                                                </button>
+                                              </>
+                                            ) : (
+                                              <>
+                                                {truncate(
+                                                  shape.title || "",
+                                                  8
+                                                ) || shape.type}
+                                                {hoveredChildId ===
+                                                  shape.id && (
+                                                  <>
+                                                    <button
+                                                      type="button"
+                                                      title="Edit"
+                                                      className="ml-2 text-gray-400 hover:text-primary"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEditingChildId(
+                                                          shape.id
+                                                        );
+                                                        setEditChildValue(
+                                                          shape.title || ""
+                                                        );
+                                                      }}
+                                                    >
+                                                      <Pencil className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                      type="button"
+                                                      title="Delete"
+                                                      className="ml-2 text-red-500 hover:text-red-700 transition-opacity"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteChild(
+                                                          item.id,
+                                                          shape.id
+                                                        );
+                                                      }}
+                                                    >
+                                                      <Trash className="w-4 h-4" />
+                                                    </button>
+                                                  </>
+                                                )}
+                                              </>
+                                            )}
                                           </div>
                                         </a>
                                       </SidebarMenuItem>
@@ -547,44 +674,6 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                                   )}
                                 </SidebarMenuButton>
                               </SidebarMenuItem>
-
-                              {openMenus[`unit-group-${item.id}`] !== false &&
-                                shapes
-                                  .filter(
-                                    (shape) =>
-                                      shape.category === "unit" &&
-                                      shape.type !== "group"
-                                  )
-                                  .map((shape) => {
-                                    const isActive = selectedId === shape.id;
-                                    return (
-                                      <SidebarMenuItem key={shape.id}>
-                                        <a
-                                          href={`#${shape.id}`}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            setActiveArtboardId(item.id);
-                                            setSelectedId(shape.id);
-                                          }}
-                                          className={`block w-full rounded px-3 py-1 text-sm pl-12 ${
-                                            isActive
-                                              ? "bg-primary-100 text-primary font-semibold"
-                                              : "text-muted-foreground hover:text-primary"
-                                          }`}
-                                        >
-                                          <div className="flex items-center gap-2">
-                                            {React.createElement(
-                                              getShapeIcon(shape.type),
-                                              {
-                                                className: "w-4 h-4",
-                                              }
-                                            )}
-                                            {shape.title || shape.type}
-                                          </div>
-                                        </a>
-                                      </SidebarMenuItem>
-                                    );
-                                  })}
                             </>
                           )}
 
@@ -593,8 +682,15 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                             .filter((s) => !s.category && s.type !== "group")
                             .map((shape) => {
                               const isActive = selectedId === shape.id;
+                              const isEditing = editingChildId === shape.id;
                               return (
-                                <SidebarMenuItem key={shape.id}>
+                                <SidebarMenuItem
+                                  key={shape.id}
+                                  onMouseEnter={() =>
+                                    setHoveredChildId(shape.id)
+                                  }
+                                  onMouseLeave={() => setHoveredChildId(null)}
+                                >
                                   <a
                                     href={`#${shape.id}`}
                                     onClick={(e) => {
@@ -615,79 +711,105 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                                           className: "w-4 h-4",
                                         }
                                       )}
-                                      {shape.title || shape.type}
+                                      {isEditing ? (
+                                        <>
+                                          <input
+                                            className="border px-1 py-0.5 rounded text-sm w-24"
+                                            value={editChildValue}
+                                            autoFocus
+                                            onChange={(e) =>
+                                              setEditChildValue(e.target.value)
+                                            }
+                                            onBlur={() => {
+                                              handleEditChild(
+                                                item.id,
+                                                shape.id,
+                                                editChildValue
+                                              );
+                                              setEditingChildId(null);
+                                            }}
+                                            onKeyDown={(e) => {
+                                              if (e.key === "Enter") {
+                                                handleEditChild(
+                                                  item.id,
+                                                  shape.id,
+                                                  editChildValue
+                                                );
+                                                setEditingChildId(null);
+                                              }
+                                              if (e.key === "Escape")
+                                                setEditingChildId(null);
+                                            }}
+                                          />
+                                          <button
+                                            type="button"
+                                            title="Save"
+                                            className="ml-1 text-green-600 hover:text-green-800"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleEditChild(
+                                                item.id,
+                                                shape.id,
+                                                editChildValue
+                                              );
+                                              setEditingChildId(null);
+                                            }}
+                                          >
+                                            <Check className="w-4 h-4" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            title="Cancel"
+                                            className="ml-1 text-gray-400 hover:text-gray-600"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setEditingChildId(null);
+                                            }}
+                                          >
+                                            <X className="w-4 h-4" />
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          {truncate(shape.title || "", 8) ||
+                                            shape.type}
+                                          {hoveredChildId === shape.id && (
+                                            <>
+                                              <button
+                                                type="button"
+                                                title="Edit"
+                                                className="ml-2 text-gray-400 hover:text-primary"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setEditingChildId(shape.id);
+                                                  setEditChildValue(
+                                                    shape.title || ""
+                                                  );
+                                                }}
+                                              >
+                                                <Pencil className="w-4 h-4" />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                title="Delete"
+                                                className="ml-2 text-red-500 hover:text-red-700 transition-opacity"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleDeleteChild(
+                                                    item.id,
+                                                    shape.id
+                                                  );
+                                                }}
+                                              >
+                                                <Trash className="w-4 h-4" />
+                                              </button>
+                                            </>
+                                          )}
+                                        </>
+                                      )}
                                     </div>
                                   </a>
                                 </SidebarMenuItem>
-                              );
-                            })}
-
-                          {/* Group Shapes (Collapsible existing) */}
-                          {shapes
-                            .filter((shape) => shape.type === "group")
-                            .map((shape) => {
-                              const isGroupOpen = openMenus[shape.id] ?? true;
-                              return (
-                                <React.Fragment key={shape.id}>
-                                  <SidebarMenuItem
-                                    className="pl-4"
-                                    onClick={() => {
-                                      setOpenMenus((prev) => ({
-                                        ...prev,
-                                        [shape.id]: !prev[shape.id],
-                                      }));
-                                    }}
-                                  >
-                                    <SidebarMenuButton className="w-full flex justify-between px-3 py-1 text-sm">
-                                      <span className="flex items-center gap-2">
-                                        <Layout className="w-4 h-4" />
-                                        {shape.title || "Group"}
-                                      </span>
-
-                                      {isGroupOpen ? (
-                                        <ChevronDown className="w-4 h-4" />
-                                      ) : (
-                                        <ChevronRight className="w-4 h-4" />
-                                      )}
-                                    </SidebarMenuButton>
-                                  </SidebarMenuItem>
-
-                                  {isGroupOpen &&
-                                    shape.children.map((child: any) => {
-                                      const isChildActive =
-                                        selectedId === child.id;
-                                      return (
-                                        <SidebarMenuItem
-                                          key={child.id}
-                                          className="pl-8 flex gap-2"
-                                        >
-                                          <a
-                                            href={`#${child.id}`}
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              setActiveArtboardId(item.id);
-                                              setSelectedId(child.id);
-                                            }}
-                                            className={`block w-full rounded px-3 py-1 text-sm ${
-                                              isChildActive
-                                                ? "bg-primary-100 text-primary font-semibold"
-                                                : "text-muted-foreground hover:text-primary"
-                                            }`}
-                                          >
-                                            <div className="flex items-center gap-2">
-                                              {React.createElement(
-                                                getShapeIcon(child.type),
-                                                {
-                                                  className: "w-4 h-4",
-                                                }
-                                              )}
-                                              {child.name || child.type}
-                                            </div>
-                                          </a>
-                                        </SidebarMenuItem>
-                                      );
-                                    })}
-                                </React.Fragment>
                               );
                             })}
                         </>

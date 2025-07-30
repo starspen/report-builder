@@ -15,14 +15,21 @@ interface Calendar22Props {
   buttonClassName?: string;
   selected: Date | undefined;
   onSelect: (date: Date | undefined) => void;
+  minDate?: Date;
+  disablePast?: boolean; // <--- tambahkan ini
 }
 
 export function Calendar22({
   buttonClassName,
   selected,
   onSelect,
+  minDate,
+  disablePast = false, // default false
 }: Calendar22Props) {
   const [open, setOpen] = React.useState(false);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   return (
     <div className="flex flex-col gap-3">
@@ -43,9 +50,21 @@ export function Calendar22({
             selected={selected}
             captionLayout="dropdown"
             onSelect={(date) => {
-              onSelect(date); // kirim ke form
-              setOpen(false); // tutup popover setelah pilih
+              onSelect(date);
+              setOpen(false);
             }}
+            disabled={
+              disablePast
+                ? (date) => {
+                    const d = new Date(
+                      date.getFullYear(),
+                      date.getMonth(),
+                      date.getDate()
+                    );
+                    return d < today;
+                  }
+                : undefined // semua tanggal bisa dipilih
+            }
           />
         </PopoverContent>
       </Popover>

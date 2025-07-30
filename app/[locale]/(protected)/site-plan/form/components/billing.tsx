@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { boolean, date, z } from "zod";
@@ -46,6 +46,27 @@ const Billing = ({
   const router = useRouter();
 
   const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [selectedTaxCode, setSelectedTaxCode] = useState("");
+  const [selectedPackage, setSelectedPackage] = useState("");
+  const [disabled, setDisabled] = useState(true);
+
+  const handlePaymentChange = (selectedValue: string) => {
+    form.setValue("payment", selectedValue);
+    const found = masterData.payment.find(
+      (p) => p.payment_cd === selectedValue
+    );
+    setSelectedTaxCode(found?.tax_cd || "");
+    // Jika ingin langsung isi ke field taxCode di form:
+    form.setValue("taxCode", found?.tax_cd || "");
+  };
+
+  const handlePackageChange = (selectedValue: string) => {
+    form.setValue("packageOptions", selectedValue);
+    const found = masterData.packageOptions.find((p) => p.cd === selectedValue);
+    setSelectedPackage(found?.scheme_cd || "");
+    // Jika ingin langsung isi ke field taxCode di form:
+    form.setValue("taxCode", found?.scheme_cd || "");
+  };
 
   function onSubmit(values: z.infer<typeof billingSchema>) {
     toast.success("Form submitted successfully!");
@@ -86,11 +107,7 @@ const Billing = ({
                           selected={
                             field.value ? new Date(field.value) : undefined
                           }
-                          onSelect={(date) => {
-                            field.onChange(
-                              date ? date.toISOString().split("T")[0] : ""
-                            );
-                          }}
+                          onSelect={(date) => field.onChange(date || "")}
                         />
                       </FormControl>
                       <FormMessage />
@@ -148,18 +165,15 @@ const Billing = ({
                       <FormControl>
                         <BasicCombobox
                           buttonClassName="h-9 bg-white"
-                          options={[
-                            { label: "P001", value: "P001" },
-                            {
-                              label: "P002 - Installment Residential 12x",
-                              value: "P002 - Installment Residential 12x",
-                            },
-                          ]}
+                          options={
+                            masterData?.payment.map((p, index) => ({
+                              label: `${p.payment_cd} `,
+                              value: `${p.payment_cd}`,
+                            })) || []
+                          }
                           placeholder="Select Payment"
                           value={field.value}
-                          onChange={(selectedValue) =>
-                            field.onChange(selectedValue)
-                          }
+                          onChange={handlePaymentChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -200,9 +214,7 @@ const Billing = ({
                           }
                           placeholder="Select Salutation"
                           value={field.value}
-                          onChange={(selectedValue) =>
-                            field.onChange(selectedValue)
-                          }
+                          onChange={handlePackageChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -220,7 +232,9 @@ const Billing = ({
                         <Input
                           className="rounded-md bg-white border-default"
                           {...field}
-                          placeholder="Enter Package Tax Code"
+                          placeholder="Package Tax Code"
+                          value={selectedPackage}
+                          readOnly
                         />
                       </FormControl>
                       <FormMessage />
@@ -287,7 +301,9 @@ const Billing = ({
                         <Input
                           className="rounded-md bg-white border-default"
                           {...field}
-                          placeholder="Enter Tax Code"
+                          value={selectedTaxCode}
+                          readOnly
+                          placeholder="Tax Code"
                         />
                       </FormControl>
                       <FormMessage />
@@ -323,6 +339,7 @@ const Billing = ({
                           className="rounded-md bg-white border-default"
                           {...field}
                           placeholder="Enter Debtor A/c"
+                          disabled
                         />
                       </FormControl>
                       <FormMessage />
@@ -338,14 +355,19 @@ const Billing = ({
                       <FormLabel>Debtor Type</FormLabel>
                       <FormControl>
                         <BasicCombobox
-                          buttonClassName="h-9 bg-white"
+                          disabled={disabled}
+                          buttonClassName={
+                            disabled
+                              ? "bg-default-200 h-9 hover:bg-default-200 hover:text-default-900"
+                              : "h-9 bg-white"
+                          }
                           options={
                             masterData?.debtorType.map((db, index) => ({
                               label: `${db.descs} `,
                               value: `${db.cd}`,
                             })) || []
                           }
-                          placeholder="Select Salutation"
+                          placeholder="Select Debtor Type"
                           value={field.value}
                           onChange={(selectedValue) =>
                             field.onChange(selectedValue)
@@ -369,11 +391,8 @@ const Billing = ({
                           selected={
                             field.value ? new Date(field.value) : undefined
                           }
-                          onSelect={(date) => {
-                            field.onChange(
-                              date ? date.toISOString().split("T")[0] : ""
-                            );
-                          }}
+                          onSelect={(date) => field.onChange(date || "")}
+                          disablePast={true}
                         />
                       </FormControl>
                       <FormMessage />
@@ -390,17 +409,13 @@ const Billing = ({
                       <FormControl>
                         <BasicCombobox
                           buttonClassName="h-9 bg-white"
-                          options={[
-                            {
-                              label: "Ciomas, KAB BOGOR",
-                              value: "Ciomas, KAB BOGOR",
-                            },
-                            {
-                              label: "Ciomas, KAB BOGOR",
-                              value: "Ciomas, KAB BOGOR",
-                            },
-                          ]}
-                          placeholder="Select Salutation"
+                          options={
+                            masterData?.salesEvent.map((c, index) => ({
+                              label: `${c.descs} `,
+                              value: `${c.cd}`,
+                            })) || []
+                          }
+                          placeholder="Select Sales Event"
                           value={field.value}
                           onChange={(selectedValue) =>
                             field.onChange(selectedValue)
@@ -427,7 +442,7 @@ const Billing = ({
                               value: `${c.cd}`,
                             })) || []
                           }
-                          placeholder="Select Mailing"
+                          placeholder="Select Currency"
                           value={field.value}
                           onChange={(selectedValue) =>
                             field.onChange(selectedValue)
@@ -448,11 +463,13 @@ const Billing = ({
                       <FormControl>
                         <BasicCombobox
                           buttonClassName="h-9 bg-white"
-                          options={[
-                            { label: "Individual", value: "Individual" },
-                            { label: "Combined", value: "Combined" },
-                          ]}
-                          placeholder="Select Stat"
+                          options={
+                            masterData?.sChannel.map((c, index) => ({
+                              label: `${c.descs} `,
+                              value: `${c.cd}`,
+                            })) || []
+                          }
+                          placeholder="Select S. Channel"
                           value={field.value}
                           onChange={(selectedValue) =>
                             field.onChange(selectedValue)
@@ -473,10 +490,12 @@ const Billing = ({
                       <FormControl>
                         <BasicCombobox
                           buttonClassName="h-9 bg-white"
-                          options={[
-                            { label: "Individual", value: "Individual" },
-                            { label: "Combined", value: "Combined" },
-                          ]}
+                          options={
+                            masterData?.salesman.map((c, index) => ({
+                              label: `${c.descs} `,
+                              value: `${c.cd}`,
+                            })) || []
+                          }
                           placeholder="Select Stat"
                           value={field.value}
                           onChange={(selectedValue) =>

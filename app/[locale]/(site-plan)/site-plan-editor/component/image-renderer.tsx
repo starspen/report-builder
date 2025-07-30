@@ -58,7 +58,8 @@ export type StretchableShapeProps = {
     | "drawRect"
     | "drawCircle"
     | "drawEllipse"
-    | "viewOnly";
+    | "viewOnly"
+    | "panning";
   /** optional, untuk multi-select support */
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   selectedIds?: string[];
@@ -78,6 +79,7 @@ export type StretchableShapeProps = {
   containerWidth?: number;
   containerHeight?: number;
   backgroundColor?: string;
+  draggable?: boolean;
 };
 
 // -----------------------------
@@ -104,6 +106,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   containerWidth,
   containerHeight,
   backgroundColor = "transparent",
+  draggable,
 }) => {
   const ref = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -134,7 +137,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     stroke: "#333",
     strokeWidth: 1,
     listening: listening ?? true,
-    draggable: !isViewOnly && !isInGroup && !shape.locked,
+    draggable: draggable ?? (!isViewOnly && !isInGroup && !shape.locked),
     onClick: (e: any) => {
       e.cancelBubble = true;
       onSelect(e);
@@ -209,7 +212,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     x: shape.x,
     y: shape.y,
     fill: shape.fill,
-    draggable: !isInGroup && !shape.locked,
+    draggable: draggable ?? (!isInGroup && !shape.locked),
     onClick: onSelect,
     onTap: onSelect,
     listening: listening ?? true,
