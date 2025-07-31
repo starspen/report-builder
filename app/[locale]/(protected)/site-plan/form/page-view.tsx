@@ -15,6 +15,7 @@ import { getCityData } from "@/action/get-city";
 import { ComboboxOption } from "../../forms/combobox/basic-combobox";
 import { useDebounce } from "use-debounce";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { getLotData } from "@/action/getLot";
 
 const FormView = () => {
   const searchParams = useSearchParams();
@@ -111,6 +112,16 @@ const FormView = () => {
     enabled: !!entity_cd && !!project_no, // agar tidak fetch sebelum ready
   });
 
+  const {
+    data: lotData,
+    isLoading: islotDataLoading,
+    isError: islotDataError,
+  } = useQuery({
+    queryKey: ["lot-data", entity_cd, project_no],
+    queryFn: () => getLotData(entity_cd, project_no),
+    
+  });
+
   React.useEffect(() => {
     const fetchCityData = async () => {
       const data = await getCityData(
@@ -156,7 +167,7 @@ const FormView = () => {
       hasMore={hasMore}
       setSearchQuery={setSearchQuery}
     />,
-    <Billing key="billing" form={form} masterData={masterData} />,
+    <Billing key="billing" form={form} masterData={masterData} lotData={lotData}/>,
   ];
 
   const handleFinalSubmit = async () => {

@@ -325,14 +325,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
             {selectedMasterplan?.masterplan_name || "Masterplan"}
           </SidebarGroupLabel>
           <SidebarGroupAction onClick={handleAddArtboard}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Plus />
-              </TooltipTrigger>
-              <TooltipContent className="mr-16">
-                <p>Add new artboard</p>
-              </TooltipContent>
-            </Tooltip>
+             <Plus />
           </SidebarGroupAction>
           <SidebarGroupContent />
         </SidebarGroup>
@@ -606,7 +599,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                                                 ) || shape.type}
                                                 {hoveredChildId ===
                                                   shape.id && (
-                                                  <>
+                                                  <div className="flex items-center gap-1 ml-auto">
                                                     <button
                                                       type="button"
                                                       title="Edit"
@@ -637,7 +630,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                                                     >
                                                       <Trash className="w-4 h-4" />
                                                     </button>
-                                                  </>
+                                                  </div>
                                                 )}
                                               </>
                                             )}
@@ -774,11 +767,11 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                                           {truncate(shape.title || "", 8) ||
                                             shape.type}
                                           {hoveredChildId === shape.id && (
-                                            <>
+                                            <div className="flex items-center gap-1 ml-auto">
                                               <button
                                                 type="button"
                                                 title="Edit"
-                                                className="ml-2 text-gray-400 hover:text-primary"
+                                                className="ml-2 text-gray-400 hover:text-primary flex "
                                                 onClick={(e) => {
                                                   e.stopPropagation();
                                                   setEditingChildId(shape.id);
@@ -803,7 +796,7 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
                                               >
                                                 <Trash className="w-4 h-4" />
                                               </button>
-                                            </>
+                                            </div>
                                           )}
                                         </>
                                       )}

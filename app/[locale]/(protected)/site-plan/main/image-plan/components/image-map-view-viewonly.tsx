@@ -21,6 +21,7 @@ import { Shape } from "@/app/[locale]/(site-plan)/site-plan-editor/component/rig
 import Konva from "konva";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
+import { backIn } from "framer-motion";
 
 interface ViewOnlyCanvasProps {
   shapes: Shape[];
@@ -296,6 +297,10 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
         height={stageSize.height}
         ref={stageRef}
         className="border border-gray-300 rounded"
+        style={{
+          boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+          border: "1px solid #e5e7eb",
+        }}
         draggable
         scaleX={scale}
         scaleY={scale}
@@ -304,7 +309,7 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
         onWheel={handleWheel}
         onDragEnd={(e) => setPosition(e.target.position())}
       >
-        <Layer>
+        <Layer style={{ borderRadius: "12px" }}>
           {shapes.map((shape) => {
             if (shape.type === "polygon") {
               const s = shape as PolygonShape;
@@ -550,8 +555,6 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                             project_no: shape.project_no,
                           }).toString();
 
-                          console.log("Navigating to:", query);
-
                           router.push(
                             `/en/site-plan/sales-reserve-history?${query}`
                           );
@@ -581,8 +584,6 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                             project_no: shape.project_no,
                           }).toString();
 
-                          console.log("Navigating to:", query);
-
                           router.push(`/en/site-plan/ac-summary?${query}`);
                         } else {
                           console.warn("Shape missing required fields", shape);
@@ -610,8 +611,6 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                             entity_cd: shape.entity_cd,
                             project_no: shape.project_no,
                           }).toString();
-
-                          console.log("Navigating to:", query);
 
                           router.push(
                             `/en/site-plan/schedule-billing?${query}`
@@ -643,8 +642,6 @@ const ViewOnlyCanvas: React.FC<ViewOnlyCanvasProps> = ({
                       entity_cd: shape.entity_cd,
                       project_no: shape.project_no,
                     }).toString();
-
-                    console.log("Navigating to spec:", query);
 
                     router.push(`/en/site-plan/view-spec?${query}`);
                   } else {

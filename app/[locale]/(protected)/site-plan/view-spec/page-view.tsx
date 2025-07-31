@@ -176,11 +176,34 @@ const LotSpec = ({ data }: { data: LotSpecData }) => {
               </div>
               <div className="flex flex-col col-span-1 space-y-2">
                 <Label>Address</Label>
-                <Textarea
-                  readOnly
-                  className="rounded-md w-full"
-                  value={data.descs}
-                />
+                <div className="grid grid-cols-1 space-y-2">
+                  <Textarea
+                    readOnly
+                    style={{ height: "36px", minHeight: "36px" }}
+                    className="rounded-md w-full"
+                    value={data.addr1}
+                  />
+
+                  <Textarea
+                    readOnly
+                    style={{ height: "36px", minHeight: "36px" }}
+                    className="rounded-md w-full"
+                    value={data.addr2}
+                  />
+
+                  <Textarea
+                    readOnly
+                    style={{ height: "36px", minHeight: "36px" }}
+                    className="rounded-md w-full"
+                    value={data.addr3}
+                  />
+
+                  <Input
+                    readOnly
+                    value={data.post_cd}
+                    className="rounded-md w-full"
+                  />
+                </div>
               </div>
             </div>
           </CardContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { boolean, date, z } from "zod";
@@ -39,9 +39,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const Billing = ({
   form,
   masterData,
+  lotData
 }: {
   form: UseFormReturn<any>;
   masterData: MasterDataResponse;
+  lotData: any
 }) => {
   const router = useRouter();
 
@@ -76,6 +78,14 @@ const Billing = ({
 
   const searchParams = useSearchParams();
   const lotNoFromQuery = searchParams?.get("lot_no") || "";
+
+  useEffect(() => {
+    if (lotNoFromQuery && !form.getValues("lotNo")) {
+      form.setValue("lotNo", lotNoFromQuery);
+    }
+  }, [form, lotNoFromQuery]);
+
+  console.log(lotData, "lotData")
 
   return (
     <>
@@ -140,10 +150,12 @@ const Billing = ({
                       <FormControl>
                         <BasicCombobox
                           buttonClassName="h-9 bg-white"
-                          options={[
-                            { label: "PHB-01", value: "PHB-01" },
-                            { label: "PHB-02", value: "PHB-02" },
-                          ]}
+                          options={
+                            lotData?.map((l: any) => ({
+                              label: `${l.lot_no} `,
+                              value: `${l.lot_no}`,
+                            })) || []
+                          }
                           placeholder="Select Lot No"
                           value={field.value}
                           onChange={(selectedValue) =>

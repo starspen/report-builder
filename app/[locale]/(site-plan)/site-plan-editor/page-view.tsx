@@ -68,8 +68,6 @@ const Editor = () => {
 
   const router = useRouter();
 
-  console.log(auditUser, "audit");
-
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [activeArtboardId, setActiveArtboardId] = useState("1");
@@ -103,6 +101,13 @@ const Editor = () => {
   const [activeArtboardHistory, setActiveArtboardHistory] = useState<string[]>(
     []
   );
+
+  const [initialMenuItems, setInitialMenuItems] = useState<ArtboardMenuItem[]>(
+    []
+  );
+  const [initialArtboardShapes, setInitialArtboardShapes] = useState<{
+    [id: string]: any[];
+  }>({});
 
   const queryClient = useQueryClient();
 
@@ -245,7 +250,6 @@ const Editor = () => {
   const { mutate, isPending, isSuccess, isError, error } = useMutation({
     mutationFn: createMasterplan,
     onSuccess: (data) => {
-      console.log("Berhasil create masterplan:", data);
       const newMasterplan = Array.isArray(data.data) ? data.data[0] : data.data;
 
       const masterplanId = newMasterplan.masterplan_id || newMasterplan.id;
@@ -300,8 +304,6 @@ const Editor = () => {
 
   const handleUndo = () => {
     if (historyIndex > 0) {
-      console.log("▶️ UNDO pressed");
-      console.log("⏪ Current historyIndex:", historyIndex);
       setIsUndoRedo(true);
       setMenuItems(menuItemsHistory[historyIndex - 1]);
       setArtboardShapes(artboardShapesHistory[historyIndex - 1]);
@@ -315,8 +317,6 @@ const Editor = () => {
 
   const handleRedo = () => {
     if (historyIndex < menuItemsHistory.length - 1) {
-      console.log("▶️ REDO pressed");
-      console.log("⏩ Current historyIndex:", historyIndex);
       setIsUndoRedo(true);
       setMenuItems(menuItemsHistory[historyIndex + 1]);
       setArtboardShapes(artboardShapesHistory[historyIndex + 1]);
@@ -331,7 +331,6 @@ const Editor = () => {
   const { mutate: saveMasterplanMutate } = useMutation({
     mutationFn: saveMasterplan,
     onSuccess: (data) => {
-      console.log("Masterplan saved successfully:", data);
       toast.success("Masterplan saved successfully!", {
         style: {
           backgroundColor: "#22c55e", // warna hijau (tailwind green-500)
@@ -370,7 +369,6 @@ const Editor = () => {
     };
 
     saveMasterplanMutate(payload);
-    console.log(payload, "payload saat save");
   };
 
   const { mutate: deleteMasterplanMutate } = useMutation({
@@ -476,9 +474,15 @@ const Editor = () => {
         artboards.length > 0 ? artboards[0].id || "1" : "1";
       setActiveArtboardId(firstArtboardId);
       setMenuItems(newMenuItems);
+      setInitialMenuItems(newMenuItems); // ⬅ snapshot menu awal dari server
+      setInitialArtboardShapes(artboardMap); // ⬅ snapshot shapes awal dari server
       setIsSubmitted(true);
     }
   }, [masterplanDataById]);
+
+  const isChanged =
+    JSON.stringify(menuItems) !== JSON.stringify(initialMenuItems) ||
+    JSON.stringify(artboardShapes) !== JSON.stringify(initialArtboardShapes);
 
   useEffect(() => {
     if (!masterplanId) {
@@ -488,7 +492,6 @@ const Editor = () => {
   }, [selectedProject, masterplanId]);
 
   useEffect(() => {
-    console.log(masterplanId, "masterplanId berubah");
     // Reset state lain kalau perlu
   }, [masterplanId]);
 
@@ -519,11 +522,9 @@ const Editor = () => {
       JSON.stringify(lastMenuState) === JSON.stringify(menuItems) &&
       JSON.stringify(lastShapeState) === JSON.stringify(artboardShapes)
     ) {
-      console.log("⚠️ State sama, tidak push ke history");
       return;
     }
 
-    // kalau beda → baru push
     setMenuItemsHistory([
       ...menuItemsHistory.slice(0, historyIndex + 1),
       menuItems,
@@ -793,6 +794,9 @@ const Editor = () => {
               setIsLocked={setIsLocked}
               openMenus={openMenus}
               setOpenMenus={setOpenMenus}
+              setInitialMenuItems={setInitialMenuItems}
+              setInitialArtboardShapes={setInitialArtboardShapes}
+              isChanged={isChanged}
             />
           </div>
 

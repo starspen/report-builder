@@ -200,23 +200,81 @@ const Booking = ({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        className="rounded-md border-default bg-white"
-                        placeholder="Enter Address"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-3">
+                  <FormField
+                    control={form.control}
+                    name="addr1"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            className="rounded-md border-default bg-white"
+                            placeholder="Enter Street Address"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="col-span-3">
+                  <FormField
+                    control={form.control}
+                    name="addr2"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            className="rounded-md border-default bg-white"
+                            placeholder="Enter District"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="addr3"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            className="rounded-md border-default bg-white"
+                            placeholder="Enter Province"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="col-span-1">
+                  <FormField
+                    control={form.control}
+                    name="post_cd"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            className="rounded-md border-default bg-white"
+                            placeholder="Enter Post Code"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
               <FormField
                 control={form.control}
@@ -241,24 +299,6 @@ const Booking = ({
                         onSearchChange={(val) => {
                           setSearchQuery?.(val);
                         }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="post_cd"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Post Code</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        className="rounded-md border-default bg-white"
-                        placeholder="Enter Post Code"
                       />
                     </FormControl>
                     <FormMessage />

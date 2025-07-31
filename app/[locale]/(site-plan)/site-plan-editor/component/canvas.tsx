@@ -83,6 +83,11 @@ interface ImageMapViewProps {
   setOpenMenus?: React.Dispatch<
     React.SetStateAction<{ [key: string]: boolean }>
   >;
+  setInitialMenuItems: React.Dispatch<React.SetStateAction<ArtboardMenuItem[]>>;
+  setInitialArtboardShapes: React.Dispatch<
+    React.SetStateAction<{ [id: string]: any[] }>
+  >;
+  isChanged: boolean;
 }
 
 export const LOT_COLOR_MAP = {
@@ -118,6 +123,9 @@ const ImageMapView = ({
   setIsLocked,
   openMenus,
   setOpenMenus,
+  setInitialMenuItems,
+  setInitialArtboardShapes,
+  isChanged,
 }: ImageMapViewProps) => {
   const stageRef = useRef<any>(null);
   const [isDrawingPoly, setIsDrawingPoly] = useState(false);
@@ -622,11 +630,8 @@ const ImageMapView = ({
   };
 
   const groupSelectedShapes = () => {
-    console.log("SelectedIds for grouping:", selectedIds);
-
     const selectedShapes = shapes.filter((s) => selectedIds.includes(s.id));
     if (selectedShapes.length < 2) {
-      alert("Pilih minimal 2 shape untuk digroup.");
       return;
     }
 
@@ -667,7 +672,6 @@ const ImageMapView = ({
 
     setSelectedIds([]);
     setSelectedId(newGroup.id);
-    console.log("Added group:", newGroup);
   };
 
   const ungroupSelectedGroup = () => {
@@ -827,7 +831,7 @@ const ImageMapView = ({
   return (
     <div>
       <div className="flex h-auto py-2 bg-sidebar mb-4 pl-2 border border-b-inherit border-l-0 border-r-0 overflow-x-auto">
-        <div className="ml-4 flex gap-2 mb-2">
+        <div className="ml-4 flex gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -1085,7 +1089,12 @@ const ImageMapView = ({
                 <Button
                   size="md"
                   type="button"
-                  onClick={onSave}
+                  onClick={() => {
+                    onSave();
+                    setInitialMenuItems(menuItems);
+                    setInitialArtboardShapes(artboardShapes);
+                  }}
+                  disabled={!isChanged}
                   className="bg-green-600 flex gap-2 hover:bg-green-700 hover:ring-transparent text-sm"
                 >
                   <Save className="w-4 h-4" />
