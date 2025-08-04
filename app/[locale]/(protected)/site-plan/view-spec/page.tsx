@@ -5,7 +5,7 @@ import LotSpec from "./page-view";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getLotSpecData } from "@/action/get-lot-spec";
-import { Loader } from "lucide-react";
+import { Loader, Loader2 } from "lucide-react";
 
 const SpecPage = () => {
   const searchParams = useSearchParams();
@@ -28,8 +28,11 @@ const SpecPage = () => {
 
   if (isLoading)
     return (
-      <div className="p-4">
-        Loading... <Loader className="animate-spin" />
+       <div className="h-screen flex items-center justify-center flex-col space-y-2">
+        <span className="inline-flex gap-1 items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
       </div>
     );
   if (isError || !data)

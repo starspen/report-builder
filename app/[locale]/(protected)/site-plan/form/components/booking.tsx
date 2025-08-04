@@ -105,7 +105,7 @@ const Booking = ({
                   <FormItem>
                     <FormLabel>Business ID</FormLabel>
                     <FormControl>
-                      <Input {...field} readOnly />
+                      <Input {...field} readOnly className="rounded-md bg-white border-default"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -139,7 +139,7 @@ const Booking = ({
                 )}
               />
 
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="company"
                 render={({ field }) => (
@@ -154,7 +154,7 @@ const Booking = ({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
 
               <FormField
                 control={form.control}

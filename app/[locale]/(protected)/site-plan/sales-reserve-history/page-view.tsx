@@ -6,6 +6,7 @@ import React from "react";
 import { SalesReserveColumns } from "./components/columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export interface SalesReserveHistoryProps {
   entity_cd: string;
@@ -27,6 +28,7 @@ const SalesReserveHistory = ({
   const searchParams = useSearchParams();
   const lotNoFromQuery = searchParams?.get("lot_no") || "";
 
+ 
   return (
     <div>
       <Card>
@@ -39,7 +41,11 @@ const SalesReserveHistory = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable columns={SalesReserveColumns} data={data} />
+          <DataTable
+            columns={SalesReserveColumns}
+            data={data}
+            isLoading={!data || data.length === 0}
+          />
         </CardContent>
       </Card>
     </div>

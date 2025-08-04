@@ -24,7 +24,6 @@ const page = () => {
     },
     enabled: !!entity_cd && !!project_no && !!lot_no,
   });
-  console.log(data, "data woi:");
   return (
     <div>
       <ScheduleBilling data={data} />

@@ -16,6 +16,7 @@ import { ComboboxOption } from "../../forms/combobox/basic-combobox";
 import { useDebounce } from "use-debounce";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { getLotData } from "@/action/getLot";
+import { Loader2 } from "lucide-react";
 
 const FormView = () => {
   const searchParams = useSearchParams();
@@ -41,7 +42,9 @@ const FormView = () => {
       company: "",
       salutation: "",
       name: "",
-      address: "",
+      addr1: "",
+      addr2: "",
+      addr3: "",
       city: "",
       telephone: "",
       hp1st: "",
@@ -119,7 +122,6 @@ const FormView = () => {
   } = useQuery({
     queryKey: ["lot-data", entity_cd, project_no],
     queryFn: () => getLotData(entity_cd, project_no),
-    
   });
 
   React.useEffect(() => {
@@ -153,7 +155,15 @@ const FormView = () => {
     setHasMore(true);
   }, [searchQuery]);
 
-  if (isLoading) return <p>Loading master data...</p>;
+  if (isLoading)
+    return (
+      <div className="h-screen flex items-center justify-center flex-col space-y-2">
+        <span className="inline-flex gap-1 items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
+      </div>
+    );
   if (isError || !masterData) return <p>Failed to load master data</p>;
 
   const steps = ["Booking", "Billing"];
@@ -167,14 +177,39 @@ const FormView = () => {
       hasMore={hasMore}
       setSearchQuery={setSearchQuery}
     />,
-    <Billing key="billing" form={form} masterData={masterData} lotData={lotData}/>,
+    <Billing
+      key="billing"
+      form={form}
+      masterData={masterData}
+      lotData={lotData}
+    />,
   ];
 
-  const handleFinalSubmit = async () => {
-    const values = form.getValues();
-    console.log("📦 Payload Final Form:", values);
-    router.push("/en"); // redirect setelah submit
+ const handleFinalSubmit = async () => {
+  const values = form.getValues();
+
+  const formatDateForAPI = (dateString: string | null | undefined) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(date.getDate()).padStart(2, "0")} 00:00:00.000`;
   };
+
+  const formattedDate = formatDateForAPI(values.planHandOverDate);
+  const formattedDob = formatDateForAPI(values.dob);
+
+  const payload = {
+    ...values,
+    planHandOverDate: formattedDate,
+    dob: formattedDob,
+  };
+
+  console.log("📦 Payload Final Form:", payload);
+  router.push("/en"); 
+};
+
 
   return (
     <>

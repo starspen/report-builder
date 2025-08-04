@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 
@@ -24,7 +25,14 @@ export interface AcSummaryProps {
 
 const AcSummary = ({ data }: { data: AcSummaryProps[] }) => {
   if (!data || data.length === 0) {
-    return <p>No data available</p>;
+    return (
+      <div className="h-screen flex items-center justify-center flex-col space-y-2">
+        <span className="inline-flex gap-1 items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </span>
+      </div>
+    );
   }
 
   const summary = data[0];

@@ -21,6 +21,7 @@ export interface ScheduleBillingProps {
 const ScheduleBilling = ({ data }: { data: ScheduleBillingProps[] }) => {
   const searchParams = useSearchParams();
   const lotNoFromQuery = searchParams?.get("lot_no") || "";
+
   return (
     <div>
       <Card>
@@ -33,7 +34,7 @@ const ScheduleBilling = ({ data }: { data: ScheduleBillingProps[] }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable columns={ScheduleBillingColumns} data={data ?? []} />
+          <DataTable columns={ScheduleBillingColumns} data={data ?? []} isLoading={!data || data.length === 0}/>
         </CardContent>
       </Card>
     </div>

@@ -224,7 +224,7 @@ const Billing = ({
                               value: `${po.cd}`,
                             })) || []
                           }
-                          placeholder="Select Salutation"
+                          placeholder="Select Package"
                           value={field.value}
                           onChange={handlePackageChange}
                         />
@@ -291,7 +291,7 @@ const Billing = ({
                               value: "Ciomas, KAB BOGOR",
                             },
                           ]}
-                          placeholder="Select Salutation"
+                          placeholder="Select Special Discount"
                           value={field.value}
                           onChange={(selectedValue) =>
                             field.onChange(selectedValue)
@@ -508,7 +508,7 @@ const Billing = ({
                               value: `${c.cd}`,
                             })) || []
                           }
-                          placeholder="Select Stat"
+                          placeholder="Select Sales Man"
                           value={field.value}
                           onChange={(selectedValue) =>
                             field.onChange(selectedValue)
@@ -553,7 +553,7 @@ const Billing = ({
                               value: `${s.cd}`,
                             })) || []
                           }
-                          placeholder="Select Terms"
+                          placeholder="Select Staff Id"
                           value={field.value}
                           onChange={(selectedValue) =>
                             field.onChange(selectedValue)
