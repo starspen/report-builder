@@ -15,9 +15,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
 
   console.log("gembel: ", role)
 
-  if (!session || role !== "administrator" || hasCustomerService) {
-    redirect("/");
-  }
+
   return <>{children}</>;
 };
 

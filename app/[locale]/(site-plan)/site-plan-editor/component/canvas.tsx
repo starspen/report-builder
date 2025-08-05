@@ -12,7 +12,7 @@ import {
   RectShape,
   Shape,
 } from "./toolbar";
-import StretchableShape from "./image-renderer";
+import StretchableShape, { TextShape } from "./image-renderer";
 import {
   Tooltip,
   TooltipContent,
@@ -32,6 +32,7 @@ import {
   Upload,
   Hand,
   MousePointer,
+  Type,
 } from "lucide-react";
 import StretchablePolygon from "./stretchable-polygon";
 import { ArtboardMenuItem } from "./art-board";
@@ -43,6 +44,7 @@ import {
 } from "@/action/save-masterplan";
 import { useMutation } from "@tanstack/react-query";
 import Konva from "konva";
+import { PaperSize, paperSizes } from "../paper-size";
 
 export type DrawMode =
   | "default"
@@ -51,7 +53,8 @@ export type DrawMode =
   | "drawCircle"
   | "viewOnly"
   | "drawEllipse"
-  | "panning";
+  | "panning"
+  | "drawText";
 interface ImageMapViewProps {
   shapes: any[];
   setArtboardShapes: React.Dispatch<
@@ -135,7 +138,14 @@ const ImageMapView = ({
   const undoStack = useRef<any[][]>([]);
   const redoStack = useRef<any[][]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [stageSize, setStageSize] = useState({ width: 800, height: 550 });
+  const [paperZoom, setPaperZoom] = useState(1); // 1 = 100%, 0.75 = 75%, dst
+  const [selectedPaper, setSelectedPaper] = useState<PaperSize>(
+    paperSizes.find((p) => p.name === "A4")!
+  );
+  const [stageSize, setStageSize] = useState({
+    width: selectedPaper.width,
+    height: selectedPaper.height,
+  });
   const [isDragOver, setIsDragOver] = useState(false);
   const [stageScale, setStageScale] = useState(1);
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
@@ -164,7 +174,22 @@ const ImageMapView = ({
     mode === "drawPolygon" ||
     mode === "drawRect" ||
     mode === "drawCircle" ||
-    mode === "drawEllipse";
+    mode === "drawEllipse" ||
+    mode === "drawText";
+
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [editingTextValue, setEditingTextValue] = useState<string>("");
+  const [editingTextPos, setEditingTextPos] = useState<{
+    x: number;
+    y: number;
+  }>({ x: 0, y: 0 });
+  const scaledFontSize = 1 / stageScale;
+
+  const handleStartEditText = (shape: TextShape) => {
+    setEditingTextId(shape.id);
+    setEditingTextValue(shape.text);
+    setEditingTextPos({ x: shape.x, y: shape.y });
+  };
 
   const pushHistory = (next: any[]) => {
     undoStack.current.push(shapes); // simpan snapshot sebelum berubah
@@ -207,6 +232,11 @@ const ImageMapView = ({
     ensureArtboardExists();
     setMode("drawEllipse");
     setMode(mode === "drawEllipse" ? "default" : "drawEllipse");
+  };
+
+  const startDrawText = () => {
+    ensureArtboardExists();
+    setMode(mode === "drawText" ? "default" : "drawText");
   };
 
   const startPolygon = () => {
@@ -291,6 +321,20 @@ const ImageMapView = ({
         radius,
         fill: LOT_COLOR_MAP.DEFAULT,
       };
+    } else if (drawingShape.type === "drawText") {
+      const newShape: TextShape = {
+        id: `text-${Date.now()}`,
+        type: "text",
+        x,
+        y,
+        text: "text", // atau kosong jika ingin prompt
+        fill: "#000",
+        fontSize: 14,
+        width: 200,
+      };
+      console.log(newShape, "tulisan");
+      pushHistory([...shapes, newShape]);
+      setSelectedId(newShape.id);
     } else if (drawingShape.type === "drawEllipse") {
       newShape = {
         id: `ellipse-${Date.now()}`,
@@ -382,10 +426,10 @@ const ImageMapView = ({
   };
 
   const handleStageClick = (e: any) => {
-    if (mode === "panning") {
-      e.cancelBubble = true;
-      return;
-    }
+    // if (mode === "panning") {
+    //   e.cancelBubble = true;
+    //   return;
+    // }
     const clickedOnEmpty = e.target === e.target.getStage();
 
     // ✅ 1. Handle polygon dulu
@@ -434,6 +478,38 @@ const ImageMapView = ({
       }
 
       setCurrentPolyPoints((pts) => [...pts, x, y]);
+      return;
+    }
+
+    if (mode === "drawText") {
+      const stage = stageRef.current;
+      const pointer = stage.getPointerPosition();
+      if (!pointer) return;
+      const x = (pointer.x - stage.x()) / stage.scaleX();
+      const y = (pointer.y - stage.y()) / stage.scaleY();
+
+      const newShape: TextShape = {
+        id: `text-${Date.now()}`,
+        type: "text",
+        x,
+        y,
+        text: "text",
+        fill: "black",
+        fontSize: 14,
+        fontFamily: "Arial",
+      };
+
+      pushHistory([...shapes, newShape]);
+      setSelectedId(newShape.id);
+
+      if (setOpenMenus) {
+        setOpenMenus((prev) => ({
+          ...prev,
+          [activeArtboardId]: true,
+        }));
+      }
+
+      setMode("default");
       return;
     }
 
@@ -487,6 +563,13 @@ const ImageMapView = ({
     onShapesChange(prev);
     setSelectedId(null);
   };
+
+  useEffect(() => {
+    setStageSize({
+      width: selectedPaper.width,
+      height: selectedPaper.height,
+    });
+  }, [selectedPaper]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -604,30 +687,30 @@ const ImageMapView = ({
     img.src = url;
   };
 
-  // Handler zoom (mouse wheel)
-  const handleWheel = (e: any) => {
-    e.evt.preventDefault();
-    const scaleBy = 1.08;
-    const oldScale = stageScale;
-    const pointer = stageRef.current.getPointerPosition();
-    if (!pointer) return;
+  // // Handler zoom (mouse wheel)
+  // const handleWheel = (e: any) => {
+  //   e.evt.preventDefault();
+  //   const scaleBy = 1.08;
+  //   const oldScale = stageScale;
+  //   const pointer = stageRef.current.getPointerPosition();
+  //   if (!pointer) return;
 
-    // Hitung posisi pointer relatif terhadap stage
-    const mousePointTo = {
-      x: (pointer.x - stagePos.x) / oldScale,
-      y: (pointer.y - stagePos.y) / oldScale,
-    };
+  //   // Hitung posisi pointer relatif terhadap stage
+  //   const mousePointTo = {
+  //     x: (pointer.x - stagePos.x) / oldScale,
+  //     y: (pointer.y - stagePos.y) / oldScale,
+  //   };
 
-    // Zoom in/out
-    const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
-    setStageScale(newScale);
+  //   // Zoom in/out
+  //   const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+  //   setStageScale(newScale);
 
-    // Update posisi agar zoom ke arah pointer
-    setStagePos({
-      x: pointer.x - mousePointTo.x * newScale,
-      y: pointer.y - mousePointTo.y * newScale,
-    });
-  };
+  //   // Update posisi agar zoom ke arah pointer
+  //   setStagePos({
+  //     x: pointer.x - mousePointTo.x * newScale,
+  //     y: pointer.y - mousePointTo.y * newScale,
+  //   });
+  // };
 
   const groupSelectedShapes = () => {
     const selectedShapes = shapes.filter((s) => selectedIds.includes(s.id));
@@ -766,21 +849,6 @@ const ImageMapView = ({
     }, 100);
     return () => clearTimeout(timeout);
   }, [activeArtboardId]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (containerRef.current) {
-        setStageSize({
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight,
-        });
-      }
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -935,6 +1003,32 @@ const ImageMapView = ({
             {mode !== "drawCircle" && (
               <TooltipContent>
                 <p>Draw Circle</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => {
+                  setIsPanning(false);
+                  startDrawText();
+                }}
+                style={{
+                  background: mode === "drawText" ? "#facc15" : undefined,
+                }}
+                variant="ghost"
+                className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+              >
+                {mode === "drawText" ? (
+                  "Finish / Cancel"
+                ) : (
+                  <Type className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            {mode !== "drawText" && (
+              <TooltipContent>
+                <p>Draw Text</p>
               </TooltipContent>
             )}
           </Tooltip>
@@ -1121,78 +1215,153 @@ const ImageMapView = ({
             </div>
           </div>
         )}
-        <div className="flex justify-center border border-gray-300 rounded overflow-hidden">
-          <Stage
-            width={stageSize.width}
-            height={stageSize.height}
-            pixelRatio={window.devicePixelRatio || 1}
-            ref={stageRef}
-            onClick={handleStageClick}
-            draggable={mode === "default" && !isDraggingGroup}
-            onWheel={handleWheel}
-            onMouseDown={handleStageMouseDown}
-            onMouseMove={handleStageMouseMove}
-            onMouseUp={handleStageMouseUp}
-            onDragMove={(e) => {
-              if (e.target === stageRef.current) {
-                setStagePos(e.target.position());
-              }
+        <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto">
+          <label htmlFor="paperSize">Paper Size:</label>
+          <select
+            id="paperSize"
+            value={selectedPaper.name}
+            onChange={(e) => {
+              const paper = paperSizes.find((p) => p.name === e.target.value);
+              if (paper) setSelectedPaper(paper);
             }}
-            onDragEnd={(e) => {
-              if (e.target === stageRef.current) {
-                setStagePos(e.target.position());
-              }
-            }}
-            scaleX={stageScale} // 👈 tetap di Stage
-            scaleY={stageScale}
-            x={stagePos.x}
-            y={stagePos.y}
-            style={{
-              background: "#fff",
-              cursor:
-                mode === "panning"
-                  ? "grab"
-                  : mode === "drawPolygon"
-                  ? "crosshair"
-                  : ["drawRect", "drawCircle", "drawEllipse"].includes(mode)
-                  ? "crosshair"
-                  : drawingShape
-                  ? "copy"
-                  : "default",
-            }}
+            className="border rounded px-2 py-1 text-sm"
           >
-            <Layer>
-              {/* Semua shapes & live drawing (seperti sebelumnya) */}
-              {shapes.map((shape) => {
-                if (shape.type === "group") {
-                  return (
-                    <StretchableGroup
-                      key={shape.id}
-                      shape={shape}
-                      isSelected={shape.id === selectedId}
-                      onSelect={() => setSelectedId(shape.id)}
-                      onChange={(attrs) => updateShape(shape.id, attrs)}
-                      stageScale={stageScale}
-                      setSelectedIds={setSelectedIds}
-                      selectedIds={selectedIds}
-                      setIsDraggingGroup={setIsDraggingGroup}
-                      setIsolatedGroup={setIsolatedGroup}
-                      shapes={shapes}
-                      onShapesChange={onShapesChange}
-                      setSelectedId={setSelectedId}
-                    />
-                  );
+            {paperSizes.map((p) => (
+              <option key={p.name} value={p.name}>
+                {p.name} ({p.width.toFixed(0)} × {p.height.toFixed(0)})
+              </option>
+            ))}
+          </select>
+          <div className="flex items-center gap-2 px-4 py-2">
+            <label>Zoom:</label>
+            <Button
+              size="md"
+              variant="ghost"
+              className="text-xl"
+              onClick={() => setPaperZoom((z) => Math.max(0.25, z - 0.1))}
+            >
+              -
+            </Button>
+            <span>{Math.round(paperZoom * 100)}%</span>
+            <Button
+              size="md"
+              variant="ghost"
+              className="text-xl"
+              onClick={() => setPaperZoom((z) => Math.min(2, z + 0.1))}
+            >
+              +
+            </Button>
+          </div>
+        </div>
+
+        <div className="w-full overflow-auto flex justify-center items-center bg-gray-200 py-4 min-h-[90vh]">
+          <div
+            style={{
+              width: `${stageSize.width}px`,
+              height: `${stageSize.height}px`,
+              transform: `scale(${paperZoom})`,
+              transformOrigin: "top center",
+            }}
+            className="bg-white border shadow-md"
+          >
+            <Stage
+              width={stageSize.width}
+              height={stageSize.height}
+              pixelRatio={window.devicePixelRatio || 1}
+              ref={stageRef}
+              onClick={handleStageClick}
+              // draggable={mode === "default" && !isDraggingGroup}
+              // onWheel={handleWheel}
+              onMouseDown={handleStageMouseDown}
+              onMouseMove={handleStageMouseMove}
+              onMouseUp={handleStageMouseUp}
+              onDragMove={(e) => {
+                if (e.target === stageRef.current) {
+                  setStagePos(e.target.position());
                 }
-                if (shape.type === "polygon") {
-                  const s = shape as PolygonShape;
+              }}
+              onDragEnd={(e) => {
+                if (e.target === stageRef.current) {
+                  setStagePos(e.target.position());
+                }
+              }}
+              scaleX={stageScale} // 👈 tetap di Stage
+              scaleY={stageScale}
+              x={stagePos.x}
+              y={stagePos.y}
+              style={{
+                background: "#fff",
+                cursor:
+                  mode === "panning"
+                    ? "grab"
+                    : mode === "drawPolygon"
+                    ? "crosshair"
+                    : ["drawRect", "drawCircle", "drawEllipse"].includes(mode)
+                    ? "crosshair"
+                    : drawingShape
+                    ? "copy"
+                    : "default",
+              }}
+            >
+              <Layer>
+                {/* Semua shapes & live drawing (seperti sebelumnya) */}
+                {shapes.map((shape) => {
+                  if (shape.type === "group") {
+                    return (
+                      <StretchableGroup
+                        key={shape.id}
+                        shape={shape}
+                        isSelected={shape.id === selectedId}
+                        onSelect={() => setSelectedId(shape.id)}
+                        onChange={(attrs) => updateShape(shape.id, attrs)}
+                        stageScale={stageScale}
+                        setSelectedIds={setSelectedIds}
+                        selectedIds={selectedIds}
+                        setIsDraggingGroup={setIsDraggingGroup}
+                        setIsolatedGroup={setIsolatedGroup}
+                        shapes={shapes}
+                        onShapesChange={onShapesChange}
+                        setSelectedId={setSelectedId}
+                      />
+                    );
+                  }
+                  if (shape.type === "polygon") {
+                    const s = shape as PolygonShape;
+                    return (
+                      <StretchablePolygon
+                        key={shape.id}
+                        shape={shape}
+                        isSelected={shape.id === selectedId}
+                        onSelect={(e) => {
+                          if (mode === "panning") {
+                            e.cancelBubble = true;
+                            return;
+                          }
+                          if (isPreviewMode && shape.linkToArtboard) {
+                            setActiveArtboardId(shape.linkToArtboard);
+                          } else {
+                            setSelectedId(shape.id);
+                          }
+                        }}
+                        onChange={(attrs) => updateShape(shape.id, attrs)}
+                        stageScale={stageScale}
+                        selectedIds={selectedIds}
+                        setSelectedIds={setSelectedIds}
+                        isInGroup={false}
+                        isLocked={isLocked}
+                        listening={!isDrawMode}
+                        draggable={mode !== "panning" && !shape.locked}
+                      />
+                    );
+                  }
                   return (
-                    <StretchablePolygon
+                    <StretchableShape
                       key={shape.id}
                       shape={shape}
                       isSelected={shape.id === selectedId}
                       onSelect={(e) => {
                         if (mode === "panning") {
-                          e.cancelBubble = true;
+                          e.cancelBubble = true; // Konva: stop bubbling
                           return;
                         }
                         if (isPreviewMode && shape.linkToArtboard) {
@@ -1201,141 +1370,173 @@ const ImageMapView = ({
                           setSelectedId(shape.id);
                         }
                       }}
+                      onDoubleClick={(e) => {
+                        setSelectedId(shape.id); // ⬅️ Trigger Transformer
+
+                        if (shape.type === "text") {
+                          // Aktifkan mode edit teks (misalnya tampilkan textarea)
+                          handleStartEditText?.(shape);
+                        }
+                      }}
                       onChange={(attrs) => updateShape(shape.id, attrs)}
-                      stageScale={stageScale}
-                      selectedIds={selectedIds}
+                      mode={mode}
                       setSelectedIds={setSelectedIds}
+                      selectedIds={selectedIds}
                       isInGroup={false}
                       isLocked={isLocked}
                       listening={!isDrawMode}
                       draggable={mode !== "panning" && !shape.locked}
-                    />
-                  );
-                }
-                return (
-                  <StretchableShape
-                    key={shape.id}
-                    shape={shape}
-                    isSelected={shape.id === selectedId}
-                    onSelect={(e) => {
-                      if (mode === "panning") {
-                        e.cancelBubble = true; // Konva: stop bubbling
-                        return;
-                      }
-                      if (isPreviewMode && shape.linkToArtboard) {
-                        setActiveArtboardId(shape.linkToArtboard);
-                      } else {
-                        setSelectedId(shape.id);
-                      }
-                    }}
-                    onDoubleClick={() => {
-                      setSelectedId(shape.id); // ⬅️ Trigger Transformer
-                    }}
-                    onChange={(attrs) => updateShape(shape.id, attrs)}
-                    mode={mode}
-                    setSelectedIds={setSelectedIds}
-                    selectedIds={selectedIds}
-                    isInGroup={false}
-                    isLocked={isLocked}
-                    listening={!isDrawMode}
-                    draggable={mode !== "panning" && !shape.locked}
-                  />
-                );
-              })}
-              {isDrawingPoly && currentPolyPoints.length >= 2 && (
-                <>
-                  {/* Preview garis */}
-                  <Line
-                    points={currentPolyPoints}
-                    stroke="#6b7280"
-                    strokeWidth={2}
-                    closed={false}
-                  />
-                  {/* Preview shape (tertutup dengan fill transparan) */}
-                  {currentPolyPoints.length >= 6 && (
-                    <Line
-                      points={currentPolyPoints}
-                      fill={LOT_COLOR_MAP.DEFAULT}
-                      stroke="#22c55e"
-                      strokeWidth={1}
-                      closed={true}
-                      opacity={0.5}
-                    />
-                  )}
-                </>
-              )}
-              {isDrawingPoly &&
-                currentPolyPoints.map((val, idx) => {
-                  if (idx % 2 === 1) return null; // Ambil hanya koordinat X dan Y
-
-                  const x = currentPolyPoints[idx];
-                  const y = currentPolyPoints[idx + 1];
-
-                  // Menyesuaikan radius dengan skala stage
-                  const radius = 4 / stageScale; // Radius yang disesuaikan dengan skala stage
-
-                  return (
-                    <Circle
-                      key={`dot-${idx}`}
-                      x={x}
-                      y={y}
-                      radius={radius} // Radius yang disesuaikan
-                      fill="#ef4444"
+                      onStartEditText={handleStartEditText}
+                      scaledFontSize={scaledFontSize}
+                      stageScale={stageScale}
                     />
                   );
                 })}
-
-              {drawingShape?.endX !== undefined &&
-                drawingShape?.endY !== undefined &&
-                (() => {
-                  const { startX, startY, endX, endY, type } = drawingShape;
-                  const x = Math.min(startX, endX);
-                  const y = Math.min(startY, endY);
-                  const width = Math.abs(endX - startX);
-                  const height = Math.abs(endY - startY);
-                  const fillColor = "#64748b33"; // slate-500 with opacity
-
-                  if (type === "drawRect") {
-                    return (
-                      <Rect
-                        x={x}
-                        y={y}
-                        width={width}
-                        height={height}
-                        stroke="#64748b"
-                        strokeWidth={1.5}
-                        fill={fillColor}
+                {isDrawingPoly && currentPolyPoints.length >= 2 && (
+                  <>
+                    {/* Preview garis */}
+                    <Line
+                      points={currentPolyPoints}
+                      stroke="#6b7280"
+                      strokeWidth={2}
+                      closed={false}
+                    />
+                    {/* Preview shape (tertutup dengan fill transparan) */}
+                    {currentPolyPoints.length >= 6 && (
+                      <Line
+                        points={currentPolyPoints}
+                        fill={LOT_COLOR_MAP.DEFAULT}
+                        stroke="#22c55e"
+                        strokeWidth={1}
+                        closed={true}
+                        opacity={0.5}
                       />
-                    );
-                  } else if (type === "drawEllipse") {
-                    return (
-                      <Ellipse
-                        x={x + width / 2}
-                        y={y + height / 2}
-                        radiusX={width / 2}
-                        radiusY={height / 2}
-                        stroke="#64748b"
-                        strokeWidth={1.5}
-                        fill={fillColor}
-                      />
-                    );
-                  } else if (type === "drawCircle") {
-                    const radius = Math.max(width, height) / 2;
+                    )}
+                  </>
+                )}
+                {isDrawingPoly &&
+                  currentPolyPoints.map((val, idx) => {
+                    if (idx % 2 === 1) return null; // Ambil hanya koordinat X dan Y
+
+                    const x = currentPolyPoints[idx];
+                    const y = currentPolyPoints[idx + 1];
+
+                    // Menyesuaikan radius dengan skala stage
+                    const radius = 4 / stageScale; // Radius yang disesuaikan dengan skala stage
+
                     return (
                       <Circle
-                        x={x + radius}
-                        y={y + radius}
-                        radius={radius}
-                        stroke="#64748b"
-                        strokeWidth={1.5}
-                        fill={fillColor}
+                        key={`dot-${idx}`}
+                        x={x}
+                        y={y}
+                        radius={radius} // Radius yang disesuaikan
+                        fill="#ef4444"
                       />
                     );
+                  })}
+
+                {drawingShape?.endX !== undefined &&
+                  drawingShape?.endY !== undefined &&
+                  (() => {
+                    const { startX, startY, endX, endY, type } = drawingShape;
+                    const x = Math.min(startX, endX);
+                    const y = Math.min(startY, endY);
+                    const width = Math.abs(endX - startX);
+                    const height = Math.abs(endY - startY);
+                    const fillColor = "#64748b33"; // slate-500 with opacity
+
+                    if (type === "drawRect") {
+                      return (
+                        <Rect
+                          x={x}
+                          y={y}
+                          width={width}
+                          height={height}
+                          stroke="#64748b"
+                          strokeWidth={1.5}
+                          fill={fillColor}
+                        />
+                      );
+                    } else if (type === "drawEllipse") {
+                      return (
+                        <Ellipse
+                          x={x + width / 2}
+                          y={y + height / 2}
+                          radiusX={width / 2}
+                          radiusY={height / 2}
+                          stroke="#64748b"
+                          strokeWidth={1.5}
+                          fill={fillColor}
+                        />
+                      );
+                    } else if (type === "drawCircle") {
+                      const radius = Math.max(width, height) / 2;
+                      return (
+                        <Circle
+                          x={x + radius}
+                          y={y + radius}
+                          radius={radius}
+                          stroke="#64748b"
+                          strokeWidth={1.5}
+                          fill={fillColor}
+                        />
+                      );
+                    } else if (type === "drawText") {
+                      return (
+                        <Text
+                          x={x}
+                          y={y}
+                          text="Sample"
+                          fontSize={14}
+                          stroke="#64748b"
+                          strokeWidth={1.5}
+                          fill={fillColor}
+                          width={150}
+                          wrap="word"
+                        />
+                      );
+                    }
+                    return null;
+                  })()}
+              </Layer>
+            </Stage>
+            {editingTextId && (
+              <input
+                type="text"
+                value={editingTextValue}
+                onChange={(e) => setEditingTextValue(e.target.value)}
+                onBlur={() => {
+                  updateShape(editingTextId, {
+                    text: editingTextValue,
+                  });
+                  setEditingTextId(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    updateShape(editingTextId, {
+                      text: editingTextValue,
+                    });
+                    setEditingTextId(null);
+                  } else if (e.key === "Escape") {
+                    setEditingTextId(null);
                   }
-                  return null;
-                })()}
-            </Layer>
-          </Stage>
+                }}
+                style={{
+                  position: "absolute",
+                  top: `${editingTextPos.y * stageScale + stagePos.y}px`,
+                  left: `${editingTextPos.x * stageScale + stagePos.x}px`,
+                  transform: `scale(${paperZoom})`,
+                  transformOrigin: "top left",
+                  padding: "4px",
+                  fontSize: "14px",
+                  border: "1px solid gray",
+                  background: "#fff",
+                  zIndex: 999,
+                }}
+                autoFocus
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

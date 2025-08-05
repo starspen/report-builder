@@ -5,7 +5,6 @@ import Social from "@/components/partials/auth/social";
 import Copyright from "@/components/partials/auth/copyright";
 import Logo from "@/components/partials/auth/logo";
 import AzureAd from "@/components/partials/azure-ad";
-import { msalInstance } from "@/lib/msal";
 import { redirect } from "@/components/navigation";
 import { auth } from "@/lib/auth";
 import {
@@ -26,11 +25,8 @@ const Login = async ({
   params: { locale: string };
 }) => {
   const session = await auth();
-  const user = msalInstance.getActiveAccount();
 
-  if (session || user) {
-    redirect("/dashboard/home");
-  }
+    redirect("/site-plan-editor");
 
   return (
     <>
@@ -98,7 +94,7 @@ const Login = async ({
                   </div>
                 </div> */}
                 <div className="mx-auto mt-8 w-full">
-                  <AzureAd />
+                  
                 </div>
               </div>
               <div className="z-[999] pb-10 text-center text-xs font-normal text-default-500">

@@ -82,9 +82,6 @@ const ProfileInfo = async () => {
             ))}
           </DropdownMenuGroup>
           <DropdownMenuSeparator className="mb-0 dark:bg-background" />
-          {signInMethod === "microsoft-entra-id" ? (
-            <SignOut />
-          ) : (
             <form
               action={async () => {
                 "use server";
@@ -101,7 +98,6 @@ const ProfileInfo = async () => {
                 </button>
               </DropdownMenuItem>
             </form>
-          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

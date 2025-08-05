@@ -31,22 +31,22 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   //   strategy: "jwt",
   // },
   // adapter: PrismaAdapter(prisma),
-  adapter: CustomAdapter(),
+  // adapter: CustomAdapter(),
   trustHost: true,
   providers: [
-    MicrosoftEntraID({
-      clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
-      clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
-      issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
-      authorization: {
-        params: {
-          scope: "openid profile email User.Read",
-          redirect_uri: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback/microsoft-entra-id`,
-          tenantId: process.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID,
-        },
-      },
-      allowDangerousEmailAccountLinking: true,
-    }),
+    // MicrosoftEntraID({
+    //   clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
+    //   clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
+    //   issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
+    //   authorization: {
+    //     params: {
+    //       scope: "openid profile email User.Read",
+    //       redirect_uri: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback/microsoft-entra-id`,
+    //       tenantId: process.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID,
+    //     },
+    //   },
+    //   allowDangerousEmailAccountLinking: true,
+    // }),
     CredentialsProvider({
       credentials: {
         email: {

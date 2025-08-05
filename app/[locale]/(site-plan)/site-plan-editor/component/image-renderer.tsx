@@ -22,7 +22,7 @@ type ShapeBase = {
   x: number;
   y: number;
   fill: string;
-  locked: boolean;
+  locked?: boolean;
 };
 
 export type RectShape = ShapeBase & {
@@ -44,13 +44,24 @@ export type EllipseShape = ShapeBase & {
   radiusY: number;
 };
 
+export type TextShape = ShapeBase & {
+  type: "text";
+  text: string;
+  fontSize: number;
+  width?: number; // opsional
+  height?: number; // opsional
+  fontFamily?: string;
+};
+
 export type StretchableShapeProps = {
-  shape: RectShape | CircleShape | ImageShape | EllipseShape;
+  shape: RectShape | CircleShape | ImageShape | EllipseShape | TextShape;
   isSelected: boolean;
   onSelect: (e: Konva.KonvaEventObject<Event>) => void;
   /** update callback – supply only changed attrs */
   onChange: (
-    newAttrs: Partial<RectShape | CircleShape | EllipseShape | ImageShape>
+    newAttrs: Partial<
+      RectShape | CircleShape | EllipseShape | ImageShape | TextShape
+    >
   ) => void;
   mode?:
     | "default"
@@ -59,7 +70,8 @@ export type StretchableShapeProps = {
     | "drawCircle"
     | "drawEllipse"
     | "viewOnly"
-    | "panning";
+    | "panning"
+    | "drawText";
   /** optional, untuk multi-select support */
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   selectedIds?: string[];
@@ -80,6 +92,9 @@ export type StretchableShapeProps = {
   containerHeight?: number;
   backgroundColor?: string;
   draggable?: boolean;
+  onStartEditText?: (shape: TextShape) => void;
+  scaledFontSize?: number;
+  stageScale?: number;
 };
 
 // -----------------------------
@@ -107,6 +122,9 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   containerHeight,
   backgroundColor = "transparent",
   draggable,
+  onStartEditText,
+  scaledFontSize,
+  stageScale,
 }) => {
   const ref = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -249,6 +267,14 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         y: node.y(),
         radius: node.radius() * scaleX,
         fill: shape.fill,
+      });
+    } else if (shape.type === "text") {
+      onChange({
+        x: node.x(),
+        y: node.y(),
+        width: node.width() * scaleX,
+        height: node.height() * scaleY,
+        fontSize: (shape as TextShape).fontSize, // tetap
       });
     } else {
       onChange({
@@ -481,6 +507,36 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           setTimeout(() => {
             isHoldingRef.current = false;
           }, 50);
+        }}
+      />
+    );
+  } else if (shape.type === "text") {
+    const s = shape as TextShape;
+    element = (
+      <KonvaText
+        {...common}
+        text={s.text}
+        fontSize={(shape.fontSize ?? 14) * (1 / (stageScale || 1))}
+        fontFamily={s.fontFamily || "Arial"}
+        draggable={draggable ?? (!isInGroup && !s.locked)}
+        onDragEnd={isInGroup ? undefined : handleDragEnd}
+        onTransformEnd={() => {
+          const node = ref.current;
+          const scaleX = node.scaleX();
+          const scaleY = node.scaleY();
+          node.scaleX(1);
+          node.scaleY(1);
+
+          onChange?.({
+            x: node.x(),
+            y: node.y(),
+            fontSize: s.fontSize,
+          });
+        }}
+        onDblClick={(e) => {
+          e.cancelBubble = true;
+          onDoubleClick?.(e); // 🟡 panggil callback
+          onSelect(e);
         }}
       />
     );

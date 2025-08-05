@@ -13,11 +13,6 @@ import { msalInstance } from "@/lib/msal";
 const layout = async ({ children }: { children: React.ReactNode }) => {
   const session = await auth();
 
-  const user = msalInstance.getActiveAccount();
-
-  if (!session && !user) {
-    redirect("/");
-  }
   return (
     <LayoutProvider>
       {/* <ThemeCustomize /> */}

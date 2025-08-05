@@ -12,11 +12,8 @@ import {
 const layout = async ({ children }: { children: React.ReactNode }) => {
   const session = await auth();
 
-  const user = msalInstance.getActiveAccount();
 
-  if (!session && !user) {
-    redirect("/");
-  }
+
   return (
     <div className="flex min-h-screen w-full">
       <SidebarProvider>

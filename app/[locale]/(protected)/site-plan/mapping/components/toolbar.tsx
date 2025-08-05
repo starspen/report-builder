@@ -1,4 +1,5 @@
 "use client";
+import { TextShape } from "@/app/[locale]/(site-plan)/site-plan-editor/component/image-renderer";
 import { EllipseShape } from "@/app/[locale]/(site-plan)/site-plan-editor/component/toolbar";
 import { Button } from "@/components/ui/button";
 import React, { useState, useRef } from "react";
@@ -43,7 +44,7 @@ export type Shape =
   | CircleShape
   | PolygonShape
   | ImageShape
-  | EllipseShape;
+  | EllipseShape | TextShape;
 
 // -----------------------------
 // 🧰 Toolbar Component

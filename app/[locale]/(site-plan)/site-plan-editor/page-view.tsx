@@ -40,6 +40,7 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@/components/ui/dialog";
+import { FontFamily } from "./paper-size";
 
 const Editor = () => {
   // SELALU TARUH HOOK DI SINI (tidak dalam if)
@@ -108,6 +109,10 @@ const Editor = () => {
   const [initialArtboardShapes, setInitialArtboardShapes] = useState<{
     [id: string]: any[];
   }>({});
+
+  const [selectedFont, setSelectedFont] = useState<FontFamily[]>([]); // ← array
+
+  console.log(selectedFont, "selectedFont");
 
   const queryClient = useQueryClient();
 
@@ -360,14 +365,27 @@ const Editor = () => {
         id: Number(item.id),
         title: item.title,
         type: "floor",
-        shapes: (artboardShapes[item.id] || []).map(({ lotId, ...shape }) => ({
-          ...shape,
-          title: shape.title || shape.type || "",
-          lot_no: lotId || "", // hanya kirim lot_no
-        })),
+        shapes: (artboardShapes[item.id] || []).map(({ lotId, ...shape }) => {
+          const baseShape = {
+            ...shape,
+            title: shape.title || shape.type || "",
+            lot_no: lotId || "", // hanya kirim lot_no
+          };
+
+          // Tambahkan fontFamily kalau text
+          if (shape.type === "text") {
+            return {
+              ...baseShape,
+              fontFamily: shape.fontFamily || "Helvetica", // fallback default
+              width: shape.width || 200
+            };
+          }
+
+          return baseShape;
+        }),
       })),
     };
-
+    console.log(payload, "payload sep")
     saveMasterplanMutate(payload);
   };
 
@@ -766,7 +784,7 @@ const Editor = () => {
           </div>
 
           {/* Canvas */}
-          <div className="flex-1 relative overflow-hidden transition-all duration-300">
+          <div className="flex-1 relative overflow-hidden transition-all duration-300 overflow-y-auto">
             <ImageMapView
               shapes={artboardShapes[activeArtboardId] || []}
               setArtboardShapes={setArtboardShapes}
@@ -828,6 +846,8 @@ const Editor = () => {
                 projectCode={projectCode}
                 isLocked={isLocked}
                 setIsLocked={setIsLocked}
+                selectedFont={selectedFont}
+                setSelectedFont={setSelectedFont}
               />
             </div>
           </div>

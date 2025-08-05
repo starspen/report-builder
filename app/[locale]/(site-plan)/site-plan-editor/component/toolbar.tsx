@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import React, { useState, useRef } from "react";
 import { Stage, Layer, Rect, Circle, Line } from "react-konva";
+import { TextShape } from "./image-renderer";
 
 // -----------------------------
 // 🛠️  Types
@@ -51,12 +52,13 @@ export type ImageShape = ShapeBase & {
   height: number;
 };
 
+
 export type GroupChildShape =
   | RectShape
   | CircleShape
   | EllipseShape
   | ImageShape
-  | PolygonShape; // Polygon bisa kamu pakai di StretchablePolygon
+  | PolygonShape | TextShape
 
 export type GroupShape = {
   id: string;

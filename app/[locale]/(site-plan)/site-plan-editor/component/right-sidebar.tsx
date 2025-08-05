@@ -31,8 +31,12 @@ import { useQuery } from "@tanstack/react-query";
 import { getLotData } from "@/action/getLot";
 import BasicCombobox from "@/app/[locale]/(protected)/forms/combobox/basic-combobox";
 import { LOT_COLOR_MAP } from "./canvas";
+import { font, FontFamily } from "../paper-size";
+import { formatMonthCaption } from "react-day-picker";
 
 export interface Shape {
+  fontSize?: number;
+  fontFamily: string;
   id: string;
   type: string;
   x?: number;
@@ -70,6 +74,8 @@ interface RightSideBarProps {
   >;
   updateMenuTitle: (shapeId: string, newTitle: string) => void;
   menuItems: ArtboardMenuItem[];
+  selectedFont?: FontFamily[];
+  setSelectedFont?: React.Dispatch<React.SetStateAction<FontFamily[]>>;
   rightSidebarOpen: boolean;
   setRightSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   entityCode: string;
@@ -94,6 +100,8 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   projectCode,
   isLocked,
   setIsLocked,
+  selectedFont,
+  setSelectedFont,
 }) => {
   const selectedShape = shapes?.find((s) => s.id === selectedId);
   console.log(selectedShape, "selectedShape");
@@ -353,6 +361,46 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         : "Lock Position"}
                     </Button>
                   </div>
+
+                  {selectedShape?.type === "text" && (
+                    <div className="space-y-1 col-span-1 mt-2">
+                      <Label htmlFor="fontSize">Font Size</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="fontSize"
+                          disabled={selectedShape.locked}
+                          type="number"
+                          className="w-full"
+                          value={selectedShape.fontSize || 14}
+                          onChange={(e) =>
+                            handleUpdateShape(selectedShape.id, {
+                              fontSize: parseFloat(e.target.value),
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedShape?.type === "text" && (
+                    <div className="space-y-1 col-span-1 mt-2">
+                      <Label>Font Family</Label>
+                      <BasicCombobox
+                      options={font.map((item) => ({
+                        label: item.name,
+                        value: item.name,
+                      }))}
+                      placeholder="Select Destination"
+                      value={selectedShape?.fontFamily || ""}
+                      onChange={(val) => {
+                        if (!selectedShape) return;
+                        handleUpdateShape(selectedShape.id, {
+                          fontFamily: val,
+                        });
+                      }}
+                    />
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 justify-between">
