@@ -10,6 +10,7 @@ import {
   Text as KonvaText,
   Label,
   Tag,
+  Group,
 } from "react-konva";
 import useImage from "use-image";
 
@@ -21,8 +22,9 @@ type ShapeBase = {
   id: string;
   x: number;
   y: number;
-  fill: string;
+  fill?: string;
   locked?: boolean;
+  tableId?: string;
 };
 
 export type RectShape = ShapeBase & {
@@ -51,16 +53,81 @@ export type TextShape = ShapeBase & {
   width?: number; // opsional
   height?: number; // opsional
   fontFamily?: string;
+  labelX?: number;
+  labelY?: number;
 };
 
+export type TableLabel = {
+  id: string;
+  text: string;
+  labelX: number; // posisi RELATIF di dalam Group table
+  labelY: number;
+  fontSize?: number;
+  fontFamily?: string;
+  width?: number;
+  height?: number;
+  type?: "text";
+  source_table_name?: string;
+  text_column?: string;
+  column_filter?: string;
+};
+
+export type TableCell = {
+  x: number; // relatif ke table.x (0 = kiri table)
+  y: number; // relatif ke table.y (0 = atas table)
+  width: number;
+  height: number;
+  header?: string;
+  text_column?: string;
+  column_filter?: string;
+  labels?: TableLabel[]
+  tableId?: string;
+  source_table_name?: string
+};
+
+export type Table = ShapeBase & {
+  type: string;
+  width: number;
+  height: number;
+  label?: string;
+  tableId?: string;
+  source_table_name?: string;
+  text_column?: string;
+  table_cd?: string;
+  column_filter?: string;
+  labels: TableLabel[];
+  tables?: TableCell[];
+  fontSize?: number;
+};
+
+export type LabelPatch = Partial<
+  Pick<
+    TableLabel,
+    | "text"
+    | "fontSize"
+    | "fontFamily"
+    | "labelX"
+    | "labelY"
+    | "source_table_name"
+    | "text_column"
+  >
+>;
+export type TablePatch = Partial<Table>;
+
 export type StretchableShapeProps = {
-  shape: RectShape | CircleShape | ImageShape | EllipseShape | TextShape;
+  shape:
+    | RectShape
+    | CircleShape
+    | ImageShape
+    | EllipseShape
+    | TextShape
+    | Table;
   isSelected: boolean;
   onSelect: (e: Konva.KonvaEventObject<Event>) => void;
   /** update callback – supply only changed attrs */
   onChange: (
     newAttrs: Partial<
-      RectShape | CircleShape | EllipseShape | ImageShape | TextShape
+      RectShape | CircleShape | EllipseShape | ImageShape | TextShape | Table
     >
   ) => void;
   mode?:
@@ -71,7 +138,9 @@ export type StretchableShapeProps = {
     | "drawEllipse"
     | "viewOnly"
     | "panning"
-    | "drawText";
+    | "multiSelect"
+    | "drawText"
+    | "drawTable";
   /** optional, untuk multi-select support */
   setSelectedIds?: React.Dispatch<React.SetStateAction<string[]>>;
   selectedIds?: string[];
@@ -95,6 +164,17 @@ export type StretchableShapeProps = {
   onStartEditText?: (shape: TextShape) => void;
   scaledFontSize?: number;
   stageScale?: number;
+  editing?: boolean;
+  setEditing?: React.Dispatch<React.SetStateAction<boolean>>;
+  inputValue: string;
+  setInputValue: React.Dispatch<React.SetStateAction<string>>;
+  tableValue: string;
+  setTableValue: React.Dispatch<React.SetStateAction<string>>;
+  editingTableId: string | null;
+  setEditingTableId: React.Dispatch<React.SetStateAction<string | null>>;
+  editingLabelId: string | null;
+  setEditingLabelId: React.Dispatch<React.SetStateAction<string | null>>;
+  onSelectLabel?: (tableId: string, labelId: string) => void;
 };
 
 // -----------------------------
@@ -125,12 +205,27 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   onStartEditText,
   scaledFontSize,
   stageScale,
+  editing,
+  setEditing,
+  inputValue,
+  setInputValue,
+  tableValue,
+  setTableValue,
+  editingTableId,
+  setEditingTableId,
+  editingLabelId,
+  setEditingLabelId,
+  onSelectLabel,
 }) => {
   const ref = useRef<any>(null);
   const trRef = useRef<any>(null);
   const [img] =
     shape.type === "image" ? useImage((shape as ImageShape).src) : [undefined];
   const [isHovered, setIsHovered] = useState(false);
+  const [columns, setColumns] = useState([]); // Awal kosong
+  const [editingColId, setEditingColId] = useState(null);
+  const [canvasOffset, setCanvasOffset] = useState({ left: 0, top: 0 }); // Buat posisi input
+  const [selectedNode, setSelectedNode] = useState<any>(null);
 
   useEffect(() => {
     if (isSelected && ref.current && trRef.current) {
@@ -150,7 +245,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     ref,
     x: shape.x,
     y: shape.y,
-    fill: shape.fill,
+    tableId: shape.tableId,
+    fill: "",
     opacity: isHovered ? 0.8 : 0.5,
     stroke: "#333",
     strokeWidth: 1,
@@ -276,6 +372,14 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         height: node.height() * scaleY,
         fontSize: (shape as TextShape).fontSize, // tetap
       });
+    } else if (shape.type === "table") {
+      onChange({
+        x: node.x(),
+        y: node.y(),
+        width: node.width() * scaleX,
+        height: node.height() * scaleY,
+        fill: shape.fill,
+      });
     } else {
       onChange({
         x: node.x(),
@@ -297,11 +401,53 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   const holdTimeoutRef = useRef<any>(null);
   const isHoldingRef = useRef(false);
 
+  const table = shape as Table;
+  console.log(table, "table:");
+
+  const [text, setText] = useState<TableLabel[]>([]);
+  const [textColumn, setTextColumn] = useState("");
+
+  useEffect(() => {
+    if (!table) return; // amanin kalau table undefined
+
+    if (table.text_column) {
+      setTextColumn(table.text_column);
+    } else {
+      setTextColumn("");
+    }
+
+    if (Array.isArray(table.labels)) {
+      setText(table.labels);
+    } else {
+      setText([]);
+    }
+  }, [table]); // ✅ hanya jalan kalau table berubah
+
+  useEffect(() => {
+    if (!isSelected || !trRef.current) return;
+
+    // Kalau table + ada label yang sedang dipilih/diedit, biarkan Transformer tetap di label
+    if (shape.type === "table" && editingLabelId) return;
+
+    if (ref.current) {
+      trRef.current.nodes([ref.current]);
+      trRef.current.getLayer()?.batchDraw();
+    }
+  }, [isSelected, shape.type, editingLabelId]);
+
+  useEffect(() => {
+    if (trRef.current && selectedNode) {
+      trRef.current.nodes([selectedNode]);
+      trRef.current.getLayer()?.batchDraw();
+    }
+  }, [selectedNode]);
+
   let element = null;
   if (shape.type === "rect") {
     element = (
       <>
         <KonvaRect
+          id={shape.id}
           {...common}
           width={(shape as RectShape).width}
           height={(shape as RectShape).height}
@@ -369,14 +515,142 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         />
       </>
     );
+  } else if (shape.type === "table") {
+    const table = shape as Table;
+
+    element = (
+      <>
+        {/* RECT tabel: beri fill/stroke supaya kelihatan */}
+        <KonvaRect
+          width={table.width}
+          height={table.height}
+          fill={shape.fill ?? "#ffffff"} // <-- kelihatan di canvas putih
+          stroke="#333"
+          strokeWidth={1}
+          id={table.id}
+          ref={ref}
+          x={table.x}
+          y={table.y}
+          draggable={draggable ?? (!isInGroup && !table.locked)}
+          listening={listening ?? true}
+          onClick={(e) => {
+            e.cancelBubble = true;
+            onSelect?.(e);
+            onClick?.(e);
+            setSelectedNode(ref.current);
+          }}
+          onDragEnd={isInGroup ? undefined : handleDragEnd}
+          onTransformEnd={handleTransformEnd}
+          onContextMenu={onContextMenu}
+          onDblClick={(e) => {
+            e.cancelBubble = true;
+            onSelect?.(e);
+
+            // Cari posisi klik di stage → konversi jadi relatif ke tabel
+            const stage = e.target.getStage();
+            const pt = stage?.getPointerPosition();
+
+            // Default di tengah tabel
+            let relX = table.width / 2;
+            let relY = table.height / 2;
+
+            if (pt) {
+              // absolut -> relatif
+              relX = pt.x - table.x;
+              relY = pt.y - table.y;
+              // clamp supaya tetap di dalam rect
+              relX = Math.max(0, Math.min(relX, table.width));
+              relY = Math.max(0, Math.min(relY, table.height));
+            }
+
+            const newLabel: TableLabel = {
+              id: `lbl-${Date.now()}`,
+              text: "", // kosong, biar langsung ngetik
+              labelX: relX,
+              labelY: relY,
+              fontSize: 16,
+              type: "text",
+              source_table_name: table.source_table_name ?? "",
+              text_column: table.text_column ?? "",
+              column_filter: table.column_filter ?? "",
+            } as const;
+
+            // tambahkan label ke table
+            onChange?.({ labels: [...(table.labels ?? []), newLabel] });
+
+            // buka editor untuk label baru
+            setEditing?.(true);
+            setEditingTableId(table.id);
+            setEditingLabelId?.(newLabel.id);
+            setInputValue(newLabel.text);
+          }}
+        />
+
+        {console.log(shape.text_column, "text col")}
+
+        {/* label-label di dalam table */}
+        {(table.labels ?? []).map((lbl) => (
+          <KonvaText
+            key={lbl.id}
+            id={lbl.id} // id khusus label
+            text={lbl.text || textColumn || ""}
+            x={(Number(table.x) || 0) + (Number(lbl.labelX) || 0)}
+            y={(Number(table.y) || 0) + (Number(lbl.labelY) || 0)}
+            fontSize={lbl.fontSize ?? 16}
+            fontFamily={lbl.fontFamily ?? "Arial"}
+            fill="#222"
+            draggable
+            onClick={(e) => {
+              e.cancelBubble = true;
+              onSelect?.(e); // tetap select table
+              onSelectLabel?.(table.id, lbl.id);
+
+              const node = e.target;
+              setSelectedNode(node);
+
+              const tr = trRef.current;
+              if (tr) {
+                tr.nodes([node]); // ⬅️ pasang ke Konva.Text yg diklik
+                tr.getLayer()?.batchDraw();
+              }
+            }}
+            onDragMove={(e) => {
+              e.cancelBubble = true; // jangan biarkan event naik
+            }}
+            onDragEnd={(e) => {
+              const node = e.target as Konva.Text;
+              const relX = node.x() - table.x;
+              const relY = node.y() - table.y;
+
+              onChange?.({
+                labels: (table.labels ?? []).map((it) =>
+                  it.id === lbl.id ? { ...it, labelX: relX, labelY: relY } : it
+                ),
+              });
+            }}
+            onDblClick={(e) => {
+              e.cancelBubble = true;
+              onSelect?.(e);
+              setEditing?.(true);
+              setEditingTableId(table.id);
+              onSelectLabel?.(table.id, lbl.id);
+              setEditingLabelId?.(lbl.id);
+              setInputValue(lbl.text);
+            }}
+          />
+        ))}
+      </>
+    );
   } else if (shape.type === "ellipse") {
     element = (
       <KonvaEllipse
+        id={shape.id}
         {...common}
         radiusX={(shape as EllipseShape).radiusX}
         radiusY={(shape as EllipseShape).radiusY}
         onDragEnd={isInGroup ? undefined : handleDragEnd}
         onTransformEnd={handleTransformEnd}
+        draggable
         onClick={(e) => {
           e.cancelBubble = true;
 
@@ -403,7 +677,6 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           e.cancelBubble = true;
           onDoubleClick?.(e); // 🟡 optional
           onSelect(e);
-          console.log("click count:", e.evt.detail);
         }}
         onDblTap={(e) => {
           e.cancelBubble = true;
@@ -442,6 +715,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   } else if (shape.type === "circle") {
     element = (
       <KonvaCircle
+        id={shape.id}
         {...common}
         radius={(shape as CircleShape).radius}
         onDragEnd={isInGroup ? undefined : handleDragEnd}
@@ -473,8 +747,6 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           onDoubleClick?.(e); // 🟡 optional
           onSelect(e);
           onClick?.(e);
-
-          console.log("click count:", e.evt.detail);
         }}
         onDblTap={(e) => {
           e.cancelBubble = true;
@@ -514,6 +786,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     const s = shape as TextShape;
     element = (
       <KonvaText
+        id={shape.id}
         {...common}
         text={s.text}
         fontSize={(shape.fontSize ?? 14) * (1 / (stageScale || 1))}
@@ -543,6 +816,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   } else {
     element = (
       <KonvaImage
+        id={shape.id}
         {...commonForImage}
         image={img}
         width={(shape as ImageShape).width}
@@ -623,7 +897,17 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   return (
     <>
       {element}
-      {isSelected && <Transformer ref={trRef} rotateEnabled={false} />}
+      {mode !== "multiSelect" && isSelected && (
+        <Transformer
+          ref={trRef}
+          rotateEnabled={false}
+          enabledAnchors={
+            selectedNode?.getClassName?.() === "Text"
+              ? ["middle-left", "middle-right"] // hanya resize horizontal untuk teks
+              : undefined
+          }
+        />
+      )}
 
       {tooltip && (
         <Label x={tooltip.x} y={tooltip.y}>

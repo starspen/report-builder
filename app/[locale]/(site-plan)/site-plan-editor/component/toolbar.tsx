@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import React, { useState, useRef } from "react";
 import { Stage, Layer, Rect, Circle, Line } from "react-konva";
-import { TextShape } from "./image-renderer";
+import { Table, TextShape } from "./image-renderer";
 
 // -----------------------------
 // 🛠️  Types
@@ -53,12 +53,14 @@ export type ImageShape = ShapeBase & {
 };
 
 
+
+
 export type GroupChildShape =
   | RectShape
   | CircleShape
   | EllipseShape
   | ImageShape
-  | PolygonShape | TextShape
+  | PolygonShape | TextShape | Table
 
 export type GroupShape = {
   id: string;

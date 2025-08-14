@@ -41,6 +41,75 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { FontFamily } from "./paper-size";
+import { createReport } from "@/action/create-report";
+import { getTemplateList } from "@/action/get-template-list";
+import { getPaperByDocument } from "@/action/get-paper";
+import { PageItem, SavePaper, savePaper } from "@/action/save-paper";
+import { getCompany } from "@/action/get-company";
+import { getTableData } from "@/action/get-table-data";
+import {
+  LabelPatch,
+  TableCell,
+  TableLabel,
+  TablePatch,
+} from "./component/image-renderer";
+
+// Ubah shape table lama → punya labels[] & tables[] yang benar
+function normalizeTableShapeLegacy(s: any): any {
+  if (s?.type !== "table") return s;
+
+  const next = { ...s };
+
+  // 1) pastikan tables[] berisi satu cell area penuh table (relatif 0,0)
+  if (!Array.isArray(next.tables) || next.tables.length === 0) {
+    next.tables = [
+      {
+        x: 0,
+        y: 0,
+        width: Math.round(next.width ?? 0),
+        height: Math.round(next.height ?? 0),
+        // opsional:
+        header: next.label ?? "",
+        text_column: next.text_column ?? "",
+        column_filter: next.column_filter ?? "",
+      },
+    ];
+  }
+
+  // 2) jika ada legacy text/text_column di root → jadikan 1 label
+  const hasLegacyText =
+    (next.text && String(next.text).trim() !== "") ||
+    (next.text_column && String(next.text_column).trim() !== "");
+
+  if (hasLegacyText) {
+    const newLabel = {
+      id: `lbl-${Date.now()}`,
+      text: next.text ?? "",
+      text_column: next.text_column ?? "",
+      source_table_name: next.source_table_name ?? "",
+      table_cd: next.table_cd ?? "",
+      column_filter: next.column_filter ?? "",
+      labelX: Math.round((next.width ?? 0) / 2), // posisi default: tengah table
+      labelY: Math.round((next.height ?? 0) / 2),
+      fontSize: Number(next.fontSize) || 16,
+      fontFamily: next.fontFamily || "Arial",
+      type: "text" as const,
+    };
+
+    next.labels = Array.isArray(next.labels)
+      ? [...next.labels, newLabel]
+      : [newLabel];
+
+    // kosongkan legacy field di root agar tidak dobel
+    next.text = "";
+    // (boleh dikosongkan juga kalau mau benar2 pindah total)
+    // next.text_column = "";
+    // next.source_table_name = "";
+    // next.column_filter = "";
+  }
+
+  return next;
+}
 
 const Editor = () => {
   // SELALU TARUH HOOK DI SINI (tidak dalam if)
@@ -111,11 +180,102 @@ const Editor = () => {
   }>({});
 
   const [selectedFont, setSelectedFont] = useState<FontFamily[]>([]); // ← array
-
-  console.log(selectedFont, "selectedFont");
+  const [selectedLabel, setSelectedLabel] = useState<{
+    tableId: string;
+    labelId: string;
+  } | null>(null);
 
   const queryClient = useQueryClient();
 
+  // state sudah ada:
+  // const [selectedLabel, setSelectedLabel] = useState<{ tableId: string; labelId: string } | null>(null);
+
+  const activeShapes = artboardShapes[activeArtboardId] || [];
+
+  const pickSelectedLabel = () => {
+    if (!selectedLabel) return null;
+    const table = activeShapes.find(
+      (s) => s.id === selectedLabel.tableId && s.type === "table"
+    ) as any | undefined; // Table
+    const lbl = table?.labels?.find((l: any) => l.id === selectedLabel.labelId);
+    return lbl ? { table, lbl } : null;
+  };
+
+  const selectedLabelInfo = pickSelectedLabel();
+
+  // PROXY untuk sidebar: kalau ada label terpilih → kirim object bertipe "text"
+  const selectedShapeForSidebar = selectedLabelInfo
+    ? {
+        id: selectedLabelInfo.lbl.id,
+        type: "text" as const, // ← ini yang kamu tanya
+        text: selectedLabelInfo.lbl.text ?? "",
+        fontSize: selectedLabelInfo.lbl.fontSize ?? 16,
+        fontFamily: selectedLabelInfo.lbl.fontFamily ?? "Arial",
+        locked: false,
+      }
+    : activeShapes.find((s) => s.id === selectedId) || null;
+
+  // updater untuk LABEL (bukan pushHistory, cukup update artboardShapes)
+  const updateLabel = (tableId: string, labelId: string, patch: LabelPatch) => {
+    setArtboardShapes((prev) => {
+      const page = prev[activeArtboardId] || [];
+      const next = page.map((s) => {
+        if (s.id !== tableId || s.type !== "table") return s;
+        return {
+          ...s,
+          labels: (s.labels ?? []).map((l: TableLabel) =>
+            l.id === labelId ? { ...l, ...patch } : l
+          ),
+        };
+      });
+      // no-op guard
+      if (next === page) return prev;
+      return { ...prev, [activeArtboardId]: next };
+    });
+  };
+
+  const updateTable = (
+    tableId: string,
+    patch: TablePatch,
+    propagate: boolean
+  ) => {
+    setArtboardShapes((prev) => {
+      const page = prev[activeArtboardId] || [];
+      const next = page.map((s) => {
+        if (s.id !== tableId || s.type !== "table") return s;
+        const updated = { ...s, ...patch };
+        if (propagate && (patch.source_table_name || patch.text_column)) {
+          updated.labels = (s.labels ?? []).map((l: TableLabel) => ({
+            ...l,
+            ...patch,
+          }));
+        }
+        return updated;
+      });
+      if (next === page) return prev;
+      return { ...prev, [activeArtboardId]: next };
+    });
+  };
+
+  // satu pintu update dari Sidebar
+  const handleUpdateSelected = (patch: LabelPatch | TablePatch) => {
+    if (selectedLabelInfo) {
+      // label aktif
+      updateLabel(
+        selectedLabelInfo.table.id,
+        selectedLabelInfo.lbl.id,
+        patch as LabelPatch
+      );
+    } else if (selectedId) {
+      // table/shape aktif
+      const isDbMapping =
+        "source_table_name" in patch ||
+        "text_column" in patch ||
+        "table_cd" in patch ||
+        "column_filter" in patch;
+      updateTable(selectedId, patch as TablePatch, isDbMapping);
+    }
+  };
   const handleShapesChange = (shapes: any[]) => {
     const shapeIconMap: Record<string, React.ElementType> = {
       rect: Square,
@@ -237,6 +397,15 @@ const Editor = () => {
   });
 
   const {
+    data: company,
+    isLoading: isLoadingCompany,
+    isError: isErrorCompany,
+  } = useQuery({
+    queryKey: ["company"],
+    queryFn: getCompany,
+  });
+
+  const {
     data: allProjects,
     isLoading: isLoadingProjects,
     isError: isErrorProjects,
@@ -252,34 +421,16 @@ const Editor = () => {
       ? allProjects.filter((p) => p.entity_cd.trim() === entityCode.trim())
       : [];
 
-  const { mutate, isPending, isSuccess, isError, error } = useMutation({
-    mutationFn: createMasterplan,
-    onSuccess: (data) => {
-      const newMasterplan = Array.isArray(data.data) ? data.data[0] : data.data;
-
-      const masterplanId = newMasterplan.masterplan_id || newMasterplan.id;
-
-      if (!masterplanId) {
-        console.error(
-          "masterplanId tidak ditemukan di response:",
-          newMasterplan
-        );
-        return;
-      }
-
-      router.push(`/en/site-plan-editor?masterplanId=${masterplanId}`);
-    },
-    onError: (err: any) => {
-      console.error("Gagal create masterplan:", err.message);
-    },
+  const { mutate } = useMutation({
+    mutationFn: createReport,
   });
 
   const searchParams = useSearchParams();
-  const masterplanId = searchParams?.get("masterplanId");
+  const masterplanId = searchParams?.get("document_id");
 
   const { data: masterplanDataById } = useQuery({
-    queryKey: ["masterplan", masterplanId],
-    queryFn: () => getMasterplanById(masterplanId!),
+    queryKey: ["document_id", masterplanId],
+    queryFn: () => getPaperByDocument(masterplanId!),
     enabled: !!masterplanId,
   });
 
@@ -288,9 +439,20 @@ const Editor = () => {
     isLoading: isLoadingMasterplans,
     isError: isErrorMasterplans,
   } = useQuery({
-    queryKey: ["masterplans", entityCode, projectCode],
-    queryFn: () => getMasterPlanData(entityCode, projectCode),
-    enabled: !!entityCode && !!projectCode,
+    queryKey: ["masterplans", entityCode],
+    queryFn: () => getTemplateList(entityCode),
+    enabled: !!entityCode,
+  });
+
+  const company_cd = searchParams?.get("company_cd") ?? "";
+
+  const {
+    data: tableDataDB,
+    isLoading: isLoadingCompanyCd,
+    isError: isErrorCompanyCd,
+  } = useQuery({
+    queryKey: ["company_cd", company_cd],
+    queryFn: () => getTableData(company_cd),
   });
 
   const handleCreateNewSiteplan = () => {
@@ -299,12 +461,28 @@ const Editor = () => {
       return;
     }
 
-    mutate({
-      entity_cd: entityCode,
-      project_no: projectCode,
-      name: siteplanName,
-      audit_user: auditUser, // Anda bisa ganti dinamis sesuai user login
-    });
+    const randomDocumentId = `${entityCode}-${projectCode}-${Math.floor(
+      Math.random() * 1000
+    )}`;
+
+    mutate(
+      {
+        company_cd: "abc",
+        entity_cd: entityCode,
+        project_no: projectCode,
+        name: siteplanName,
+        audit_user: auditUser,
+        document_id: randomDocumentId,
+      },
+      {
+        onSuccess: () => {
+          router.push(`/en/site-plan-editor?document_id=${randomDocumentId}`);
+        },
+        onError: (err) => {
+          console.error("Gagal create masterplan:", err);
+        },
+      }
+    );
   };
 
   const handleUndo = () => {
@@ -334,7 +512,7 @@ const Editor = () => {
   };
 
   const { mutate: saveMasterplanMutate } = useMutation({
-    mutationFn: saveMasterplan,
+    mutationFn: savePaper,
     onSuccess: (data) => {
       toast.success("Masterplan saved successfully!", {
         style: {
@@ -355,37 +533,108 @@ const Editor = () => {
   });
 
   const handleSave = () => {
-    const payload: SaveMasterplanPayload = {
-      id: Number(masterplanDataById?.masterplan_id),
+    const payload: SavePaper = {
+      documentId: masterplanDataById.document_id || "document", // bisa juga dari state/URL
       entity_cd: entityCode,
-      project_no: projectCode,
-      masterplan_name: selectedMasterplan?.masterplan_name || siteplanName,
-      audit_user: session?.user?.email || "unknown@ifca.co.id",
-      artboards: menuItems.map((item) => ({
-        id: Number(item.id),
-        title: item.title,
-        type: "floor",
-        shapes: (artboardShapes[item.id] || []).map(({ lotId, ...shape }) => {
-          const baseShape = {
-            ...shape,
-            title: shape.title || shape.type || "",
-            lot_no: lotId || "", // hanya kirim lot_no
-          };
+      company_cd: selectedEntity?.company_cd || "UNKNOWN",
+      name: selectedMasterplan?.masterplan_name || siteplanName,
+      auditUser: session?.user?.email || "unknown@ifca.co.id",
+      auditDate: null, // biarkan null seperti Swagger
+      pages: menuItems.map((item, index) => ({
+        pageNumber: index + 1,
+        paperWidth: 595.28, // ukuran A4 dalam pt
+        paperHeight: 841.89,
+        margin_top: 0,
+        margin_right: 0,
+        margin_left: 0,
+        margin_bottom: 0,
+        paperSize: "a4",
+        items: (artboardShapes[item.id] || []).flatMap((shape, i) => {
+          // === TABLE: kirim 1 item yang berisi RECT table di "tables", dan teks/label di "labels"
+          if (shape.type === "table") {
+            // Ambil semua label dari tabel
+            const labels: TableLabel[] = (shape.labels ?? []).map(
+              (lbl: any) => {
+                const isFromTextColumn =
+                  !lbl.text || lbl.text.trim().length === 0; // kosong berarti ambil dari text_column
 
-          // Tambahkan fontFamily kalau text
-          if (shape.type === "text") {
-            return {
-              ...baseShape,
-              fontFamily: shape.fontFamily || "Helvetica", // fallback default
-              width: shape.width || 200
+                if (isFromTextColumn) {
+                  // Label yang sumbernya text_column
+                  return {
+                    id: lbl.id,
+                    text_column: shape.text_column ?? "",
+                    column_filter: shape.column_filter ?? [],
+                    source_table_name: shape.source_table_name ?? "",
+                    labelX: Number(lbl.labelX) || 0,
+                    labelY: Number(lbl.labelY) || 0,
+                    fontSize: Number(lbl.fontSize) || 16,
+                    fontFamily: lbl.fontFamily ?? "Arial",
+                    type: "text",
+                  };
+                } else {
+                  // Label teks manual (tanpa column_filter dan source_table_name)
+                  return {
+                    id: lbl.id,
+                    text: lbl.text,
+                    labelX: Number(lbl.labelX) || 0,
+                    labelY: Number(lbl.labelY) || 0,
+                    fontSize: Number(lbl.fontSize) || 16,
+                    fontFamily: lbl.fontFamily ?? "Arial",
+                    type: "text",
+                  };
+                }
+              }
+            );
+
+            const tableRect: TableCell = {
+              x: shape.x,
+              y: shape.y,
+              width: Math.round(shape.width || 0),
+              height: Math.round(shape.height || 0),
+              labels: labels,
             };
+
+            const baseItem: PageItem = {
+              name: `item-${i}`,
+              type: "table",
+              x: shape.x,
+              y: shape.y,
+              fill: shape.fill || "",
+              width: shape.width || 0,
+              height: shape.height || 0,
+              font: shape.fontFamily || "Helvetica",
+              fontSize: String(Number(shape.fontSize) || 12),
+              image_src: shape.image_src || "",
+              tableId: shape.tableId,
+              tables: [tableRect, ...((shape.tables || []) as TableCell[])],
+            };
+
+            return [baseItem];
           }
 
-          return baseShape;
+          // === NON-TABLE: tetap kirim sebagai item biasa (rect, circle, image, text, ellipse, polygon, dll)
+          const baseItem: PageItem = {
+            name: `item-${i}`,
+            type: shape.type,
+            text: shape.text || "",
+            x: shape.x,
+            y: shape.y,
+            fill: shape.fill || "",
+            width: shape.width || 0,
+            height: shape.height || 0,
+            font: shape.fontFamily || "Helvetica",
+            fontSize: String(Number(shape.fontSize) || 14),
+            image_src: shape.image_src || "",
+            tables: [],
+          };
+
+          return [baseItem];
         }),
       })),
     };
-    console.log(payload, "payload sep")
+
+    console.log(payload, "payload");
+
     saveMasterplanMutate(payload);
   };
 
@@ -406,95 +655,77 @@ const Editor = () => {
 
   useEffect(() => {
     if (masterplanDataById) {
-      setEntityCode(masterplanDataById.entity_cd);
-      setProjectCode(masterplanDataById.project_no);
-      setMasterplanCode(masterplanDataById.masterplan_id);
-      setSelectedMasterplan({
-        masterplan_no: masterplanDataById.masterplan_id,
-        masterplan_name: masterplanDataById.masterplan_name,
+      const pages = masterplanDataById.pages ?? [];
+
+      // Set default artboard ID
+      const artboardMap: { [id: string]: any[] } = {};
+
+      const menuList = pages.map((page: any, index: number) => {
+        const pageId = String(index + 1);
+        const shapes = (page.items || []).map((item: any, i: number) => {
+          const shape: any = {
+            id: `${pageId}-${i}`,
+            type: item.type,
+            x: item.x,
+            y: item.y,
+            width: item.width ?? 100,
+            height: item.height ?? 50,
+            text: item.text || "",
+            text_column: item.text_column || "",
+            source_table_name: item.source_table_name || "",
+            table_cd: item.table_cd || "",
+            column_filter: item.column_filter || "",
+            fontFamily: item.font || "Helvetica",
+            fontSize: item.font_size ? Number(item.font_size) : 14,
+            image_src: item.image_src || "",
+            tables: item.tables || [],
+          };
+          if (shape.type === "table" && Array.isArray(item.tables)) {
+            shape.labels = item.tables.map((t: any, idx: number) => ({
+              id: `lbl-${Date.now()}-${idx}`,
+              text: t.header || "",
+              labelX: Number(t.x ?? 0),
+              labelY: Math.max(0, Math.min(shape.height ?? 50, 16)), // default Y (tidak ada di spec), biar kelihatan
+              fontSize: 16,
+              fontFamily: "Arial",
+              source_table_name: shape.source_table_name || "",
+              text_column: t.text_column || "",
+              table_cd: shape.table_cd || "",
+              column_filter: shape.column_filter || "",
+              type: "text",
+            }));
+          }
+          return shape;
+        });
+
+        artboardMap[pageId] = shapes;
+
+        return {
+          id: pageId,
+          title: `Page ${page.page_number}`,
+          icon: Layout,
+          children: shapes.map((s: any) => ({
+            title: s.text || s.type || "Untitled",
+            url: `#${s.id}`,
+            icon: Layout,
+          })),
+        };
       });
 
-      const hasValidArtboards =
-        Array.isArray(masterplanDataById.artboards) &&
-        masterplanDataById.artboards.some(
-          (a: any) => a.id && a.id !== "null" && a.shapes?.length > 0
-        );
-
-      const artboards = hasValidArtboards
-        ? masterplanDataById.artboards
-        : [
-            {
-              id: "1",
-              title: "Masterplan 1",
-              shapes: [],
-            },
-          ];
-
-      const artboardMap = artboards.reduce(
-        (acc: { [key: string]: any[] }, artboard: any) => {
-          acc[artboard.id || "1"] = (artboard.shapes || [])
-            .filter(
-              (s: any) =>
-                s &&
-                typeof s.id === "string" &&
-                s.id !== "null-null-null" &&
-                s.type !== null &&
-                s.type !== undefined
-            )
-            .map((shape: any) => {
-              if (shape.type === "image") {
-                const isBlob = shape.src?.startsWith("blob:");
-                return {
-                  ...shape,
-                  src: isBlob ? "" : shape.src,
-                  lotId: shape.lot_no || "", // ⬅️ Tambahkan ini
-                };
-              }
-
-              return {
-                ...shape,
-                lotId: shape.lot_no || "", // ⬅️ Tambahkan ini untuk semua shape selain image
-              };
-            });
-
-          return acc;
-        },
-        {}
-      );
-
       setArtboardShapes(artboardMap);
-
-      const newMenuItems = artboards.map((artboard: any, index: number) => ({
-        id: artboard.id || String(index + 1),
-        title: artboard.title?.trim()
-          ? artboard.title
-          : `Masterplan ${index + 1}`,
-
-        icon: Layout,
-        children:
-          (artboard.shapes || [])
-            .filter(
-              (s: any) =>
-                s &&
-                typeof s.id === "string" &&
-                s.id !== "null-null-null" &&
-                s.type !== null &&
-                s.type !== undefined
-            )
-            .map((s: any) => ({
-              title: s.title || s.type || "Untitled Shape",
-              url: `#${s.id}`,
-              icon: Layout,
-            })) || [],
-      }));
-
-      const firstArtboardId =
-        artboards.length > 0 ? artboards[0].id || "1" : "1";
-      setActiveArtboardId(firstArtboardId);
-      setMenuItems(newMenuItems);
-      setInitialMenuItems(newMenuItems); // ⬅ snapshot menu awal dari server
-      setInitialArtboardShapes(artboardMap); // ⬅ snapshot shapes awal dari server
+      setMenuItems(menuList);
+      setInitialArtboardShapes(artboardMap);
+      setInitialMenuItems(menuList);
+      setActiveArtboardId(Object.keys(artboardMap)[0] || "1");
       setIsSubmitted(true);
+
+      // Set metadata
+      setEntityCode(masterplanDataById.entity_cd || "");
+      setProjectCode(masterplanDataById.project_no || "");
+      setSelectedMasterplan({
+        masterplan_no: masterplanDataById.document_template_id,
+        masterplan_name: masterplanDataById.document_template_name,
+      });
     }
   }, [masterplanDataById]);
 
@@ -584,16 +815,16 @@ const Editor = () => {
             {/* Entity Selector */}
             <BasicCombobox
               options={
-                entities?.map((e) => ({
-                  label: e.entity_name,
-                  value: e.entity_cd,
+                company?.map((e: any) => ({
+                  label: e.company_name,
+                  value: e.company_cd,
                 })) || []
               }
-              placeholder="Select Entity"
+              placeholder="Select Company"
               value={entityCode}
               onChange={(val) => {
                 setEntityCode(val);
-                const found = entities?.find((e) => e.entity_cd === val);
+                const found = company?.find((e: any) => e.company_cd === val);
                 setSelectedEntity(found || null);
                 setProjectCode(""); // reset projectCode saat entity berubah
                 setSelectedProject(null);
@@ -601,7 +832,7 @@ const Editor = () => {
             />
 
             {/* Project Selector */}
-            <BasicCombobox
+            {/* <BasicCombobox
               options={availableProjects.map((p) => ({
                 label: p.project_name,
                 value: p.project_no,
@@ -616,13 +847,13 @@ const Editor = () => {
                 setSelectedProject(found || null);
               }}
               disabled={!entityCode}
-            />
+            /> */}
             <div className="flex gap-2 ">
               <BasicCombobox
                 options={
                   masterplans?.map((m: any) => ({
                     label: m.name,
-                    value: m.id,
+                    value: m.company_cd,
                   })) || []
                 }
                 placeholder={
@@ -633,24 +864,28 @@ const Editor = () => {
                 value={masterplanCode}
                 onChange={(val) => {
                   setMasterplanCode(val);
-                  const found = masterplans?.find((m: any) => m.id === val);
+                  const found = masterplans?.find(
+                    (m: any) => m.company_cd === val
+                  );
                   setSelectedMasterplan(found || null);
                 }}
                 onDelete={(id) => {
                   requestAnimationFrame(() => {
-                    const found = masterplans?.find((m: any) => m.id === id);
+                    const found = masterplans?.find(
+                      (m: any) => m.company_cd === id
+                    );
                     setPendingDeleteId(id);
                     setPendingDeleteLabel(found?.name || "");
                     setDeleteDialogOpen(true);
                   });
                 }}
-                disabled={!projectCode || isLoadingMasterplans}
+                disabled={!entityCode || isLoadingMasterplans}
               />
 
               <Button
                 className="flex items-center justify-center w-1/8"
                 onClick={() => setIsCreatingNewSiteplan(true)}
-                disabled={!selectedProject}
+                disabled={!entityCode}
               >
                 Create New Siteplan
               </Button>
@@ -661,9 +896,9 @@ const Editor = () => {
               className="w-full"
               disabled={!selectedMasterplan}
               onClick={() => {
-                if (selectedMasterplan?.id) {
+                if (selectedMasterplan?.document_id) {
                   router.push(
-                    `/en/site-plan-editor?masterplanId=${selectedMasterplan.id}`
+                    `/en/site-plan-editor?document_id=${selectedMasterplan.document_id}&company_cd=${selectedMasterplan.company_cd}`
                   );
                 }
               }}
@@ -815,6 +1050,10 @@ const Editor = () => {
               setInitialMenuItems={setInitialMenuItems}
               setInitialArtboardShapes={setInitialArtboardShapes}
               isChanged={isChanged}
+              onSelectLabel={(tableId, labelId) => {
+                setSelectedId(tableId);
+                setSelectedLabel({ tableId, labelId });
+              }}
             />
           </div>
 
@@ -842,12 +1081,19 @@ const Editor = () => {
                 menuItems={menuItems}
                 setRightSidebarOpen={setRightSidebarOpen}
                 rightSidebarOpen={rightSidebarOpen}
-                entityCode={entityCode}
+                tableDataDB={tableDataDB}
+                companyCode={company_cd}
                 projectCode={projectCode}
                 isLocked={isLocked}
                 setIsLocked={setIsLocked}
                 selectedFont={selectedFont}
                 setSelectedFont={setSelectedFont}
+                selectedShape={selectedShapeForSidebar}
+                onUpdateSelected={handleUpdateSelected}
+                onSelectLabel={(tableId, labelId) => {
+                  setSelectedId(tableId); // transformer tetap di rect table
+                  setSelectedLabel({ tableId, labelId }); // sidebar tahu label mana
+                }}
               />
             </div>
           </div>

@@ -33,6 +33,8 @@ import BasicCombobox from "@/app/[locale]/(protected)/forms/combobox/basic-combo
 import { LOT_COLOR_MAP } from "./canvas";
 import { font, FontFamily } from "../paper-size";
 import { formatMonthCaption } from "react-day-picker";
+import { getColumnData } from "@/action/get-column";
+import { BasicMultiCombobox } from "@/app/[locale]/(protected)/forms/combobox/basic-multi-combobox";
 
 export interface Shape {
   fontSize?: number;
@@ -78,10 +80,14 @@ interface RightSideBarProps {
   setSelectedFont?: React.Dispatch<React.SetStateAction<FontFamily[]>>;
   rightSidebarOpen: boolean;
   setRightSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  entityCode: string;
+  tableDataDB: any[];
+  companyCode: string;
   projectCode: string;
   isLocked: boolean;
   setIsLocked: React.Dispatch<React.SetStateAction<boolean>>;
+  onSelectLabel?: (tableId: string, labelId: string) => void;
+  selectedShape: any | null;
+  onUpdateSelected: (patch: Partial<any>) => void;
 }
 
 const RightSideBar: React.FC<RightSideBarProps> = ({
@@ -96,50 +102,67 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   menuItems,
   rightSidebarOpen,
   setRightSidebarOpen,
-  entityCode,
+  tableDataDB,
   projectCode,
   isLocked,
   setIsLocked,
   selectedFont,
   setSelectedFont,
+  onSelectLabel,
+  selectedShape: selectedShapeProp,
+  onUpdateSelected,
+  companyCode,
 }) => {
-  const selectedShape = shapes?.find((s) => s.id === selectedId);
-  console.log(selectedShape, "selectedShape");
+  const computedSelected =
+    selectedShapeProp ?? shapes?.find((s) => s.id === selectedId) ?? null;
+
   const [localTitle, setLocalTitle] = React.useState(
-    selectedShape?.title || selectedShape?.type || ""
+    computedSelected?.title || computedSelected?.type || ""
   );
 
-  const { toggleSidebar } = useSidebar();
+  const [selectedTableName, setSelectedTableName] = useState("");
+  const [selectedColName, setSelectedColName] = useState("");
+  const [selectedTableCd, setSelectedTableCd] = useState("");
+  const [selectedColFilter, setSelectedColFilter] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (computedSelected) {
+      setLocalTitle(computedSelected.title || computedSelected.type || "");
+    }
+  }, [computedSelected]);
 
   const handleUpdateShape = (id: string, updates: Partial<Shape>) => {
     setArtboardShapes((prev) => {
-      const nextShapes = prev[activeArtboardId].map((s) => {
-        if (s.id === id) {
-          return {
-            ...s,
-            ...updates,
-          };
-        }
-        return s;
-      });
-
-      return {
-        ...prev,
-        [activeArtboardId]: nextShapes,
-      };
+      const nextShapes = prev[activeArtboardId].map((s) =>
+        s.id === id ? { ...s, ...updates } : s
+      );
+      return { ...prev, [activeArtboardId]: nextShapes };
     });
   };
 
+  const smartUpdate = (patch: Partial<any>) => {
+    if (onUpdateSelected) {
+      // untuk label proxy (type: "text" hasil proxy)
+      onUpdateSelected(patch);
+    } else if (computedSelected?.id) {
+      // untuk shape text biasa
+      handleUpdateShape(computedSelected.id, patch);
+    }
+  };
+
   const handleLockToggle = () => {
-    if (!selectedShape) return;
+    if (!computedSelected) return;
 
     // Update the shape's locked state
-    const updatedShape = { ...selectedShape, locked: !selectedShape.locked };
+    const updatedShape = {
+      ...computedSelected,
+      locked: !computedSelected.locked,
+    };
 
     // Update the shape in the artboard shapes state
     setArtboardShapes((prev) => {
       const updatedShapes = prev[activeArtboardId].map((s) =>
-        s.id === selectedShape.id ? updatedShape : s
+        s.id === computedSelected.id ? updatedShape : s
       );
       return {
         ...prev,
@@ -148,14 +171,17 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
     });
   };
 
-  console.log("entityCode:", entityCode, "projectCode:", projectCode);
+  // pemanggilan useQuery
+  const { data: columnDataDB = [] } = useQuery<any[]>({
+    queryKey: ["columns", companyCode, selectedTableName],
+    queryFn: () => getColumnData(companyCode!, selectedTableName!),
+    enabled: !!companyCode && !!selectedTableName,
+  });
 
-  // console.log(allShapes)
-  // console.log(shapes)
   const { data: lotOptions, isLoading: isLoadingLots } = useQuery({
-    queryKey: ["lots", entityCode, projectCode],
-    queryFn: () => getLotData(entityCode, projectCode),
-    enabled: !!entityCode && !!projectCode,
+    queryKey: ["lots", companyCode, projectCode],
+    queryFn: () => getLotData(companyCode, projectCode),
+    enabled: !!companyCode && !!projectCode,
   });
   const usedLotsAll = Object.values(allShapes) // get arrays of shapes per artboard
     .flat() // flatten into one big Shape[]
@@ -163,16 +189,20 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
     .map((s: any) => s.lotId!) // extract the lotId string
     .filter((v, i, a) => a.indexOf(v) === i); // dedupe
 
-  console.log(usedLotsAll);
-  useEffect(() => {
-    console.log("lotOptions result:", lotOptions);
-  }, [lotOptions]);
+  useEffect(() => {}, [lotOptions]);
 
   useEffect(() => {
-    if (selectedShape) {
-      setLocalTitle(selectedShape.title || selectedShape.type || "");
+    if (computedSelected) {
+      setLocalTitle(computedSelected.title || computedSelected.type || "");
     }
-  }, [selectedShape]);
+  }, [computedSelected]);
+
+  useEffect(() => {
+    setSelectedTableName((computedSelected as any)?.source_table_name ?? "");
+    setSelectedColName((computedSelected as any)?.text_column ?? "");
+    setSelectedTableCd((computedSelected as any)?.table_cd ?? "");
+    setSelectedColFilter((computedSelected as any)?.column_filter ?? "");
+  }, [computedSelected?.id]);
 
   return (
     <div className="relative">
@@ -180,7 +210,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
         <Sidebar variant="sidebar" side="right" className="overflow-y-auto">
           <SidebarGroup>
             <SidebarGroupContent>
-              {selectedShape ? (
+              {computedSelected ? (
                 <form
                   className="space-y-4 p-2"
                   onSubmit={(e) => e.preventDefault()}
@@ -190,37 +220,37 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       <Label htmlFor="title">Title</Label>
                       <Input
                         id="title"
-                        disabled={selectedShape.locked}
+                        disabled={computedSelected.locked}
                         value={localTitle}
                         onChange={(e) => setLocalTitle(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
-                            handleUpdateShape(selectedShape.id, {
+                            handleUpdateShape(computedSelected.id, {
                               title: localTitle, // ← simpan ke shape
                             });
-                            updateMenuTitle(selectedShape.id, localTitle);
+                            updateMenuTitle(computedSelected.id, localTitle);
                           }
                         }}
                         onBlur={() => {
-                          handleUpdateShape(selectedShape.id, {
+                          handleUpdateShape(computedSelected.id, {
                             title: localTitle,
                           });
-                          updateMenuTitle(selectedShape.id, localTitle);
+                          updateMenuTitle(computedSelected.id, localTitle);
                         }}
                       />
                     </div>
 
-                    {"x" in selectedShape && (
+                    {"x" in computedSelected && (
                       <div className="space-y-1 col-span-1 mr-2">
                         <Label htmlFor="x">X</Label>
                         <Input
                           id="x"
-                          disabled={selectedShape.locked}
+                          disabled={computedSelected.locked}
                           type="number"
-                          value={selectedShape.x ?? 0}
+                          value={computedSelected.x ?? 0}
                           onChange={(e) =>
-                            handleUpdateShape(selectedShape.id, {
+                            handleUpdateShape(computedSelected.id, {
                               x: parseFloat(e.target.value),
                             })
                           }
@@ -228,16 +258,16 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       </div>
                     )}
 
-                    {"y" in selectedShape && (
+                    {"y" in computedSelected && (
                       <div className="space-y-1 col-span-1">
                         <Label htmlFor="y">Y</Label>
                         <Input
                           id="y"
-                          disabled={selectedShape.locked}
+                          disabled={computedSelected.locked}
                           type="number"
-                          value={selectedShape.y ?? 0}
+                          value={computedSelected.y ?? 0}
                           onChange={(e) =>
-                            handleUpdateShape(selectedShape.id, {
+                            handleUpdateShape(computedSelected.id, {
                               y: parseFloat(e.target.value),
                             })
                           }
@@ -245,16 +275,16 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       </div>
                     )}
 
-                    {"width" in selectedShape && (
+                    {"width" in computedSelected && (
                       <div className="space-y-1 col-span-1 mr-2 mt-2">
                         <Label htmlFor="width">Width</Label>
                         <Input
-                          disabled={selectedShape.locked}
+                          disabled={computedSelected.locked}
                           id="width"
                           type="number"
-                          value={selectedShape.width ?? 0}
+                          value={computedSelected.width ?? 0}
                           onChange={(e) =>
-                            handleUpdateShape(selectedShape.id, {
+                            handleUpdateShape(computedSelected.id, {
                               width: parseFloat(e.target.value),
                             })
                           }
@@ -262,16 +292,16 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       </div>
                     )}
 
-                    {"height" in selectedShape && (
+                    {"height" in computedSelected && (
                       <div className="space-y-1 col-span-1 mt-2">
                         <Label htmlFor="height">Height</Label>
                         <Input
                           id="height"
-                          disabled={selectedShape.locked}
+                          disabled={computedSelected.locked}
                           type="number"
-                          value={selectedShape.height ?? 0}
+                          value={computedSelected.height ?? 0}
                           onChange={(e) =>
-                            handleUpdateShape(selectedShape.id, {
+                            handleUpdateShape(computedSelected.id, {
                               height: parseFloat(e.target.value),
                             })
                           }
@@ -279,16 +309,16 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       </div>
                     )}
 
-                    {"radius" in selectedShape && (
+                    {"radius" in computedSelected && (
                       <div className="space-y-1 col-span-1 mt-2">
                         <Label htmlFor="radius">Radius</Label>
                         <Input
                           id="radius"
-                          disabled={selectedShape.locked}
+                          disabled={computedSelected.locked}
                           type="number"
-                          value={selectedShape.radius ?? 0}
+                          value={computedSelected.radius ?? 0}
                           onChange={(e) =>
-                            handleUpdateShape(selectedShape.id, {
+                            handleUpdateShape(computedSelected.id, {
                               radius: parseFloat(e.target.value),
                             })
                           }
@@ -296,16 +326,16 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       </div>
                     )}
 
-                    {"radiusX" in selectedShape && (
+                    {"radiusX" in computedSelected && (
                       <div className="space-y-1 col-span-1 mt-2">
                         <Label htmlFor="radiusX">Radius X</Label>
                         <Input
                           id="radiusX"
-                          disabled={selectedShape.locked}
+                          disabled={computedSelected.locked}
                           type="number"
-                          value={selectedShape.radiusX ?? 0}
+                          value={computedSelected.radiusX ?? 0}
                           onChange={(e) =>
-                            handleUpdateShape(selectedShape.id, {
+                            handleUpdateShape(computedSelected.id, {
                               radiusX: parseFloat(e.target.value),
                             })
                           }
@@ -313,16 +343,16 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       </div>
                     )}
 
-                    {"radiusY" in selectedShape && (
+                    {"radiusY" in computedSelected && (
                       <div className="space-y-1 col-span-1 mt-2">
                         <Label htmlFor="radiusY">Radius Y</Label>
                         <Input
                           id="radiusY"
-                          disabled={selectedShape.locked}
+                          disabled={computedSelected.locked}
                           type="number"
-                          value={selectedShape.radiusY ?? 0}
+                          value={computedSelected.radiusY ?? 0}
                           onChange={(e) =>
-                            handleUpdateShape(selectedShape.id, {
+                            handleUpdateShape(computedSelected.id, {
                               radiusY: parseFloat(e.target.value),
                             })
                           }
@@ -330,20 +360,20 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       </div>
                     )}
 
-                    {selectedShape.points && (
+                    {computedSelected.points && (
                       <div className="space-y-1 col-span-2">
                         <Label htmlFor="points">Points</Label>
                         <Input
                           id="points"
-                          disabled={selectedShape.locked}
+                          disabled={computedSelected.locked}
                           type="text"
-                          value={selectedShape.points.join(", ")}
+                          value={computedSelected.points.join(", ")}
                           onChange={(e) => {
                             const points = e.target.value
                               .split(",")
                               .map((val) => parseFloat(val.trim()))
                               .filter((val) => !isNaN(val));
-                            handleUpdateShape(selectedShape.id, { points });
+                            handleUpdateShape(computedSelected.id, { points });
                           }}
                         />
                       </div>
@@ -356,49 +386,102 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       onClick={handleLockToggle}
                       className="w-full mb-4"
                     >
-                      {selectedShape.locked
+                      {computedSelected.locked
                         ? "Unlock Position"
                         : "Lock Position"}
                     </Button>
                   </div>
 
-                  {selectedShape?.type === "text" && (
-                    <div className="space-y-1 col-span-1 mt-2">
-                      <Label htmlFor="fontSize">Font Size</Label>
-                      <div className="flex items-center gap-2">
+                  {computedSelected?.type === "text" && (
+                    <>
+                      <div className="space-y-1 col-span-1 mt-2">
+                        <Label htmlFor="fontSize">Font Size</Label>
                         <Input
                           id="fontSize"
-                          disabled={selectedShape.locked}
                           type="number"
                           className="w-full"
-                          value={selectedShape.fontSize || 14}
-                          onChange={(e) =>
-                            handleUpdateShape(selectedShape.id, {
-                              fontSize: parseFloat(e.target.value),
-                            })
-                          }
+                          value={computedSelected.fontSize ?? 14}
+                          onChange={(e) => {
+                            const v = parseFloat(e.target.value);
+                            if (!isNaN(v)) smartUpdate({ fontSize: v });
+                          }}
                         />
                       </div>
+
+                      <div className="space-y-1 col-span-1 mt-2">
+                        <Label>Font Family</Label>
+                        <BasicCombobox
+                          options={font.map((f) => ({
+                            label: f.name,
+                            value: f.name,
+                          }))}
+                          placeholder="Select font"
+                          value={computedSelected.fontFamily ?? "Arial"}
+                          onChange={(val) => smartUpdate({ fontFamily: val })}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {(computedSelected.type === "text" ||
+                    (computedSelected.type === "table" && selectedId)) && (
+                    <div className="space-y-2">
+                      <Label>Select From Database</Label>
+                      <BasicCombobox
+                        options={(Array.isArray(tableDataDB)
+                          ? tableDataDB
+                          : []
+                        ).map((f: { table: string }) => ({
+                          label: f.table,
+                          value: f.table,
+                        }))}
+                        placeholder="Select table"
+                        value={selectedTableName}
+                        onChange={(val) => {
+                          setSelectedTableName(val);
+                          onUpdateSelected?.({ source_table_name: val });
+                        }}
+                      />
                     </div>
                   )}
 
-                  {selectedShape?.type === "text" && (
-                    <div className="space-y-1 col-span-1 mt-2">
-                      <Label>Font Family</Label>
+                  {selectedTableName && (
+                    <div className="space-y-2">
+                      <Label>Select Column</Label>
                       <BasicCombobox
-                      options={font.map((item) => ({
-                        label: item.name,
-                        value: item.name,
-                      }))}
-                      placeholder="Select Destination"
-                      value={selectedShape?.fontFamily || ""}
-                      onChange={(val) => {
-                        if (!selectedShape) return;
-                        handleUpdateShape(selectedShape.id, {
-                          fontFamily: val,
-                        });
-                      }}
-                    />
+                        options={(Array.isArray(columnDataDB)
+                          ? columnDataDB
+                          : []
+                        ).map((col: string) => ({ label: col, value: col }))}
+                        placeholder="Select column"
+                        value={selectedColName}
+                        onChange={(val) => {
+                          setSelectedColName(val);
+                          onUpdateSelected?.({ text_column: val });
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {(computedSelected.type === "text" ||
+                    computedSelected.type === "table") && (
+                    <div className="space-y-2">
+                      <Label>Column Filter</Label>
+                      <BasicMultiCombobox
+                        options={(Array.isArray(columnDataDB)
+                          ? columnDataDB
+                          : []
+                        ).map((c: string) => ({
+                          label: c,
+                          value: c,
+                        }))}
+                        value={selectedColFilter}
+                        onChange={(vals) => {
+                          setSelectedColFilter(vals);
+                          onUpdateSelected?.({ column_filter: vals }); // kirim array ke shape
+                        }}
+                        placeholder="Select column(s)"
+                      />
                     </div>
                   )}
 
@@ -407,11 +490,11 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       Shape Group
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          {selectedShape.category && (
+                          {computedSelected.category && (
                             <Button
                               type="button"
                               onClick={() => {
-                                handleUpdateShape(selectedShape.id, {
+                                handleUpdateShape(computedSelected.id, {
                                   category: undefined,
                                 });
                               }}
@@ -434,10 +517,10 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         { label: "Unit", value: "unit" },
                       ]}
                       placeholder="Select Group"
-                      value={selectedShape?.category || ""}
+                      value={computedSelected?.category || ""}
                       onChange={(val) => {
-                        if (!selectedShape) return;
-                        handleUpdateShape(selectedShape.id, {
+                        if (!computedSelected) return;
+                        handleUpdateShape(computedSelected.id, {
                           category: val as "block" | "unit",
                         });
                       }}
@@ -452,11 +535,11 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       Link to Artboard{" "}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          {selectedShape.linkToArtboard && (
+                          {computedSelected.linkToArtboard && (
                             <Button
                               type="button"
                               onClick={() => {
-                                handleUpdateShape(selectedShape.id, {
+                                handleUpdateShape(computedSelected.id, {
                                   linkToArtboard: "",
                                 });
                               }}
@@ -479,10 +562,10 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         value: item.id,
                       }))}
                       placeholder="Select Destination"
-                      value={selectedShape?.linkToArtboard || ""}
+                      value={computedSelected?.linkToArtboard || ""}
                       onChange={(val) => {
-                        if (!selectedShape) return;
-                        handleUpdateShape(selectedShape.id, {
+                        if (!computedSelected) return;
+                        handleUpdateShape(computedSelected.id, {
                           linkToArtboard: val,
                         });
                       }}
@@ -496,15 +579,15 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         className="flex items-center gap-2 justify-between"
                       >
                         Assign Lot{" "}
-                        {selectedShape.lotId && (
+                        {computedSelected.lotId && (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
                                 type="button"
                                 onClick={() => {
-                                  if (!selectedShape) return;
+                                  if (!computedSelected) return;
 
-                                  handleUpdateShape(selectedShape.id, {
+                                  handleUpdateShape(computedSelected.id, {
                                     lotId: "",
                                     fill: LOT_COLOR_MAP.DEFAULT,
                                   });
@@ -524,7 +607,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       </Label>
                       <BasicCombobox
                         options={[
-                          // 1) All lotOptions except those in usedLotsAll (unless it's the selectedShape’s lot)
+                          // 1) All lotOptions except those in usedLotsAll (unless it's the computedSelected’s lot)
                           ...lotOptions
                             .map((lot: any) => ({
                               label: `${lot.lot_no} (${lot.status})`,
@@ -533,28 +616,29 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                             }))
                             .filter((opt: any) => {
                               const isUsed = usedLotsAll.includes(opt.value);
-                              const isMine = opt.value === selectedShape?.lotId;
+                              const isMine =
+                                opt.value === computedSelected?.lotId;
                               return !isUsed || isMine;
                             }),
 
-                          // 2) Fallback for selectedShape.lotId if it isn’t in lotOptions
-                          ...(selectedShape?.lotId &&
+                          // 2) Fallback for computedSelected.lotId if it isn’t in lotOptions
+                          ...(computedSelected?.lotId &&
                           !lotOptions.some(
-                            (lot: any) => lot.lot_no === selectedShape.lotId
+                            (lot: any) => lot.lot_no === computedSelected.lotId
                           )
                             ? [
                                 {
-                                  label: `${selectedShape.lotId} (Unknown)`,
-                                  value: selectedShape.lotId,
+                                  label: `${computedSelected.lotId} (Unknown)`,
+                                  value: computedSelected.lotId,
                                   status: "Unknown",
                                 },
                               ]
                             : []),
                         ]}
                         placeholder="Select Lot"
-                        value={selectedShape?.lotId || ""}
+                        value={computedSelected?.lotId || ""}
                         onChange={(val) => {
-                          if (!selectedShape) return;
+                          if (!computedSelected) return;
 
                           // Ambil status dari lotOptions atau dari options
                           const lotInfo = lotOptions.find(
@@ -566,7 +650,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           else if (lotInfo?.status === "B")
                             fill = LOT_COLOR_MAP.B;
 
-                          handleUpdateShape(selectedShape.id, {
+                          handleUpdateShape(computedSelected.id, {
                             lotId: val,
                             fill:
                               lotInfo?.status === "A"
@@ -580,17 +664,17 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                     </div>
                   )}
 
-                  {selectedShape?.lotId && (
+                  {computedSelected?.lotId && (
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2 justify-between">
                         Lot Image{" "}
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            {selectedShape.lot_img && (
+                            {computedSelected.lot_img && (
                               <Button
                                 type="button"
                                 onClick={() => {
-                                  handleUpdateShape(selectedShape.id, {
+                                  handleUpdateShape(computedSelected.id, {
                                     lot_img: "",
                                   });
                                 }}
@@ -613,24 +697,24 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         accept="image/*"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (!file || !selectedShape) return;
+                          if (!file || !computedSelected) return;
 
                           const reader = new FileReader();
                           reader.onload = () => {
                             const base64 = reader.result as string;
 
                             // Simpan lot image ke shape
-                            handleUpdateShape(selectedShape.id, {
+                            handleUpdateShape(computedSelected.id, {
                               lot_img: base64,
                             });
                           };
                           reader.readAsDataURL(file);
                         }}
                       />
-                      {selectedShape.lot_img && (
+                      {computedSelected.lot_img && (
                         <div className="mt-2">
                           <img
-                            src={selectedShape.lot_img}
+                            src={computedSelected.lot_img}
                             alt="Lot Preview"
                             className="max-h-40 rounded border"
                           />
@@ -639,23 +723,24 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                     </div>
                   )}
 
-                  {selectedShape?.fill !== undefined && selectedShape?.id && (
-                    <div className="space-y-2">
-                      <Label htmlFor="fillColor">Fill Color</Label>
-                      <Input
-                        id="fillColor"
-                        type="color"
-                        value={selectedShape.fill || "#000000"}
-                        onChange={(e) => {
-                          if (selectedShape?.id) {
-                            handleUpdateShape(selectedShape.id, {
-                              fill: e.target.value,
-                            });
-                          }
-                        }}
-                      />
-                    </div>
-                  )}
+                  {computedSelected?.fill !== undefined &&
+                    computedSelected?.id && (
+                      <div className="space-y-2">
+                        <Label htmlFor="fillColor">Fill Color</Label>
+                        <Input
+                          id="fillColor"
+                          type="color"
+                          value={computedSelected.fill || "#000000"}
+                          onChange={(e) => {
+                            if (computedSelected?.id) {
+                              handleUpdateShape(computedSelected.id, {
+                                fill: e.target.value,
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
                 </form>
               ) : (
                 <div className="text-sm text-muted-foreground p-2">

@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Stage, Layer, Rect, Text, Circle, Line, Ellipse } from "react-konva";
+import {
+  Stage,
+  Layer,
+  Rect,
+  Text,
+  Circle,
+  Line,
+  Ellipse,
+  Group,
+  Transformer,
+} from "react-konva";
 import { Button } from "@/components/ui/button";
 import {
   CircleShape,
@@ -12,7 +22,7 @@ import {
   RectShape,
   Shape,
 } from "./toolbar";
-import StretchableShape, { TextShape } from "./image-renderer";
+import StretchableShape, { Table, TextShape } from "./image-renderer";
 import {
   Tooltip,
   TooltipContent,
@@ -33,6 +43,7 @@ import {
   Hand,
   MousePointer,
   Type,
+  Table2,
 } from "lucide-react";
 import StretchablePolygon from "./stretchable-polygon";
 import { ArtboardMenuItem } from "./art-board";
@@ -45,6 +56,17 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import Konva from "konva";
 import { PaperSize, paperSizes } from "../paper-size";
+// import Table, { dummyTableData } from "./table";
+import TableDialog from "./table-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { tableDataDummy } from "../interface";
 
 export type DrawMode =
   | "default"
@@ -54,7 +76,9 @@ export type DrawMode =
   | "viewOnly"
   | "drawEllipse"
   | "panning"
-  | "drawText";
+  | "drawText"
+  | "multiSelect"
+  | "drawTable";
 interface ImageMapViewProps {
   shapes: any[];
   setArtboardShapes: React.Dispatch<
@@ -91,6 +115,7 @@ interface ImageMapViewProps {
     React.SetStateAction<{ [id: string]: any[] }>
   >;
   isChanged: boolean;
+  onSelectLabel?: (tableId: string, labelId: string) => void;
 }
 
 export const LOT_COLOR_MAP = {
@@ -129,8 +154,10 @@ const ImageMapView = ({
   setInitialMenuItems,
   setInitialArtboardShapes,
   isChanged,
+  onSelectLabel,
 }: ImageMapViewProps) => {
   const stageRef = useRef<any>(null);
+  const trRef = useRef<Konva.Transformer>(null);
   const [isDrawingPoly, setIsDrawingPoly] = useState(false);
   const [currentPolyPoints, setCurrentPolyPoints] = useState<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -183,7 +210,88 @@ const ImageMapView = ({
     x: number;
     y: number;
   }>({ x: 0, y: 0 });
+  const [open, setOpen] = useState(false);
+  const [tableData, setTableData] = useState<Record<string, any>[] | undefined>(
+    undefined
+  );
+  const [editingTable, setEditingTable] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [tableValue, setTableValue] = useState("");
+  const [editingTableId, setEditingTableId] = useState<string | null>(null);
+  const [editingLabelId, setEditingLabelId] = useState<string | null>(null);
+
+  const [tableDataView, setTableDataView] = useState("");
+  const [selectedLabel, setSelectedLabel] = useState<{
+    tableId: string;
+    labelId: string;
+  } | null>(null);
+
+
+  const selectedTableDataView =
+    tableDataDummy.find((t) => t.tableId === tableDataView)?.tableName ||
+    "Set Table As";
+
   const scaledFontSize = 1 / stageScale;
+
+  const commitLabelEdit = React.useCallback(() => {
+    if (!editingTableId || !editingLabelId) return;
+
+    const value = inputValue; // apa yang user ketik
+    setArtboardShapes((prev) => {
+      const next = { ...prev };
+      next[activeArtboardId] = (next[activeArtboardId] || []).map((s: any) => {
+        if (s.id !== editingTableId || s.type !== "table") return s;
+        return {
+          ...s,
+          labels: (s.labels ?? []).map((l: any) =>
+            l.id === editingLabelId ? { ...l, text: value } : l
+          ),
+        };
+      });
+      return next;
+    });
+
+    setEditingTable(false);
+    setEditingTableId(null);
+    setEditingLabelId(null);
+  }, [
+    editingTableId,
+    editingLabelId,
+    inputValue,
+    activeArtboardId,
+    setArtboardShapes,
+  ]);
+
+  const handleAssignToTable = (
+    selectedIds: string | string[],
+    targetTableName: string
+  ) => {
+    const ids = Array.isArray(selectedIds) ? selectedIds : [selectedIds];
+    const next = shapes.map((s) =>
+      ids.includes(s.id) ? { ...s, tableId: targetTableName } : s
+    );
+    pushHistory(next);
+  };
+
+  const handleMultiSelect = (e: any, id: string) => {
+    if (mode === "panning") return;
+    const multi = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey; // metaKey (K besar)
+
+    setSelectedId(id); // single-id tetap disimpan kalau perlu Transformer dll.
+    setSelectedIds((prev) => {
+      const next = multi
+        ? prev.includes(id)
+          ? prev.filter((x) => x !== id)
+          : [...prev, id]
+        : [id];
+
+      // (opsional) debug shapes terpilih:
+      const picked = shapes.filter((s) => next.includes(s.id));
+      setMode("multiSelect");
+
+      return next;
+    });
+  };
 
   const handleStartEditText = (shape: TextShape) => {
     setEditingTextId(shape.id);
@@ -238,6 +346,10 @@ const ImageMapView = ({
     ensureArtboardExists();
     setMode(mode === "drawText" ? "default" : "drawText");
   };
+  const startDrawTable = () => {
+    ensureArtboardExists();
+    setMode(mode === "drawTable" ? "default" : "drawTable");
+  };
 
   const startPolygon = () => {
     ensureArtboardExists();
@@ -256,7 +368,8 @@ const ImageMapView = ({
     if (
       mode === "drawRect" ||
       mode === "drawCircle" ||
-      mode === "drawEllipse"
+      mode === "drawEllipse" ||
+      mode === "drawTable"
     ) {
       const pos = stageRef.current.getRelativePointerPosition();
       if (!pos) return;
@@ -283,6 +396,13 @@ const ImageMapView = ({
           }
         : null
     );
+  };
+
+  const setShapes = (updater: (prev: Shape[]) => Shape[]) => {
+    setArtboardShapes((prev) => ({
+      ...prev,
+      [activeArtboardId]: updater(prev[activeArtboardId] || []),
+    }));
   };
 
   const handleDrawEnd = (e: any) => {
@@ -332,7 +452,6 @@ const ImageMapView = ({
         fontSize: 14,
         width: 200,
       };
-      console.log(newShape, "tulisan");
       pushHistory([...shapes, newShape]);
       setSelectedId(newShape.id);
     } else if (drawingShape.type === "drawEllipse") {
@@ -345,6 +464,33 @@ const ImageMapView = ({
         radiusY: height / 2,
         fill: LOT_COLOR_MAP.DEFAULT,
       };
+    } else if (drawingShape.type === "drawTable") {
+      const newTable: Table = {
+        id: `table-${Date.now()}`,
+        type: "table",
+        x,
+        y,
+        width,
+        height,
+        tableId: undefined,
+        column_filter: "",
+        labels: [
+          {
+            id: `lbl-${Date.now()}`,
+            text: "",
+            labelX: width / 2,
+            labelY: height / 2,
+            fontSize: 16,
+            type: "text",
+          },
+        ],
+      };
+
+      pushHistory([...shapes, newTable]);
+      setSelectedId(newTable.id);
+      setDrawingShape(null);
+      setMode("default");
+      return;
     }
 
     if (newShape) {
@@ -513,9 +659,6 @@ const ImageMapView = ({
       return;
     }
 
-    // ✅ 2. Kalau dalam state isolate, klik di luar harus langsung regroup
-
-    // ✅ 3. Clear selection hanya jika klik di luar shape
     if (clickedOnEmpty) {
       setSelectedId(null);
       setSelectedIds([]);
@@ -528,6 +671,7 @@ const ImageMapView = ({
     );
     pushHistory(nextShapes);
   };
+
 
   const deleteSelected = () => {
     if (!selectedId) return;
@@ -545,22 +689,6 @@ const ImageMapView = ({
           : item
       )
     );
-    setSelectedId(null);
-  };
-
-  const undo = () => {
-    if (!undoStack.current.length) return;
-    const prev = undoStack.current.pop()!;
-    redoStack.current.push(shapes);
-    onShapesChange(prev); // ini akan update shapes + menu via onShapesChange handler
-    setSelectedId(null);
-  };
-
-  const redo = () => {
-    if (!redoStack.current.length) return;
-    const prev = redoStack.current.pop()!;
-    undoStack.current.push(shapes);
-    onShapesChange(prev);
     setSelectedId(null);
   };
 
@@ -687,89 +815,6 @@ const ImageMapView = ({
     img.src = url;
   };
 
-  // // Handler zoom (mouse wheel)
-  // const handleWheel = (e: any) => {
-  //   e.evt.preventDefault();
-  //   const scaleBy = 1.08;
-  //   const oldScale = stageScale;
-  //   const pointer = stageRef.current.getPointerPosition();
-  //   if (!pointer) return;
-
-  //   // Hitung posisi pointer relatif terhadap stage
-  //   const mousePointTo = {
-  //     x: (pointer.x - stagePos.x) / oldScale,
-  //     y: (pointer.y - stagePos.y) / oldScale,
-  //   };
-
-  //   // Zoom in/out
-  //   const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
-  //   setStageScale(newScale);
-
-  //   // Update posisi agar zoom ke arah pointer
-  //   setStagePos({
-  //     x: pointer.x - mousePointTo.x * newScale,
-  //     y: pointer.y - mousePointTo.y * newScale,
-  //   });
-  // };
-
-  const groupSelectedShapes = () => {
-    const selectedShapes = shapes.filter((s) => selectedIds.includes(s.id));
-    if (selectedShapes.length < 2) {
-      return;
-    }
-
-    // 1. Cari bounding box untuk semua selectedShapes
-    const minX = Math.min(...selectedShapes.map((s) => s.x));
-    const minY = Math.min(...selectedShapes.map((s) => s.y));
-
-    // 2. Offset posisi children agar relatif terhadap bounding box
-    const children = selectedShapes.map((s) => {
-      const base = {
-        ...s,
-        x: s.x - minX,
-        y: s.y - minY,
-      };
-
-      if (s.type === "polygon") {
-        return {
-          ...base,
-          points: [...s.points], // deep copy array
-        };
-      }
-
-      return base;
-    });
-
-    // 3. Buat grup dengan posisi sesuai bounding box
-    const newGroup: GroupShape = {
-      id: `group-${Date.now()}`,
-      type: "group",
-      x: minX,
-      y: minY,
-      children,
-    };
-
-    // 4. Gabungkan shapes: hapus yang digroup, tambahkan group baru
-    const remainingShapes = shapes.filter((s) => !selectedIds.includes(s.id));
-    pushHistory([...remainingShapes, newGroup]);
-
-    setSelectedIds([]);
-    setSelectedId(newGroup.id);
-  };
-
-  const ungroupSelectedGroup = () => {
-    const group = shapes.find(
-      (s) => s.id === selectedId && s.type === "group"
-    ) as GroupShape;
-    if (!group) return;
-
-    const remaining = shapes.filter((s) => s.id !== group.id);
-    const next = [...remaining, ...group.children];
-    pushHistory(next);
-    setSelectedId(null);
-    setSelectedIds([]);
-  };
-
   const fitStageToShapes = () => {
     if (!stageRef.current || shapes.length === 0) return;
 
@@ -815,6 +860,14 @@ const ImageMapView = ({
     } else {
       handleDrawStart(e);
     }
+
+    if (editingLabelId) {
+      // commit dulu biar input tidak hilang tanpa nyimpen
+      commitLabelEdit();
+      return; // hentikan bubbling/selection kalau perlu
+    }
+
+    setEditingTableId(null);
   };
 
   const handleStageMouseMove = (e: any) => {
@@ -865,36 +918,21 @@ const ImageMapView = ({
     };
   }, [setMode]);
 
-  // useEffect(() => {
-  //   if (selectedMasterplan?.shapes && selectedMasterplan?.lots) {
-  //     const lots = selectedMasterplan.lots;
-
-  //     const shapesWithFill = selectedMasterplan.shapes.map((shape: any) => {
-  //       let fill = "#9ca3af"; // default abu-abu
-
-  //       if (shape.lotId) {
-  //         const lot = lots.find((l: any) => l.lot_no === shape.lotId);
-  //         if (lot?.status === "A") {
-  //           fill = "#78de80";
-  //         } else if (lot?.status === "B") {
-  //           fill = "#ef4444";
-  //         }
-  //       }
-
-  //       return {
-  //         ...shape,
-  //         fill,
-  //       };
-  //     });
-
-  //     onShapesChange(shapesWithFill);
-  //   }
-  // }, [selectedMasterplan]);
-
   useEffect(() => {
     setStageScale(1);
     setStagePos({ x: 0, y: 0 });
   }, [activeArtboardId]);
+
+  useEffect(() => {
+    if (!trRef.current || !stageRef.current) return;
+
+    const nodes = selectedIds
+      .map((id) => stageRef.current!.findOne(`#${id}`))
+      .filter(Boolean) as Konva.Node[];
+
+    trRef.current.nodes(nodes); // ⬅️ transformer, bukan stage
+    trRef.current.getLayer()?.batchDraw();
+  }, [selectedIds, shapes]);
 
   return (
     <div>
@@ -1029,6 +1067,32 @@ const ImageMapView = ({
             {mode !== "drawText" && (
               <TooltipContent>
                 <p>Draw Text</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => {
+                  setIsPanning(false);
+                  startDrawTable();
+                }}
+                style={{
+                  background: mode === "drawTable" ? "#facc15" : undefined,
+                }}
+                variant="ghost"
+                className="group hover:cursor-pointer hover:bg-[#e8e8e8] hover:text-black"
+              >
+                {mode === "drawTable" ? (
+                  "Finish / Cancel"
+                ) : (
+                  <Table2 className="w-4 h-4 text-[#8c8c8c] group-hover:text-black" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            {mode !== "drawTable" && (
+              <TooltipContent>
+                <p>Draw Table</p>
               </TooltipContent>
             )}
           </Tooltip>
@@ -1215,7 +1279,7 @@ const ImageMapView = ({
             </div>
           </div>
         )}
-        <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto">
+        <div className="flex items-center gap-2 px-4 overflow-x-auto">
           <label htmlFor="paperSize">Paper Size:</label>
           <select
             id="paperSize"
@@ -1251,6 +1315,28 @@ const ImageMapView = ({
             >
               +
             </Button>
+          </div>
+
+          <div className="flex">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={!selectedId}>
+                  {selectedTableDataView || ""}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {tableDataDummy.map((x) => (
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setTableDataView(x.tableId);
+                      handleAssignToTable(selectedIds, x.tableName);
+                    }}
+                  >
+                    {x.tableName}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -1296,7 +1382,12 @@ const ImageMapView = ({
                     ? "grab"
                     : mode === "drawPolygon"
                     ? "crosshair"
-                    : ["drawRect", "drawCircle", "drawEllipse"].includes(mode)
+                    : [
+                        "drawRect",
+                        "drawCircle",
+                        "drawEllipse",
+                        "drawTable",
+                      ].includes(mode)
                     ? "crosshair"
                     : drawingShape
                     ? "copy"
@@ -1325,6 +1416,21 @@ const ImageMapView = ({
                       />
                     );
                   }
+                  // if (shape.type === "table") {
+                  //   return (
+                  //     <Table
+                  //       key={shape.id}
+                  //       x={shape.x}
+                  //       y={shape.y}
+                  //       width={shape.width}
+                  //       data={dummyTableData}
+                  //       isSelected={selectedId === shape.id}
+                  //       onChange={(attrs) => {
+                  //         updateShape(shape.id, attrs);
+                  //       }}
+                  //     />
+                  //   );
+                  // }
                   if (shape.type === "polygon") {
                     const s = shape as PolygonShape;
                     return (
@@ -1369,7 +1475,9 @@ const ImageMapView = ({
                         } else {
                           setSelectedId(shape.id);
                         }
+                        handleMultiSelect(e, shape.id);
                       }}
+                      onSelectLabel={onSelectLabel}
                       onDoubleClick={(e) => {
                         setSelectedId(shape.id); // ⬅️ Trigger Transformer
 
@@ -1389,6 +1497,16 @@ const ImageMapView = ({
                       onStartEditText={handleStartEditText}
                       scaledFontSize={scaledFontSize}
                       stageScale={stageScale}
+                      editing={editingTable}
+                      setEditing={setEditingTable}
+                      inputValue={inputValue}
+                      setInputValue={setInputValue}
+                      tableValue={tableValue}
+                      setTableValue={setTableValue}
+                      editingTableId={editingTableId}
+                      setEditingTableId={setEditingTableId}
+                      editingLabelId={editingLabelId}
+                      setEditingLabelId={setEditingLabelId}
                     />
                   );
                 })}
@@ -1434,7 +1552,6 @@ const ImageMapView = ({
                       />
                     );
                   })}
-
                 {drawingShape?.endX !== undefined &&
                   drawingShape?.endY !== undefined &&
                   (() => {
@@ -1481,6 +1598,18 @@ const ImageMapView = ({
                           fill={fillColor}
                         />
                       );
+                    } else if (type === "drawTable") {
+                      return (
+                        <Rect
+                          x={x}
+                          y={y}
+                          width={width}
+                          height={height}
+                          stroke="#64748b"
+                          strokeWidth={1.5}
+                          fill={fillColor}
+                        />
+                      );
                     } else if (type === "drawText") {
                       return (
                         <Text
@@ -1498,6 +1627,11 @@ const ImageMapView = ({
                     }
                     return null;
                   })()}
+                <Transformer
+                  ref={trRef}
+                  rotateEnabled={false} // opsional
+                  anchorSize={6} // opsional
+                />
               </Layer>
             </Stage>
             {editingTextId && (
@@ -1539,6 +1673,57 @@ const ImageMapView = ({
           </div>
         </div>
       </div>
+      {editingTableId &&
+        editingLabelId &&
+        (() => {
+          const table = shapes.find((s) => s.id === editingTableId) as
+            | Table
+            | undefined;
+          if (!table) return null;
+          const lbl = (table.labels ?? []).find((l) => l.id === editingLabelId);
+          if (!lbl) return null;
+
+          // posisikan input di atas label (perhitungkan scale & pan kalau perlu)
+          const left =
+            (table.x + (lbl.labelX ?? 0)) * (stageScale ?? 1) + stagePos.x;
+          const top =
+            (table.y + (lbl.labelY ?? 0)) * (stageScale ?? 1) + stagePos.y;
+
+          return (
+            <Input
+              style={{
+                position: "absolute",
+                left,
+                top,
+                width: 300,
+                transform: `scale(${paperZoom})`,
+                transformOrigin: "top left",
+                zIndex: 999,
+              }}
+              value={inputValue}
+              autoFocus
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  commitLabelEdit();
+                } else if (e.key === "Escape") {
+                  setEditingTable(false);
+                  setEditingTableId(null);
+                  setEditingLabelId(null);
+                }
+              }}
+              onBlur={commitLabelEdit}
+            />
+          );
+        })()}
+
+      {/* <TableDialog
+        open={open}
+        setOpen={setOpen}
+        setMode={setMode}
+        tableData={tableData}
+        setTableData={setTableData}
+      /> */}
     </div>
   );
 };

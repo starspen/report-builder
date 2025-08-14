@@ -342,7 +342,6 @@ const ArtBoard: React.FC<ArtBoardProps> = ({
             <SidebarMenu>
               {menuItems.map((item) => {
                 const shapes = artboardShapes[item.id] || [];
-                console.log(shapes, "shape bro");
                 return (
                   <React.Fragment key={item.id}>
                     <SortableMenuItem id={item.id}>
