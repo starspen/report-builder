@@ -807,13 +807,12 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
 
           // ubah scale jadi width/height "asli"
           const newWidth = Math.max(20, node.width() * scaleX);
-          const newHeight = s.height
-            ? Math.max(10, (node.height() || 0) * scaleY)
-            : undefined;
+          const newHeight = Math.max(10, (node.height() || 0) * scaleY);
 
           node.scaleX(1);
           node.scaleY(1);
           node.width(newWidth);
+          node.height(newHeight); // ✅ selalu
           if (newHeight !== undefined) node.height(newHeight);
         }}
         // ✅ commit ke state setelah selesai

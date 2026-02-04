@@ -450,6 +450,7 @@ const ImageMapView = ({
         fill: "#000",
         fontSize: 14,
         width: 200,
+        height: 40,
       };
       pushHistory([...shapes, newShape]);
       setSelectedId(newShape.id);
