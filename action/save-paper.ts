@@ -38,8 +38,13 @@ export interface PageItem {
   tables?: TableCell[];
   source_table_name?: string;
   column_filter?: string;
-  tableId?: string
-  labels?: TableLabel[]
+  tableId?: string;
+  labels?: TableLabel[];
+  group?: string;
+  group_type?: string;
+  position?: "absolute" | "relative";
+  repeating?: "Y" | "N";
+  repeating_per_page?: "Y" | "N";
 }
 
 export interface TableColumn {

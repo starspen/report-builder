@@ -80,9 +80,9 @@ export type TableCell = {
   header?: string;
   text_column?: string;
   column_filter?: string;
-  labels?: TableLabel[]
+  labels?: TableLabel[];
   tableId?: string;
-  source_table_name?: string
+  source_table_name?: string;
 };
 
 export type Table = ShapeBase & {
@@ -128,7 +128,7 @@ export type StretchableShapeProps = {
   onChange: (
     newAttrs: Partial<
       RectShape | CircleShape | EllipseShape | ImageShape | TextShape | Table
-    >
+    >,
   ) => void;
   mode?:
     | "default"
@@ -148,7 +148,7 @@ export type StretchableShapeProps = {
   onDoubleClick?: (e: Konva.KonvaEventObject<Event>) => void;
   onContextMenu?: (
     e: any,
-    coords?: { clientX: number; clientY: number }
+    coords?: { clientX: number; clientY: number },
   ) => void;
 
   onClick?: (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => void;
@@ -305,7 +305,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
 
         // update posisi tooltip supaya ikut cursor
         setTooltip((prev) =>
-          prev ? { ...prev, x: pos.x + 10, y: pos.y + 10 } : null
+          prev ? { ...prev, x: pos.x + 10, y: pos.y + 10 } : null,
         );
       } catch (err) {
         console.warn("Tooltip move error ignored:", err);
@@ -402,7 +402,6 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
   const isHoldingRef = useRef(false);
 
   const table = shape as Table;
-  console.log(table, "table:");
 
   const [text, setText] = useState<TableLabel[]>([]);
   const [textColumn, setTextColumn] = useState("");
@@ -460,7 +459,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
             if (setSelectedIds && selectedIds) {
               if (e.evt.shiftKey) {
                 setSelectedIds((prev) =>
-                  prev.includes(shape.id) ? prev : [...prev, shape.id]
+                  prev.includes(shape.id) ? prev : [...prev, shape.id],
                 );
               } else {
                 setSelectedIds([shape.id]);
@@ -586,8 +585,6 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           }}
         />
 
-        {console.log(shape.text_column, "text col")}
-
         {/* label-label di dalam table */}
         {(table.labels ?? []).map((lbl) => (
           <KonvaText
@@ -624,7 +621,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
 
               onChange?.({
                 labels: (table.labels ?? []).map((it) =>
-                  it.id === lbl.id ? { ...it, labelX: relX, labelY: relY } : it
+                  it.id === lbl.id ? { ...it, labelX: relX, labelY: relY } : it,
                 ),
               });
             }}
@@ -658,7 +655,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           if (setSelectedIds && selectedIds) {
             if (e.evt.shiftKey) {
               setSelectedIds((prev) =>
-                prev.includes(shape.id) ? prev : [...prev, shape.id]
+                prev.includes(shape.id) ? prev : [...prev, shape.id],
               );
             } else {
               setSelectedIds([shape.id]);
@@ -727,7 +724,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           if (setSelectedIds && selectedIds) {
             if (e.evt.shiftKey) {
               setSelectedIds((prev) =>
-                prev.includes(shape.id) ? prev : [...prev, shape.id]
+                prev.includes(shape.id) ? prev : [...prev, shape.id],
               );
             } else {
               setSelectedIds([shape.id]);
@@ -784,31 +781,58 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
     );
   } else if (shape.type === "text") {
     const s = shape as TextShape;
+
     element = (
       <KonvaText
         id={shape.id}
         {...common}
         text={s.text}
-        fontSize={(shape.fontSize ?? 14) * (1 / (stageScale || 1))}
+        x={s.x}
+        y={s.y}
+        width={s.width ?? 200}
+        height={s.height} // optional (kalau mau jadi box fixed/clipping)
+        wrap="word"
         fontFamily={s.fontFamily || "Arial"}
+        fontSize={(s.fontSize ?? 14) * (1 / (stageScale || 1))}
         draggable={draggable ?? (!isInGroup && !s.locked)}
         onDragEnd={isInGroup ? undefined : handleDragEnd}
-        onTransformEnd={() => {
-          const node = ref.current;
+        // ✅ ini kunci: selama drag transformer, flatten scale jadi width/height real
+        onTransform={(e) => {
+          if (isLocked) return;
+          const node = ref.current as Konva.Text;
+          if (!node) return;
+
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
+
+          // ubah scale jadi width/height "asli"
+          const newWidth = Math.max(20, node.width() * scaleX);
+          const newHeight = s.height
+            ? Math.max(10, (node.height() || 0) * scaleY)
+            : undefined;
+
           node.scaleX(1);
           node.scaleY(1);
+          node.width(newWidth);
+          if (newHeight !== undefined) node.height(newHeight);
+        }}
+        // ✅ commit ke state setelah selesai
+        onTransformEnd={(e) => {
+          if (isLocked) return;
+          const node = ref.current as Konva.Text;
+          if (!node) return;
 
           onChange?.({
             x: node.x(),
             y: node.y(),
-            fontSize: s.fontSize,
+            width: node.width(),
+            height: s.height ? node.height() : undefined, // kalau kamu pakai height
+            fontSize: s.fontSize, // ✅ tetap, tidak pernah berubah
           });
         }}
         onDblClick={(e) => {
           e.cancelBubble = true;
-          onDoubleClick?.(e); // 🟡 panggil callback
+          onDoubleClick?.(e);
           onSelect(e);
         }}
       />
@@ -830,7 +854,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           if (setSelectedIds && selectedIds) {
             if (e.evt.shiftKey) {
               setSelectedIds((prev) =>
-                prev.includes(shape.id) ? prev : [...prev, shape.id]
+                prev.includes(shape.id) ? prev : [...prev, shape.id],
               );
             } else {
               setSelectedIds([shape.id]);
@@ -903,9 +927,23 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
           rotateEnabled={false}
           enabledAnchors={
             selectedNode?.getClassName?.() === "Text"
-              ? ["middle-left", "middle-right"] // hanya resize horizontal untuk teks
+              ? [
+                  "top-left",
+                  "top-right",
+                  "bottom-left",
+                  "bottom-right",
+                  "middle-left",
+                  "middle-right",
+                  "top-center",
+                  "bottom-center",
+                ]
               : undefined
           }
+          boundBoxFunc={(oldBox, newBox) => {
+            // prevent terlalu kecil
+            if (newBox.width < 20 || newBox.height < 10) return oldBox;
+            return newBox;
+          }}
         />
       )}
 

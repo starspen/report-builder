@@ -45,7 +45,7 @@ import { createReport } from "@/action/create-report";
 import { getTemplateList } from "@/action/get-template-list";
 import { getPaperByDocument } from "@/action/get-paper";
 import { PageItem, SavePaper, savePaper } from "@/action/save-paper";
-import { getCompany } from "@/action/get-company";
+import { getCompany, getDocumentId } from "@/action/get-company";
 import { getTableData } from "@/action/get-table-data";
 import {
   LabelPatch,
@@ -121,13 +121,13 @@ const Editor = () => {
 
   const [masterplanCode, setMasterplanCode] = useState<string>("0");
   const [selectedMasterplan, setSelectedMasterplan] = useState<any | null>(
-    null
+    null,
   );
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [pendingDeleteLabel, setPendingDeleteLabel] = useState<string | null>(
-    null
+    null,
   );
   const [isLocked, setIsLocked] = useState(false);
 
@@ -140,9 +140,13 @@ const Editor = () => {
 
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const [group, setGroup] = useState("");
+  const [table, setTable] = useState("");
+  const [columnFilter, setColumnFilter] = useState("");
+
   const [activeArtboardId, setActiveArtboardId] = useState("1");
   const [artboardShapes, setArtboardShapes] = useState<{ [id: string]: any[] }>(
-    { "1": [] }
+    { "1": [] },
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -169,11 +173,11 @@ const Editor = () => {
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [isUndoRedo, setIsUndoRedo] = useState(false);
   const [activeArtboardHistory, setActiveArtboardHistory] = useState<string[]>(
-    []
+    [],
   );
 
   const [initialMenuItems, setInitialMenuItems] = useState<ArtboardMenuItem[]>(
-    []
+    [],
   );
   const [initialArtboardShapes, setInitialArtboardShapes] = useState<{
     [id: string]: any[];
@@ -195,7 +199,7 @@ const Editor = () => {
   const pickSelectedLabel = () => {
     if (!selectedLabel) return null;
     const table = activeShapes.find(
-      (s) => s.id === selectedLabel.tableId && s.type === "table"
+      (s) => s.id === selectedLabel.tableId && s.type === "table",
     ) as any | undefined; // Table
     const lbl = table?.labels?.find((l: any) => l.id === selectedLabel.labelId);
     return lbl ? { table, lbl } : null;
@@ -224,7 +228,7 @@ const Editor = () => {
         return {
           ...s,
           labels: (s.labels ?? []).map((l: TableLabel) =>
-            l.id === labelId ? { ...l, ...patch } : l
+            l.id === labelId ? { ...l, ...patch } : l,
           ),
         };
       });
@@ -237,7 +241,7 @@ const Editor = () => {
   const updateTable = (
     tableId: string,
     patch: TablePatch,
-    propagate: boolean
+    propagate: boolean,
   ) => {
     setArtboardShapes((prev) => {
       const page = prev[activeArtboardId] || [];
@@ -264,7 +268,7 @@ const Editor = () => {
       updateLabel(
         selectedLabelInfo.table.id,
         selectedLabelInfo.lbl.id,
-        patch as LabelPatch
+        patch as LabelPatch,
       );
     } else if (selectedId) {
       // table/shape aktif
@@ -300,8 +304,8 @@ const Editor = () => {
       prev.map((item) =>
         item.id === activeArtboardId
           ? { ...item, children: nextChildren }
-          : item
-      )
+          : item,
+      ),
     );
   };
 
@@ -311,11 +315,11 @@ const Editor = () => {
         if (item.id !== activeArtboardId) return item;
 
         const updatedChildren = item.children.map((child) =>
-          child.url === `#${shapeId}` ? { ...child, title: newTitle } : child
+          child.url === `#${shapeId}` ? { ...child, title: newTitle } : child,
         );
 
         return { ...item, children: updatedChildren };
-      })
+      }),
     );
   };
 
@@ -341,12 +345,12 @@ const Editor = () => {
   const handleEditChild = (
     artboardId: string,
     childId: string,
-    newTitle: string
+    newTitle: string,
   ) => {
     setArtboardShapes((prev) => ({
       ...prev,
       [artboardId]: prev[artboardId].map((shape) =>
-        shape.id === childId ? { ...shape, title: newTitle } : shape
+        shape.id === childId ? { ...shape, title: newTitle } : shape,
       ),
     }));
     // Jika ingin update menuItems children juga:
@@ -358,11 +362,11 @@ const Editor = () => {
               children: item.children.map((child) =>
                 child.url === `#${childId}`
                   ? { ...child, title: newTitle }
-                  : child
+                  : child,
               ),
             }
-          : item
-      )
+          : item,
+      ),
     );
   };
 
@@ -377,11 +381,11 @@ const Editor = () => {
           ? {
               ...item,
               children: item.children.filter(
-                (child) => child.url !== `#${childId}`
+                (child) => child.url !== `#${childId}`,
               ),
             }
-          : item
-      )
+          : item,
+      ),
     );
     // Optional: reset selectedId jika child yang dihapus sedang terseleksi
     if (selectedId === childId) setSelectedId(null);
@@ -402,7 +406,7 @@ const Editor = () => {
     isError: isErrorCompany,
   } = useQuery({
     queryKey: ["company"],
-    queryFn: getCompany,
+    queryFn: () => getCompany(),
   });
 
   const {
@@ -440,7 +444,7 @@ const Editor = () => {
     isError: isErrorMasterplans,
   } = useQuery({
     queryKey: ["masterplans", entityCode],
-    queryFn: () => getTemplateList(entityCode),
+    queryFn: () => getDocumentId(entityCode),
     enabled: !!entityCode,
   });
 
@@ -462,7 +466,7 @@ const Editor = () => {
     }
 
     const randomDocumentId = `${entityCode}-${projectCode}-${Math.floor(
-      Math.random() * 1000
+      Math.random() * 1000,
     )}`;
 
     mutate(
@@ -481,7 +485,7 @@ const Editor = () => {
         onError: (err) => {
           console.error("Gagal create masterplan:", err);
         },
-      }
+      },
     );
   };
 
@@ -534,7 +538,7 @@ const Editor = () => {
 
   const handleSave = () => {
     const payload: SavePaper = {
-      documentId: masterplanDataById.document_id || "document", // bisa juga dari state/URL
+      documentId: masterplanDataById?.document_id || "document", // bisa juga dari state/URL
       entity_cd: entityCode,
       company_cd: selectedEntity?.company_cd || "UNKNOWN",
       name: selectedMasterplan?.masterplan_name || siteplanName,
@@ -583,7 +587,7 @@ const Editor = () => {
                     type: "text",
                   };
                 }
-              }
+              },
             );
 
             const tableRect: TableCell = {
@@ -596,17 +600,24 @@ const Editor = () => {
 
             const baseItem: PageItem = {
               name: `item-${i}`,
-              type: "table",
+              type: shape.type,
+              text: shape.text || "",
               x: shape.x,
               y: shape.y,
               fill: shape.fill || "",
               width: shape.width || 0,
               height: shape.height || 0,
               font: shape.fontFamily || "Helvetica",
-              fontSize: String(Number(shape.fontSize) || 12),
+              fontSize: String(Number(shape.fontSize) || 14),
               image_src: shape.image_src || "",
-              tableId: shape.tableId,
-              tables: [tableRect, ...((shape.tables || []) as TableCell[])],
+              tables: [],
+              group: group || "",
+              source_table_name: table || "",
+              column_filter: columnFilter || "",
+              group_type: shape.category || "default",
+              position: shape.position || "absolute",
+              repeating: shape.repeating || "N",
+              repeating_per_page: shape.repeating_per_page || "N",
             };
 
             return [baseItem];
@@ -626,6 +637,13 @@ const Editor = () => {
             fontSize: String(Number(shape.fontSize) || 14),
             image_src: shape.image_src || "",
             tables: [],
+            group: group || "",
+            source_table_name: table || "",
+            column_filter: columnFilter || "",
+            group_type: shape.category || "default",
+            position: shape.position || "absolute",
+            repeating: shape.repeating || "N",
+            repeating_per_page: shape.repeating_per_page || "N",
           };
 
           return [baseItem];
@@ -633,9 +651,9 @@ const Editor = () => {
       })),
     };
 
-    console.log(payload, "payload");
+    console.log(payload, "payload to save");
 
-    saveMasterplanMutate(payload);
+    // saveMasterplanMutate(payload);
   };
 
   const { mutate: deleteMasterplanMutate } = useMutation({
@@ -853,7 +871,7 @@ const Editor = () => {
                 options={
                   masterplans?.map((m: any) => ({
                     label: m.name,
-                    value: m.company_cd,
+                    value: m.id,
                   })) || []
                 }
                 placeholder={
@@ -864,18 +882,15 @@ const Editor = () => {
                 value={masterplanCode}
                 onChange={(val) => {
                   setMasterplanCode(val);
-                  const found = masterplans?.find(
-                    (m: any) => m.company_cd === val
-                  );
-                  setSelectedMasterplan(found || null);
+                  const found = masterplans?.find((m: any) => m.id === val);
+                  console.log(found, "found masterplan");
+                  setSelectedMasterplan(found.name || null);
                 }}
                 onDelete={(id) => {
                   requestAnimationFrame(() => {
-                    const found = masterplans?.find(
-                      (m: any) => m.company_cd === id
-                    );
+                    const found = masterplans?.find((m: any) => m.id === id);
                     setPendingDeleteId(id);
-                    setPendingDeleteLabel(found?.name || "");
+                    setPendingDeleteLabel(found?.label || "");
                     setDeleteDialogOpen(true);
                   });
                 }}
@@ -896,9 +911,9 @@ const Editor = () => {
               className="w-full"
               disabled={!selectedMasterplan}
               onClick={() => {
-                if (selectedMasterplan?.document_id) {
+                if (selectedMasterplan) {
                   router.push(
-                    `/en/site-plan-editor?document_id=${selectedMasterplan.document_id}&company_cd=${selectedMasterplan.company_cd}`
+                    `/en/site-plan-editor?document_id=${selectedMasterplan}&company_cd=${entityCode}`,
                   );
                 }
               }}
@@ -1094,6 +1109,12 @@ const Editor = () => {
                   setSelectedId(tableId); // transformer tetap di rect table
                   setSelectedLabel({ tableId, labelId }); // sidebar tahu label mana
                 }}
+                group={group}
+                setGroup={setGroup}
+                table={table}
+                setTable={setTable}
+                columnFilter={columnFilter}
+                setColumnFilter={setColumnFilter}
               />
             </div>
           </div>

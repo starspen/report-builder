@@ -53,7 +53,12 @@ export interface Shape {
   title?: string;
   linkToArtboard?: string;
   linkToShapeId?: string;
-  category?: "block" | "unit";
+  category?:
+    | "default"
+    | "header"
+    | "header-repeating"
+    | "footer"
+    | "footer-repeating";
   lotId?: string;
   status?: string;
   locked?: boolean;
@@ -61,6 +66,9 @@ export interface Shape {
   entity_cd?: string;
   project_no?: string;
   lot_no?: string;
+  position?: string;
+  repeating?: "Y" | "N";
+  repeating_per_page: "Y" | "N";
 }
 
 interface RightSideBarProps {
@@ -88,6 +96,12 @@ interface RightSideBarProps {
   onSelectLabel?: (tableId: string, labelId: string) => void;
   selectedShape: any | null;
   onUpdateSelected: (patch: Partial<any>) => void;
+  group: string;
+  setGroup: React.Dispatch<React.SetStateAction<string>>;
+  table: string;
+  setTable: React.Dispatch<React.SetStateAction<string>>;
+  columnFilter: string;
+  setColumnFilter: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const RightSideBar: React.FC<RightSideBarProps> = ({
@@ -112,12 +126,18 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   selectedShape: selectedShapeProp,
   onUpdateSelected,
   companyCode,
+  group,
+  setGroup,
+  table,
+  setTable,
+  columnFilter,
+  setColumnFilter,
 }) => {
   const computedSelected =
     selectedShapeProp ?? shapes?.find((s) => s.id === selectedId) ?? null;
 
   const [localTitle, setLocalTitle] = React.useState(
-    computedSelected?.title || computedSelected?.type || ""
+    computedSelected?.title || computedSelected?.type || "",
   );
 
   const [selectedTableName, setSelectedTableName] = useState("");
@@ -134,7 +154,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   const handleUpdateShape = (id: string, updates: Partial<Shape>) => {
     setArtboardShapes((prev) => {
       const nextShapes = prev[activeArtboardId].map((s) =>
-        s.id === id ? { ...s, ...updates } : s
+        s.id === id ? { ...s, ...updates } : s,
       );
       return { ...prev, [activeArtboardId]: nextShapes };
     });
@@ -162,7 +182,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
     // Update the shape in the artboard shapes state
     setArtboardShapes((prev) => {
       const updatedShapes = prev[activeArtboardId].map((s) =>
-        s.id === computedSelected.id ? updatedShape : s
+        s.id === computedSelected.id ? updatedShape : s,
       );
       return {
         ...prev,
@@ -237,6 +257,71 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                             title: localTitle,
                           });
                           updateMenuTitle(computedSelected.id, localTitle);
+                        }}
+                      />
+                    </div>
+
+                    <div className="col-span-2 mb-2">
+                      <Label htmlFor="group">Group</Label>
+                      <Input
+                        id="group"
+                        value={group}
+                        onChange={(e) => setGroup(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="col-span-2 mb-2 space-y-2">
+                      <Label className="flex items-center gap-2 justify-between">
+                        Group Type
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            {computedSelected.category && (
+                              <Button
+                                type="button"
+                                onClick={() => {
+                                  handleUpdateShape(computedSelected.id, {
+                                    category: undefined,
+                                  });
+                                }}
+                                className="text-sm text-red-600 hover:underline"
+                                variant="ghost"
+                                size="sm"
+                              >
+                                <Undo2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Reset Group</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </Label>
+                      <BasicCombobox
+                        options={[
+                          { label: "default", value: "default" },
+                          { label: "header", value: "header" },
+                          {
+                            label: "header-repeating",
+                            value: "header-repeating",
+                          },
+                          { label: "footer", value: "footer" },
+                          {
+                            label: "footer-repeating",
+                            value: "footer-repeating",
+                          },
+                        ]}
+                        placeholder="Select Group"
+                        value={computedSelected?.category || ""}
+                        onChange={(val) => {
+                          if (!computedSelected) return;
+                          handleUpdateShape(computedSelected.id, {
+                            category: val as
+                              | "default"
+                              | "header"
+                              | "header-repeating"
+                              | "footer"
+                              | "footer-repeating",
+                          });
                         }}
                       />
                     </div>
@@ -427,20 +512,9 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                     (computedSelected.type === "table" && selectedId)) && (
                     <div className="space-y-2">
                       <Label>Select From Database</Label>
-                      <BasicCombobox
-                        options={(Array.isArray(tableDataDB)
-                          ? tableDataDB
-                          : []
-                        ).map((f: { table: string }) => ({
-                          label: f.table,
-                          value: f.table,
-                        }))}
-                        placeholder="Select table"
-                        value={selectedTableName}
-                        onChange={(val) => {
-                          setSelectedTableName(val);
-                          onUpdateSelected?.({ source_table_name: val });
-                        }}
+                      <Input
+                        value={table}
+                        onChange={(e) => setTable(e.target.value)}
                       />
                     </div>
                   )}
@@ -467,27 +541,16 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                     computedSelected.type === "table") && (
                     <div className="space-y-2">
                       <Label>Column Filter</Label>
-                      <BasicMultiCombobox
-                        options={(Array.isArray(columnDataDB)
-                          ? columnDataDB
-                          : []
-                        ).map((c: string) => ({
-                          label: c,
-                          value: c,
-                        }))}
-                        value={selectedColFilter}
-                        onChange={(vals) => {
-                          setSelectedColFilter(vals);
-                          onUpdateSelected?.({ column_filter: vals }); // kirim array ke shape
-                        }}
-                        placeholder="Select column(s)"
+                      <Input
+                        value={columnFilter}
+                        onChange={(e) => setColumnFilter(e.target.value)}
                       />
                     </div>
                   )}
 
-                  <div className="space-y-2">
+                  <div className="col-span-2 mb-2 space-y-2">
                     <Label className="flex items-center gap-2 justify-between">
-                      Shape Group
+                      Position
                       <Tooltip>
                         <TooltipTrigger asChild>
                           {computedSelected.category && (
@@ -507,21 +570,104 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           )}
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Reset Group</p>
+                          <p>Reset Position</p>
                         </TooltipContent>
                       </Tooltip>
                     </Label>
                     <BasicCombobox
                       options={[
-                        { label: "Block", value: "block" },
-                        { label: "Unit", value: "unit" },
+                        { label: "absolute", value: "absolute" },
+                        { label: "relative", value: "relative" },
                       ]}
-                      placeholder="Select Group"
-                      value={computedSelected?.category || ""}
+                      placeholder="Select Position"
+                      value={computedSelected?.position || ""}
                       onChange={(val) => {
                         if (!computedSelected) return;
                         handleUpdateShape(computedSelected.id, {
-                          category: val as "block" | "unit",
+                          position: val as "absolute" | "relative",
+                        });
+                      }}
+                    />
+                  </div>
+                  <div className="col-span-2 mb-2 space-y-2">
+                    <Label className="flex items-center gap-2 justify-between">
+                      Repeating
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          {computedSelected.repeating && (
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                handleUpdateShape(computedSelected.id, {
+                                  repeating: undefined,
+                                });
+                              }}
+                              className="text-sm text-red-600 hover:underline"
+                              variant="ghost"
+                              size="sm"
+                            >
+                              <Undo2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Reset Repeating</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                    <BasicCombobox
+                      options={[
+                        { label: "Y", value: "Y" },
+                        { label: "N", value: "N" },
+                      ]}
+                      placeholder="Select Repeating"
+                      value={computedSelected?.repeating || ""}
+                      onChange={(val) => {
+                        if (!computedSelected) return;
+                        handleUpdateShape(computedSelected.id, {
+                          repeating: val as "Y" | "N",
+                        });
+                      }}
+                    />
+                  </div>
+
+                  <div className="col-span-2 mb-2 space-y-2">
+                    <Label className="flex items-center gap-2 justify-between">
+                      Repeating Per Page
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          {computedSelected.repeating_per_page && (
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                handleUpdateShape(computedSelected.id, {
+                                  repeating_per_page: undefined,
+                                });
+                              }}
+                              className="text-sm text-red-600 hover:underline"
+                              variant="ghost"
+                              size="sm"
+                            >
+                              <Undo2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Reset Repeating Per Page</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                    <BasicCombobox
+                      options={[
+                        { label: "Y", value: "Y" },
+                        { label: "N", value: "N" },
+                      ]}
+                      placeholder="Select Repeating Per Page"
+                      value={computedSelected?.repeating_per_page || ""}
+                      onChange={(val) => {
+                        if (!computedSelected) return;
+                        handleUpdateShape(computedSelected.id, {
+                          repeating_per_page: val as "Y" | "N",
                         });
                       }}
                     />
@@ -624,7 +770,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           // 2) Fallback for computedSelected.lotId if it isn’t in lotOptions
                           ...(computedSelected?.lotId &&
                           !lotOptions.some(
-                            (lot: any) => lot.lot_no === computedSelected.lotId
+                            (lot: any) => lot.lot_no === computedSelected.lotId,
                           )
                             ? [
                                 {
@@ -642,7 +788,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
 
                           // Ambil status dari lotOptions atau dari options
                           const lotInfo = lotOptions.find(
-                            (lot: any) => lot.lot_no === val
+                            (lot: any) => lot.lot_no === val,
                           );
 
                           let fill = LOT_COLOR_MAP.DEFAULT; // default abu
@@ -656,8 +802,8 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                               lotInfo?.status === "A"
                                 ? LOT_COLOR_MAP.A
                                 : lotInfo?.status === "B"
-                                ? LOT_COLOR_MAP.B
-                                : LOT_COLOR_MAP.DEFAULT,
+                                  ? LOT_COLOR_MAP.B
+                                  : LOT_COLOR_MAP.DEFAULT,
                           });
                         }}
                       />

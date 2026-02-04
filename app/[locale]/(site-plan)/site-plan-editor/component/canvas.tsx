@@ -167,7 +167,7 @@ const ImageMapView = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [paperZoom, setPaperZoom] = useState(1); // 1 = 100%, 0.75 = 75%, dst
   const [selectedPaper, setSelectedPaper] = useState<PaperSize>(
-    paperSizes.find((p) => p.name === "A4")!
+    paperSizes.find((p) => p.name === "A4")!,
   );
   const [stageSize, setStageSize] = useState({
     width: selectedPaper.width,
@@ -212,7 +212,7 @@ const ImageMapView = ({
   }>({ x: 0, y: 0 });
   const [open, setOpen] = useState(false);
   const [tableData, setTableData] = useState<Record<string, any>[] | undefined>(
-    undefined
+    undefined,
   );
   const [editingTable, setEditingTable] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -225,7 +225,6 @@ const ImageMapView = ({
     tableId: string;
     labelId: string;
   } | null>(null);
-
 
   const selectedTableDataView =
     tableDataDummy.find((t) => t.tableId === tableDataView)?.tableName ||
@@ -244,7 +243,7 @@ const ImageMapView = ({
         return {
           ...s,
           labels: (s.labels ?? []).map((l: any) =>
-            l.id === editingLabelId ? { ...l, text: value } : l
+            l.id === editingLabelId ? { ...l, text: value } : l,
           ),
         };
       });
@@ -264,11 +263,11 @@ const ImageMapView = ({
 
   const handleAssignToTable = (
     selectedIds: string | string[],
-    targetTableName: string
+    targetTableName: string,
   ) => {
     const ids = Array.isArray(selectedIds) ? selectedIds : [selectedIds];
     const next = shapes.map((s) =>
-      ids.includes(s.id) ? { ...s, tableId: targetTableName } : s
+      ids.includes(s.id) ? { ...s, tableId: targetTableName } : s,
     );
     pushHistory(next);
   };
@@ -394,7 +393,7 @@ const ImageMapView = ({
             endX: pos.x,
             endY: pos.y,
           }
-        : null
+        : null,
     );
   };
 
@@ -667,11 +666,10 @@ const ImageMapView = ({
 
   const updateShape = (id: string, attrs: Partial<Shape>) => {
     const nextShapes = shapes.map((s) =>
-      s.id === id ? { ...s, ...attrs } : s
+      s.id === id ? { ...s, ...attrs } : s,
     );
     pushHistory(nextShapes);
   };
-
 
   const deleteSelected = () => {
     if (!selectedId) return;
@@ -683,11 +681,11 @@ const ImageMapView = ({
           ? {
               ...item,
               children: item.children.filter(
-                (child) => !child.url.includes(selectedId)
+                (child) => !child.url.includes(selectedId),
               ),
             }
-          : item
-      )
+          : item,
+      ),
     );
     setSelectedId(null);
   };
@@ -735,7 +733,7 @@ const ImageMapView = ({
           if (copiedShape.type === "polygon") {
             const original = copiedShape as PolygonShape;
             const offsetPoints = original.points.map((val, idx) =>
-              idx % 2 === 0 ? val + offset : val + offset
+              idx % 2 === 0 ? val + offset : val + offset,
             );
             newShape = {
               ...original,
@@ -848,7 +846,7 @@ const ImageMapView = ({
   // ...existing code...
   const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
-    null
+    null,
   );
   // ...existing code...
 
@@ -1252,7 +1250,7 @@ const ImageMapView = ({
                     setInitialMenuItems(menuItems);
                     setInitialArtboardShapes(artboardShapes);
                   }}
-                  disabled={!isChanged}
+                  // disabled={!isChanged}
                   className="bg-green-600 flex gap-2 hover:bg-green-700 hover:ring-transparent text-sm"
                 >
                   <Save className="w-4 h-4" />
@@ -1381,17 +1379,17 @@ const ImageMapView = ({
                   mode === "panning"
                     ? "grab"
                     : mode === "drawPolygon"
-                    ? "crosshair"
-                    : [
-                        "drawRect",
-                        "drawCircle",
-                        "drawEllipse",
-                        "drawTable",
-                      ].includes(mode)
-                    ? "crosshair"
-                    : drawingShape
-                    ? "copy"
-                    : "default",
+                      ? "crosshair"
+                      : [
+                            "drawRect",
+                            "drawCircle",
+                            "drawEllipse",
+                            "drawTable",
+                          ].includes(mode)
+                        ? "crosshair"
+                        : drawingShape
+                          ? "copy"
+                          : "default",
               }}
             >
               <Layer>
