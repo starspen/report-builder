@@ -143,6 +143,7 @@ const Editor = () => {
   const [group, setGroup] = useState("");
   const [table, setTable] = useState("");
   const [columnFilter, setColumnFilter] = useState("");
+  const [textFilter, setTextFilter] = useState("");
 
   const [activeArtboardId, setActiveArtboardId] = useState("1");
   const [artboardShapes, setArtboardShapes] = useState<{ [id: string]: any[] }>(
@@ -618,6 +619,7 @@ const Editor = () => {
               position: shape.position || "absolute",
               repeating: shape.repeating || "N",
               repeating_per_page: shape.repeating_per_page || "N",
+              text_column: textFilter || "",
             };
 
             return [baseItem];
@@ -644,6 +646,7 @@ const Editor = () => {
             position: shape.position || "absolute",
             repeating: shape.repeating || "N",
             repeating_per_page: shape.repeating_per_page || "N",
+            text_column: textFilter || "",
           };
 
           return [baseItem];
@@ -653,7 +656,7 @@ const Editor = () => {
 
     console.log(payload, "payload to save");
 
-    // saveMasterplanMutate(payload);
+    saveMasterplanMutate(payload);
   };
 
   const { mutate: deleteMasterplanMutate } = useMutation({
@@ -1069,6 +1072,8 @@ const Editor = () => {
                 setSelectedId(tableId);
                 setSelectedLabel({ tableId, labelId });
               }}
+              textFilter={textFilter}
+              setTextFilter={setTextFilter}
             />
           </div>
 
@@ -1115,6 +1120,8 @@ const Editor = () => {
                 setTable={setTable}
                 columnFilter={columnFilter}
                 setColumnFilter={setColumnFilter}
+                textFilter={textFilter}
+                setTextFilter={setTextFilter}
               />
             </div>
           </div>

@@ -102,6 +102,8 @@ interface RightSideBarProps {
   setTable: React.Dispatch<React.SetStateAction<string>>;
   columnFilter: string;
   setColumnFilter: React.Dispatch<React.SetStateAction<string>>;
+  textFilter: string;
+  setTextFilter: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const RightSideBar: React.FC<RightSideBarProps> = ({
@@ -132,6 +134,8 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   setTable,
   columnFilter,
   setColumnFilter,
+  textFilter,
+  setTextFilter,
 }) => {
   const computedSelected =
     selectedShapeProp ?? shapes?.find((s) => s.id === selectedId) ?? null;
@@ -536,6 +540,25 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                       />
                     </div>
                   )}
+
+                  <div className="space-y-2">
+                    <Label>Text Column</Label>
+                    <Input
+                      value={textFilter}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setTextFilter(v);
+
+                        // kalau yang kepilih adalah text shape (atau proxy label), update shape juga
+                        if (computedSelected?.type === "text") {
+                          smartUpdate({
+                            text_column: v, // simpan mappingnya
+                            text: v, // <-- ini yang bikin tulisan di canvas ikut berubah
+                          });
+                        }
+                      }}
+                    />
+                  </div>
 
                   {(computedSelected.type === "text" ||
                     computedSelected.type === "table") && (

@@ -789,8 +789,8 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
         text={s.text}
         x={s.x}
         y={s.y}
-        width={s.width ?? 200}
-        height={s.height} // optional (kalau mau jadi box fixed/clipping)
+        width={s.width ?? 100}
+        height={s.height ?? 14} // optional (kalau mau jadi box fixed/clipping)
         wrap="word"
         fontFamily={s.fontFamily || "Arial"}
         fontSize={(s.fontSize ?? 14) * (1 / (stageScale || 1))}
@@ -825,7 +825,7 @@ const StretchableShape: React.FC<StretchableShapeProps> = ({
             x: node.x(),
             y: node.y(),
             width: node.width(),
-            height: s.height ? node.height() : undefined, // kalau kamu pakai height
+            height: node.height(),
             fontSize: s.fontSize, // ✅ tetap, tidak pernah berubah
           });
         }}

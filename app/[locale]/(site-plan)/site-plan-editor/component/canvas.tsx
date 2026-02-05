@@ -116,6 +116,8 @@ interface ImageMapViewProps {
   >;
   isChanged: boolean;
   onSelectLabel?: (tableId: string, labelId: string) => void;
+  textFilter?: string;
+  setTextFilter?: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const LOT_COLOR_MAP = {
@@ -155,6 +157,8 @@ const ImageMapView = ({
   setInitialArtboardShapes,
   isChanged,
   onSelectLabel,
+  textFilter,
+  setTextFilter,
 }: ImageMapViewProps) => {
   const stageRef = useRef<any>(null);
   const trRef = useRef<Konva.Transformer>(null);
@@ -571,6 +575,15 @@ const ImageMapView = ({
     e.target.value = "";
   };
 
+  useEffect(() => {
+    if (!selectedId) return;
+    const selected = shapes.find((s) => s.id === selectedId);
+    if (!selected || selected.type !== "text") return;
+
+    // update selected text mengikuti textFilter
+    updateShape(selectedId, { text: textFilter, text_column: textFilter });
+  }, [textFilter]);
+
   const handleStageClick = (e: any) => {
     // if (mode === "panning") {
     //   e.cancelBubble = true;
@@ -643,6 +656,8 @@ const ImageMapView = ({
         fill: "black",
         fontSize: 14,
         fontFamily: "Arial",
+        width: 200,
+        height: 14,
       };
 
       pushHistory([...shapes, newShape]);
