@@ -55,6 +55,9 @@ export type TextShape = ShapeBase & {
   fontFamily?: string;
   labelX?: number;
   labelY?: number;
+  source_table_name?: string;
+  text_column?: string;
+  column_filter?: string;
 };
 
 export type TableLabel = {

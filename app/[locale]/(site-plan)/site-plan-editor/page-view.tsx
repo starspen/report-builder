@@ -640,13 +640,13 @@ const Editor = () => {
             image_src: shape.image_src || "",
             tables: [],
             group: group || "",
-            source_table_name: table || "",
-            column_filter: columnFilter || "",
+            source_table_name: shape.source_table_name || "",
+            column_filter: shape.column_filter || "",
+            text_column: shape.text_column || "",
             group_type: shape.category || "default",
             position: shape.position || "absolute",
             repeating: shape.repeating || "N",
             repeating_per_page: shape.repeating_per_page || "N",
-            text_column: textFilter || "",
           };
 
           return [baseItem];
@@ -1116,12 +1116,6 @@ const Editor = () => {
                 }}
                 group={group}
                 setGroup={setGroup}
-                table={table}
-                setTable={setTable}
-                columnFilter={columnFilter}
-                setColumnFilter={setColumnFilter}
-                textFilter={textFilter}
-                setTextFilter={setTextFilter}
               />
             </div>
           </div>

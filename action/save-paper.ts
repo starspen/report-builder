@@ -83,3 +83,30 @@ export const savePaper = async (payload: SavePaper): Promise<any> => {
   const json = await response.json();
   return json;
 };
+
+export const exportPaper = async (document_id: string): Promise<any> => {
+  const mode = process.env.NEXT_PUBLIC_ENV_MODE;
+  const baseUrl =
+    mode === "sandbox"
+      ? process.env.NEXT_PUBLIC_API_BACKEND_SANDBOX_URL
+      : process.env.NEXT_PUBLIC_API_BACKEND_PRODUCTION_URL;
+
+  if (!baseUrl) {
+    throw new Error("API base URL is not defined");
+  }
+
+  const response = await fetch(`${baseUrl}/api/generatets2/${document_id}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Failed to export paper: ${err}`);
+  }
+
+  const json = await response.json();
+  return json;
+};

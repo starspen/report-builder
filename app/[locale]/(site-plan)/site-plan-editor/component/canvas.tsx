@@ -29,6 +29,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
+import { useSearchParams } from "next/navigation";
 import {
   PenLine,
   Square,
@@ -45,6 +46,8 @@ import {
   Type,
   Table2,
 } from "lucide-react";
+import { exportPaper } from "@/action/save-paper";
+import { toast } from "sonner";
 import StretchablePolygon from "./stretchable-polygon";
 import { ArtboardMenuItem } from "./art-board";
 import StretchableGroup from "./stretchable-group";
@@ -455,6 +458,9 @@ const ImageMapView = ({
         fontSize: 14,
         width: 200,
         height: 40,
+        source_table_name: "",
+        text_column: "",
+        column_filter: "",
       };
       pushHistory([...shapes, newShape]);
       setSelectedId(newShape.id);
@@ -658,6 +664,9 @@ const ImageMapView = ({
         fontFamily: "Arial",
         width: 200,
         height: 14,
+        source_table_name: "",
+        text_column: "",
+        column_filter: "",
       };
 
       pushHistory([...shapes, newShape]);
@@ -907,6 +916,32 @@ const ImageMapView = ({
       handleDrawEnd(e);
     }
   };
+
+  const searchParams = useSearchParams();
+  const document_id = searchParams?.get("document_id");
+
+  const { mutate: exportMasterplan } = useMutation({
+    mutationFn: async () => {
+      return await exportPaper(document_id!);
+    },
+    onSuccess: (data) => {
+      toast.success("Masterplan exported successfully!", {
+        style: {
+          backgroundColor: "#22c55e", // warna hijau (tailwind green-500)
+          color: "white",
+        },
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error exporting masterplan:", error.message);
+      toast.error("Failed to export masterplan.", {
+        style: {
+          backgroundColor: "#dc2626", // warna merah (tailwind red-600)
+          color: "white",
+        },
+      });
+    },
+  });
 
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -1254,6 +1289,19 @@ const ImageMapView = ({
                 <p>Preview</p>
               </TooltipContent>
             </Tooltip>
+          </div>
+          <div className="grid items-center gap-3 mx-2">
+            <Button
+              size="md"
+              type="button"
+              onClick={() => {
+                exportMasterplan();
+              }}
+              // disabled={!isChanged}
+              className="bg-green-600 flex gap-2 hover:bg-green-700 hover:ring-transparent text-sm"
+            >
+              Export
+            </Button>
           </div>
           <div className="grid items-center gap-3 mx-2">
             <Tooltip>

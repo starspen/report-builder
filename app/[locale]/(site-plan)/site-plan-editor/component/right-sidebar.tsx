@@ -98,12 +98,6 @@ interface RightSideBarProps {
   onUpdateSelected: (patch: Partial<any>) => void;
   group: string;
   setGroup: React.Dispatch<React.SetStateAction<string>>;
-  table: string;
-  setTable: React.Dispatch<React.SetStateAction<string>>;
-  columnFilter: string;
-  setColumnFilter: React.Dispatch<React.SetStateAction<string>>;
-  textFilter: string;
-  setTextFilter: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const RightSideBar: React.FC<RightSideBarProps> = ({
@@ -130,15 +124,19 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   companyCode,
   group,
   setGroup,
-  table,
-  setTable,
-  columnFilter,
-  setColumnFilter,
-  textFilter,
-  setTextFilter,
 }) => {
   const computedSelected =
     selectedShapeProp ?? shapes?.find((s) => s.id === selectedId) ?? null;
+
+  const isProxy =
+    !!selectedShapeProp && !shapes?.some((s) => s.id === selectedShapeProp.id);
+
+  const applyPatch = (patch: Partial<any>) => {
+    if (isProxy)
+      smartUpdate(patch); // lewat onUpdateSelected -> updateLabel / updateTable
+    else if (computedSelected?.id)
+      handleUpdateShape(computedSelected.id, patch);
+  };
 
   const [localTitle, setLocalTitle] = React.useState(
     computedSelected?.title || computedSelected?.type || "",
@@ -148,6 +146,9 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   const [selectedColName, setSelectedColName] = useState("");
   const [selectedTableCd, setSelectedTableCd] = useState("");
   const [selectedColFilter, setSelectedColFilter] = useState<string[]>([]);
+  const [localTable, setLocalTable] = useState("");
+  const [localColumnFilter, setLocalColumnFilter] = useState("");
+  const [localTextColumn, setLocalTextColumn] = useState("");
 
   useEffect(() => {
     if (computedSelected) {
@@ -228,6 +229,14 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
     setSelectedColFilter((computedSelected as any)?.column_filter ?? "");
   }, [computedSelected?.id]);
 
+  useEffect(() => {
+    if (!computedSelected?.id) return;
+
+    setLocalTable((computedSelected as any)?.source_table_name ?? "");
+    setLocalTextColumn((computedSelected as any)?.text_column ?? "");
+    setLocalColumnFilter((computedSelected as any)?.column_filter ?? "");
+  }, [computedSelected?.id]);
+
   return (
     <div className="relative">
       {rightSidebarOpen && (
@@ -253,14 +262,18 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                             handleUpdateShape(computedSelected.id, {
                               title: localTitle, // ← simpan ke shape
                             });
-                            updateMenuTitle(computedSelected.id, localTitle);
+                            applyPatch({ title: localTitle });
+                            if (!isProxy)
+                              updateMenuTitle(computedSelected.id, localTitle);
                           }
                         }}
                         onBlur={() => {
                           handleUpdateShape(computedSelected.id, {
                             title: localTitle,
                           });
-                          updateMenuTitle(computedSelected.id, localTitle);
+                          applyPatch({ title: localTitle });
+                          if (!isProxy)
+                            updateMenuTitle(computedSelected.id, localTitle);
                         }}
                       />
                     </div>
@@ -283,9 +296,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                               <Button
                                 type="button"
                                 onClick={() => {
-                                  handleUpdateShape(computedSelected.id, {
-                                    category: undefined,
-                                  });
+                                  applyPatch({ category: localTitle });
                                 }}
                                 className="text-sm text-red-600 hover:underline"
                                 variant="ghost"
@@ -512,16 +523,19 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                     </>
                   )}
 
-                  {(computedSelected.type === "text" ||
-                    (computedSelected.type === "table" && selectedId)) && (
-                    <div className="space-y-2">
-                      <Label>Select From Database</Label>
-                      <Input
-                        value={table}
-                        onChange={(e) => setTable(e.target.value)}
-                      />
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label>Select From Database</Label>
+                    <Input
+                      value={localTable}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setLocalTable(v);
+                        applyPatch({ source_table_name: v });
+
+                        setSelectedTableName(v); // supaya query kolom jalan
+                      }}
+                    />
+                  </div>
 
                   {selectedTableName && (
                     <div className="space-y-2">
@@ -535,7 +549,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                         value={selectedColName}
                         onChange={(val) => {
                           setSelectedColName(val);
-                          onUpdateSelected?.({ text_column: val });
+                          applyPatch({ text_column: val });
                         }}
                       />
                     </div>
@@ -544,32 +558,31 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                   <div className="space-y-2">
                     <Label>Text Column</Label>
                     <Input
-                      value={textFilter}
+                      value={localTextColumn}
                       onChange={(e) => {
                         const v = e.target.value;
-                        setTextFilter(v);
+                        setLocalTextColumn(v);
 
-                        // kalau yang kepilih adalah text shape (atau proxy label), update shape juga
-                        if (computedSelected?.type === "text") {
-                          smartUpdate({
-                            text_column: v, // simpan mappingnya
-                            text: v, // <-- ini yang bikin tulisan di canvas ikut berubah
-                          });
+                        if (computedSelected?.type === "text" && !isProxy) {
+                          applyPatch({ text_column: v, text: v });
+                        } else {
+                          applyPatch({ text_column: v });
                         }
                       }}
                     />
                   </div>
 
-                  {(computedSelected.type === "text" ||
-                    computedSelected.type === "table") && (
-                    <div className="space-y-2">
-                      <Label>Column Filter</Label>
-                      <Input
-                        value={columnFilter}
-                        onChange={(e) => setColumnFilter(e.target.value)}
-                      />
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label>Column Filter</Label>
+                    <Input
+                      value={localColumnFilter}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setLocalColumnFilter(v);
+                        applyPatch({ column_filter: v });
+                      }}
+                    />
+                  </div>
 
                   <div className="col-span-2 mb-2 space-y-2">
                     <Label className="flex items-center gap-2 justify-between">
