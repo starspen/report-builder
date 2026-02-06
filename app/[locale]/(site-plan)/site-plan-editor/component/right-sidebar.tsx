@@ -223,14 +223,24 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   }, [computedSelected]);
 
   useEffect(() => {
+    if (!computedSelected) return;
+
     setSelectedTableName((computedSelected as any)?.source_table_name ?? "");
     setSelectedColName((computedSelected as any)?.text_column ?? "");
     setSelectedTableCd((computedSelected as any)?.table_cd ?? "");
     setSelectedColFilter((computedSelected as any)?.column_filter ?? "");
+
+    // Set local state for position, repeating, repeating_per_page to show correct value in UI
+    setLocalTable((computedSelected as any)?.source_table_name ?? "");
+    setLocalTextColumn((computedSelected as any)?.text_column ?? "");
+    setLocalColumnFilter((computedSelected as any)?.column_filter ?? "");
+    // No need to call handleUpdateShape here, just update UI state
   }, [computedSelected?.id]);
 
   useEffect(() => {
     if (!computedSelected?.id) return;
+
+    console.log(computedSelected, "computedSelected");
 
     setLocalTable((computedSelected as any)?.source_table_name ?? "");
     setLocalTextColumn((computedSelected as any)?.text_column ?? "");

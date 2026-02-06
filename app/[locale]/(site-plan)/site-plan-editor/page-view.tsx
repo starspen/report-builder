@@ -700,6 +700,11 @@ const Editor = () => {
             fontSize: item.font_size ? Number(item.font_size) : 14,
             image_src: item.image_src || "",
             tables: item.tables || [],
+            // Ensure these fields are set for sidebar
+            category: item.group_type || "default",
+            position: item.position || "absolute",
+            repeating: item.repeating || "N",
+            repeating_per_page: item.repeating_per_page || "N",
           };
           if (shape.type === "table" && Array.isArray(item.tables)) {
             shape.labels = item.tables.map((t: any, idx: number) => ({
