@@ -88,7 +88,6 @@ interface RightSideBarProps {
   setSelectedFont?: React.Dispatch<React.SetStateAction<FontFamily[]>>;
   rightSidebarOpen: boolean;
   setRightSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  tableDataDB: any[];
   companyCode: string;
   projectCode: string;
   isLocked: boolean;
@@ -112,7 +111,6 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
   menuItems,
   rightSidebarOpen,
   setRightSidebarOpen,
-  tableDataDB,
   projectCode,
   isLocked,
   setIsLocked,

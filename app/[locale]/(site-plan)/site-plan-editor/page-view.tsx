@@ -41,12 +41,17 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { FontFamily } from "./paper-size";
-import { createReport } from "@/action/create-report";
+import {
+  createNewCompany,
+  CreateNewCompanyPayload,
+  createNewTemplate,
+  CreateNewTemplatePayload,
+  createReport,
+} from "@/action/create-report";
 import { getTemplateList } from "@/action/get-template-list";
 import { getPaperByDocument } from "@/action/get-paper";
 import { PageItem, SavePaper, savePaper } from "@/action/save-paper";
 import { getCompany, getDocumentId } from "@/action/get-company";
-import { getTableData } from "@/action/get-table-data";
 import {
   LabelPatch,
   TableCell,
@@ -116,6 +121,8 @@ const Editor = () => {
   const [entityCode, setEntityCode] = useState<string>("");
   const [selectedEntity, setSelectedEntity] = useState<any | null>(null);
 
+  console.log(selectedEntity, "selectedEntity");
+
   const [projectCode, setProjectCode] = useState<string>("");
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
 
@@ -164,7 +171,10 @@ const Editor = () => {
   ]);
 
   const [isCreatingNewSiteplan, setIsCreatingNewSiteplan] = useState(false);
+  const [isCreatingNewCompany, setIsCreatingNewCompany] = useState(false);
+
   const [siteplanName, setSiteplanName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [menuItemsHistory, setMenuItemsHistory] = useState<
     ArtboardMenuItem[][]
   >([]);
@@ -176,6 +186,9 @@ const Editor = () => {
   const [activeArtboardHistory, setActiveArtboardHistory] = useState<string[]>(
     [],
   );
+
+  const [templateDocumentId, setTemplateDocumentId] = useState<string>("");
+  const [companyCdTemplate, setCompanyCdTemplate] = useState<string>("");
 
   const [initialMenuItems, setInitialMenuItems] = useState<ArtboardMenuItem[]>(
     [],
@@ -430,6 +443,41 @@ const Editor = () => {
     mutationFn: createReport,
   });
 
+  const randomDocumentId = `${entityCode}-${projectCode}-${Math.floor(
+    Math.random() * 1000,
+  )}`;
+
+  const mutationCompany = useMutation({
+    mutationFn: async (payloadCompany: CreateNewCompanyPayload) =>
+      await createNewCompany(payloadCompany),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myData"] });
+      console.log("Successfully updated!");
+      alert("successfully created new company");
+      setIsCreatingNewCompany(false);
+    },
+    onError: (error) => {
+      console.error("Error occurred:", error.message);
+    },
+  });
+
+  const mutationTemplate = useMutation({
+    mutationFn: async (payloadTemplate: CreateNewTemplatePayload) =>
+      await createNewTemplate(payloadTemplate),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myDataTemplate"] });
+      console.log("Successfully updated!");
+      alert("successfully created new template");
+      setIsCreatingNewSiteplan(false);
+      router.push(
+        `/en/site-plan-editor?document_id=${templateDocumentId}&company_cd=${companyCdTemplate}`,
+      );
+    },
+    onError: (error) => {
+      console.error("Error occurred:", error.message);
+    },
+  });
+
   const searchParams = useSearchParams();
   const masterplanId = searchParams?.get("document_id");
 
@@ -451,43 +499,28 @@ const Editor = () => {
 
   const company_cd = searchParams?.get("company_cd") ?? "";
 
-  const {
-    data: tableDataDB,
-    isLoading: isLoadingCompanyCd,
-    isError: isErrorCompanyCd,
-  } = useQuery({
-    queryKey: ["company_cd", company_cd],
-    queryFn: () => getTableData(company_cd),
-  });
+  const handleCreateNewCompany = () => {
+    const payloadCompany = {
+      company_name: companyName,
+    };
 
-  const handleCreateNewSiteplan = () => {
-    if (!entityCode || !projectCode || !siteplanName) {
-      console.warn("Mohon lengkapi entity, project, dan siteplan name.");
-      return;
-    }
+    console.log("payloadCompany:", payloadCompany);
 
-    const randomDocumentId = `${entityCode}-${projectCode}-${Math.floor(
-      Math.random() * 1000,
-    )}`;
+    mutationCompany.mutate(payloadCompany);
+  };
 
-    mutate(
-      {
-        company_cd: "abc",
-        entity_cd: entityCode,
-        project_no: projectCode,
-        name: siteplanName,
-        audit_user: auditUser,
-        document_id: randomDocumentId,
-      },
-      {
-        onSuccess: () => {
-          router.push(`/en/site-plan-editor?document_id=${randomDocumentId}`);
-        },
-        onError: (err) => {
-          console.error("Gagal create masterplan:", err);
-        },
-      },
-    );
+  const handleCreateNewTemplate = () => {
+    const payloadTemplate = {
+      company_cd: selectedEntity?.company_cd || "UNKNOWN",
+      document_id: randomDocumentId,
+      name: siteplanName,
+    };
+
+    console.log("payloadTemplate:", payloadTemplate);
+
+    mutationTemplate.mutate(payloadTemplate);
+    setTemplateDocumentId(payloadTemplate.name);
+    setCompanyCdTemplate(payloadTemplate.company_cd);
   };
 
   const handleUndo = () => {
@@ -830,7 +863,7 @@ const Editor = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [historyIndex, menuItemsHistory, artboardShapesHistory]);
 
-  if (!isEditorMode && !isCreatingNewSiteplan) {
+  if (!isEditorMode && !isCreatingNewSiteplan && !isCreatingNewCompany) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
         <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl shadow-lg">
@@ -838,24 +871,32 @@ const Editor = () => {
             Select Entity & Project
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Entity Selector */}
-            <BasicCombobox
-              options={
-                company?.map((e: any) => ({
-                  label: e.company_name,
-                  value: e.company_cd,
-                })) || []
-              }
-              placeholder="Select Company"
-              value={entityCode}
-              onChange={(val) => {
-                setEntityCode(val);
-                const found = company?.find((e: any) => e.company_cd === val);
-                setSelectedEntity(found || null);
-                setProjectCode(""); // reset projectCode saat entity berubah
-                setSelectedProject(null);
-              }}
-            />
+            <div className="flex gap-2 ">
+              {/* Entity Selector */}
+              <BasicCombobox
+                options={
+                  company?.map((e: any) => ({
+                    label: e.company_name,
+                    value: e.company_cd,
+                  })) || []
+                }
+                placeholder="Select Company"
+                value={entityCode}
+                onChange={(val) => {
+                  setEntityCode(val);
+                  const found = company?.find((e: any) => e.company_cd === val);
+                  setSelectedEntity(found || null);
+                  setProjectCode(""); // reset projectCode saat entity berubah
+                  setSelectedProject(null);
+                }}
+              />
+              <Button
+                className="flex items-center justify-center w-1/8"
+                onClick={() => setIsCreatingNewCompany(true)}
+              >
+                Create New Company
+              </Button>
+            </div>
 
             {/* Project Selector */}
             {/* <BasicCombobox
@@ -910,7 +951,7 @@ const Editor = () => {
                 onClick={() => setIsCreatingNewSiteplan(true)}
                 disabled={!entityCode}
               >
-                Create New Siteplan
+                Create New Template
               </Button>
             </div>
 
@@ -965,22 +1006,19 @@ const Editor = () => {
       <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
         <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl shadow-lg">
           <CardHeader className="text-lg font-semibold text-center">
-            Create New Siteplan
+            Create New Template
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <div className="text-sm text-muted-foreground">
-                Entity: <strong>{selectedEntity?.entity_name || "-"}</strong>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Project: <strong>{selectedProject?.project_name || "-"}</strong>
+                Entity: <strong>{selectedEntity.company_name || "-"}</strong>
               </div>
 
               <input
                 type="text"
                 value={siteplanName}
                 onChange={(e) => setSiteplanName(e.target.value)}
-                placeholder="Siteplan Name"
+                placeholder="Template Name"
                 className="border rounded w-full px-3 py-2"
               />
             </div>
@@ -988,7 +1026,7 @@ const Editor = () => {
             <Button
               className="w-full"
               disabled={!siteplanName}
-              onClick={handleCreateNewSiteplan}
+              onClick={handleCreateNewTemplate}
             >
               Create & Go to Editor
             </Button>
@@ -996,6 +1034,44 @@ const Editor = () => {
             <Button
               className="w-full"
               onClick={() => setIsCreatingNewSiteplan(false)}
+            >
+              Back
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!isEditorMode && isCreatingNewCompany) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+        <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl shadow-lg">
+          <CardHeader className="text-lg font-semibold text-center">
+            Create New Company
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Company Name"
+                className="border rounded w-full px-3 py-2"
+              />
+            </div>
+
+            <Button
+              className="w-full"
+              disabled={!companyName}
+              onClick={handleCreateNewCompany}
+            >
+              Create Company
+            </Button>
+
+            <Button
+              className="w-full"
+              onClick={() => setIsCreatingNewCompany(false)}
             >
               Back
             </Button>
@@ -1106,7 +1182,6 @@ const Editor = () => {
                 menuItems={menuItems}
                 setRightSidebarOpen={setRightSidebarOpen}
                 rightSidebarOpen={rightSidebarOpen}
-                tableDataDB={tableDataDB}
                 companyCode={company_cd}
                 projectCode={projectCode}
                 isLocked={isLocked}
