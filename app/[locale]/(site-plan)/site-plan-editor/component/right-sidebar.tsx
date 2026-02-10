@@ -511,7 +511,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           value={computedSelected.fontSize ?? 14}
                           onChange={(e) => {
                             const v = parseFloat(e.target.value);
-                            if (!isNaN(v)) smartUpdate({ fontSize: v });
+                            applyPatch({ fontSize: v });
                           }}
                         />
                       </div>
@@ -525,7 +525,7 @@ const RightSideBar: React.FC<RightSideBarProps> = ({
                           }))}
                           placeholder="Select font"
                           value={computedSelected.fontFamily ?? "Arial"}
-                          onChange={(val) => smartUpdate({ fontFamily: val })}
+                          onChange={(val) => applyPatch({ fontFamily: val })}
                         />
                       </div>
                     </>
